@@ -6,13 +6,14 @@ The primary intention of this Minecraft modification was to improve the performa
 * Everything can be used everywhere and more than once: Even inside selctors it is possible to write commands and the result can also be labeled for multiple usages later in the command
 * The parsing is handled by a central unit to which arbitrary ways of parsing the command can be added - from simple Integers to fully customized parsers
 * Commands and selectors can easily be added using an intuitive chaining syntax, using predefined building blocks or completely new ones (as mentioned in the point above). It is also possible to register completely custom ones that would be too complex for this syntax, as it is the case with the Entity selector (since it requires dynamic parameter names for the `score_<name>` parameters)
-* Tab completion works everywhere and automatically: Everything the engine understands can be completed, no matter complex the command is, and all this with minimal to no effort. The completion engine even understands NBT-Tags and helps completing them
+* Tab completion works everywhere and automatically: Everything the engine understands can be completed, no matter how complex the command is, and all this with minimal to no effort. The completion engine even understands NBT-Tags and helps completing them. It is also processed asynchronously (except some thread-critical sections acquiring data from the main thread)
 
 ##MCP and Minecraft version
 NewCommands is built on Minecraft 1.8 using MCP 9.10.
 To compile, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt)
 
 **Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272)) - direct execution using the `startclient.bat` files is still possible
+
 To fix them the following steps are required:
 * Delete the files `pd.class`, `pe.class` (only server), `pf.class` and `pg.class` form the `reobf`-folder
 * Copy `net/minecraft/server/MinecraftServer$4.class` from `temp/client_reobf.jar` to `reobf/minecraft/net/minecraft/server/` 
@@ -32,7 +33,8 @@ Commands of the form above can be chained and grouped, allowing for multiple com
 //or even
 (<command1>; <command2>), ((<command3>, <command4>); ...)
 ```
-The difference between `,` and `;` is quite simple: While the `,` just stops execution (of the current scope), the `;` ignores any errors of the (one) preceeding command
+The difference between `,` and `;` is quite simple: While the `,` prevents further execution (of the current scope) when encountering an error, the `;` ignores any errors of the (one) preceeding command
+
 Parentheses are used to group commands: The whole construct can be used anywhere a single command could be. For chaining purposes, the whole group counts as single command (especially for the `,` and `;`)
 
 ###Selectors
@@ -46,7 +48,7 @@ Conversions from one data type to another are performed automatically if necessa
 
 We plan to greatly expand the number of available selectors: While the existing ones are of course planned (not yet implemented), there will be several new ones:
 * `@s`: Self-selector - returns currently executing entity/command block (already implemented)
-* `@t`: Timing selector - while more a proof of concept, this selector takes a complete command as argument and returns the execution (without compilation) time in microseconds
+* `@t`: Timing selector - while more a proof of concept, this selector takes a complete command as argument and returns the execution- (without compilation-) time in microseconds
 * `@c`: Calculation selector: Allows the user to perform arbitrary calculations (not yet implemented)
 * `@...`: Selectors to access scores and even NBT data of any entity/block (effectively allowing things like copying entities or even blocks into falling-sand entities)
 
@@ -62,15 +64,15 @@ Summons an array of 400 TNT 50 blocks above and outputs the time taken to do so.
 
 ##Code model
 There are only a few basic structures:
-* CommandArg: The basic element that represents the result of one unit, most importantly they are passed to commands/selctors instead of plain Strings (it gets the `ICommandSender`for evaluation`)
-* TypeID: Represents a type like Integer, String or EntityList, knows and handles the conversions of CommandArgs to CommandArgs returning data of other types (again described by a TypeID)
-* ArgWrapper: Combines the CommandArg and TypeID into one unit and allows for type-safe conversion
-* IDataType, IParse, IComplete, ...: Interfaces and classes that describe the capabilities of a parsing unit and handle necessary wrappers for completion
-* CommandDescriptor: As the name suggests, this describes a command. It knows a list of IDataTypes (in some way, a IDataType is a TypeID with an associated parser and completion) as arguments and a list of subcommands (again CommandDescriptors) identified by keywords. Also provides a construct-method that is called by the central parser once all the necessary data are acquired and provides usage description and an IPermisson instance to handle execution permissons
-* SelectorDescriptor: Similary to the CommandDescriptor knows a list of parameters (optionally identified by a name) that it can handle (as in the current syntax, unnamed parameters can be written before other parameters as shorthand notation) with the associated IDataTypes.
+* `CommandArg`: The basic element that represents the result of one unit, most importantly they are passed to commands/selctors instead of plain Strings (it gets the `ICommandSender`for evaluation)
+* `TypeID`: Represents a type like Integer, String or EntityList, knows and handles the conversions of `CommandArg`s to `CommandArg`s returning data of other types (again described by a `TypeID`)
+* `ArgWrapper`: Combines the `CommandArg` and `TypeID` into one unit and allows for type-safe conversion
+* `IDataType`, `IParse`, `IComplete`, ...: Interfaces and classes that describe the capabilities of a parsing unit and handle necessary wrappers for completion
+* `CommandDescriptor`: As the name suggests, this describes a command. It knows a list of `IDataType`s (in some way, a `IDataType` is a `TypeID` with an associated parser and completion) as arguments and a list of subcommands (again `CommandDescriptor`s) identified by keywords. Also provides a construct-method that is called by the central parser once all the necessary data are acquired and provides usage description and an `IPermisson` instance to handle execution permissons
+* `SelectorDescriptor`: Similary to the `CommandDescriptor` knows a list of parameters (optionally identified by a name) that it can handle (as in the current syntax, unnamed parameters can be written before other parameters as shorthand notation) with the associated `IDataTypes`.
 
 #Registration examples
-The following example is the complete code required to register the `summon`-command (the necessary IDataTypes are part of the default set)
+The following example is the complete code required to register the `summon`-command (the necessary `IDataType`s are part of the default set)
 ```java
 CommandDescriptor.registerCommand(
 	new CommandConstructorU(IPermission.PermissionLevel2, "commands.summon.usage", "summon")
@@ -102,7 +104,7 @@ This one registers the timing-selector:
 ```java
 SelectorDescriptor.registerSelector("t",
 	new SelectorConstructor(TypeIDs.Integer)
-	  .then("cmd", TypeCommand.parserSingleCmd)
+		.then("cmd", TypeCommand.parserSingleCmd)
 		.construct(SelectorTiming.constructable));
 		
 //----SelectorTiming.java----
