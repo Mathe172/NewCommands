@@ -11,7 +11,7 @@ The primary intention of this Minecraft modification was to improve the performa
 
 ##MCP and Minecraft version
 NewCommands is built on Minecraft 1.8 using MCP 9.10.
-To compile, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt)
+To compile use both `Common/src/` and `Client/src/`/`Server/src/`, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt)
 
 **Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272)) - direct execution using the `startclient.bat` files is still possible
 
