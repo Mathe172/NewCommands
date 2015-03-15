@@ -66,11 +66,11 @@ Summons an array of 400 TNT 50 blocks above and outputs the time taken to do so 
 ##Code model
 There are only a few basic structures:
 * `CommandArg`: The basic element that represents the result of one unit, most importantly they are passed to commands/selctors instead of plain Strings (it gets the `ICommandSender`for evaluation)
-* `TypeID`: Represents a type like Integer, String or EntityList, knows and handles the conversions of `CommandArg`s to `CommandArg`s returning data of other types (again described by a `TypeID`)
+* `TypeID`: Represents a type like Integer, String or EntityList, knows and handles the conversions of `CommandArg's` to `CommandArg's` returning data of other types (again described by a `TypeID`)
 * `ArgWrapper`: Combines the `CommandArg` and `TypeID` into one unit and allows for type-safe conversion
 * `IDataType`, `IParse`, `IComplete`, ...: Interfaces and classes that describe the capabilities of a parsing unit and handle necessary wrappers for completion
-* `CommandDescriptor`: As the name suggests, this describes a command. It knows a list of `IDataType`s (in some way, a `IDataType` is a `TypeID` with an associated parser and completion) as arguments and a list of subcommands (again `CommandDescriptor`s) identified by keywords. Also provides a construct-method that is called by the central parser once all the necessary data are acquired and provides usage description and an `IPermisson` instance to handle execution permissons
-* `SelectorDescriptor`: Similary to the `CommandDescriptor` knows a list of parameters (optionally identified by a name) that it can handle (as in the current syntax, unnamed parameters can be written before other parameters as shorthand notation) with the associated `IDataTypes`.
+* `CommandDescriptor`: As the name suggests, this describes a command. It knows a list of `IDataType's` (in some way, a `IDataType` is a `TypeID` with an associated parser and completion) as arguments and a list of subcommands (again `CommandDescriptor's`) identified by keywords. Also provides a construct-method that is called by the central parser once all the necessary data are acquired and provides usage description and an `IPermisson` instance to handle execution permissons
+* `SelectorDescriptor`: Similary to the `CommandDescriptor` knows a list of parameters (optionally identified by a name) that it can handle (as in the current syntax, unnamed parameters can be written before other parameters as shorthand notation) with the associated `IDataType's`.
 
 #Registration examples
 The following example is the complete code required to register the `summon`-command (the necessary `IDataType`s are part of the default set)
