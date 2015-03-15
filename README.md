@@ -73,7 +73,7 @@ There are only a few basic structures:
 * `SelectorDescriptor`: Similary to the `CommandDescriptor` knows a list of parameters (optionally identified by a name) that it can handle (as in the current syntax, unnamed parameters can be written before other parameters as shorthand notation) with the associated `IDataType's`.
 
 #Registration examples
-The following example is the complete code required to register the `summon`-command (the necessary `IDataType`s are part of the default set)
+The following example is the complete code required to register the `summon`-command (the necessary `IDataType's` are part of the default set)
 ```java
 CommandDescriptor.registerCommand(
 	new CommandConstructorU(IPermission.PermissionLevel2, "commands.summon.usage", "summon")
