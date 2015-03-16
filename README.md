@@ -6,7 +6,7 @@ The primary intention of this Minecraft modification was to improve the performa
 * Everything can be used everywhere and more than once: Even inside selctors it is possible to write commands and the result can also be labeled for multiple usages later in the command
 * The parsing is handled by a central unit to which arbitrary ways of parsing the command can be added - from simple Integers to fully customized parsers
 * Commands and selectors can easily be added using an intuitive chaining syntax, using predefined building blocks or completely new ones (as mentioned in the point above). It is also possible to register completely custom ones that would be too complex for this syntax, as it is the case with the Entity selector (since it requires dynamic parameter names for the `score_<name>` parameters)
-* Tab completion works everywhere and automatically: Everything the engine understands can be completed, no matter how complex the command is, and all this with minimal to no effort. The completion engine even understands NBT-Tags and helps completing them. It is also processed asynchronously (except some thread-critical sections acquiring data from the main thread)
+* Tab completion works everywhere and automatically: Everything the engine understands can be completed (and additionaly abbreviations (see below for examples)), no matter how complex the command is, and all this with minimal to no effort. The completion engine even understands NBT-Tags and helps completing them. It is also processed asynchronously (except some thread-critical sections acquiring data from the main thread)
 * Extremely modular: There is no difference between commands and other types (except that one is called by default) meaning they can be used everywhere interchangeably.
 
 ##MCP and Minecraft version
@@ -65,6 +65,17 @@ Summons 4 (end index is exclusive) Blazes on top of each other, named 'Blaze #1'
 @t[cmd=(for x -10 10 for y -10 10 summon PrimedTnt ~$x ~50 ~$y),label=timeTaken] say The execution took $timeTaken microseconds
 ```
 Summons an array of 400 TNT 50 blocks above and outputs the time taken to do so (this only takes ~8ms! despite the huge amount of entities created). Notes: The `cmd=` can also be omitted; The parentheses are necessary since the for command would otherwise try to interpret `label=timeTaken` as chained command (the selector only expects a single command by default, more have to be grouped using parentheses). This behaviour might change for the `for`-command
+
+###Tab completion
+As mentioned, tab completion understands abbreviations: (`|` is the cursor)
+```
+/scr| -> /scoreboard|
+/scr|brd -> /scoreboard|
+/say @t| -> /say @t[|]
+/summon PrimedTnt ~ ~ ~ {Custom|} -> /summon PrimentTnt ~ ~ ~ {CustomName:|} AND ... {CustomNameVisible:|}
+```
+
+As can be seen, even the cursor position is set appropriately after choosing a completion (also, neccessary characters like `:` are added). To iterate through the possible completions, `TAB` iterates forward, `SHIFT+TAB` backwards and holding down `CTRL` always starts a new completion (and finishes the current one by choosing the current item). Note that the first character (or nothing at all) has to be present for a completion to be proposed. So `/crbrd|` will not be completed (but `/|crbrd` will be, since nothing at all is before the cursor)
 
 ##Code model
 There are only a few basic structures:
