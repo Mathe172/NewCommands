@@ -1,17 +1,9 @@
 #REMOVE all files in net/minecraft/command/ EXCEPT the ones listed below
 
-server/CommandBlockLogic.java
-CommandBase.java
 CommandException.java
-CommandHandler.java
-CommandResultStats.java
 EntityNotFoundException.java
-IAdminCommand.java
-ICommandManager.java
-ICommandSender.java
 IEntitySelector.java
 NumberInvalidException.java
 PlayerNotFoundException.java
-ServerCommandManager.java
 SyntaxErrorException.java
 WrongUsageException.java
