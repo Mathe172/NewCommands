@@ -56,7 +56,7 @@ $<label-name>
 ```
 Conversions from one data type to another are performed automatically if necessary (and possible) - this means a selector/label returning a list of entities can be also be used as a text component or anything else that is compatible (multiple different uses of one label are also possible)
 
-We plan to greatly expand the number of available selectors: There a of course the current selectors, but also a wide range of new ones:
+We plan to greatly expand the number of available selectors: There are of course the current selectors, but also a wide range of new ones:
 * `@s`: Self-selector - returns currently executing entity/command block
 * `@p,@a,@r,@e`: The current entity selectors. Nearly the same as before, except: `xyz=` as shorthand for all coordinates, useful when using the result of other selectors, `nbt=`: self explaining. Also, `team,name,type` accept lists when written in parentheses (`type=!(Player,Snowball)` for example)
 * `@o`: Captures a score objective (when using the same objectvie multiple times, this is much more efficient)
@@ -66,10 +66,10 @@ We plan to greatly expand the number of available selectors: There a of course t
 * `@c`: Calculation selector: Allows the user to perform arbitrary calculations. Because of technical limitations, the selector uses prefix notation (`+ 1 2` instead of `1 + 2`) A list of operators can be found below
 
 ###Operators (for calculation selector)
-* `+,-,*`: the standard operators (note that for `-1`, `- 0 1` has to be written (or `-0 1` as shorthand))
+* `+,-,*`: the standard operators (note that for `-$arg`, `- 0 $arg` has to be written (or `-0 $arg` as shorthand))
 * `sq,sqrt`: square and squareroot operator
 * `x,y,z,rx,ry`: returns a specific coordinate (or pitch/yaw) of an entity
-* `pos`: returns the position of an entity (perfect for use with the entity selector, for example `@e[xyz=@c[pos @e[name=some_entity],c=1]`
+* `pos`: returns the position of an entity (perfect for use with the entity selector, for example `@e[xyz=@c[pos @e[name=some_entity]],c=1]`
 * `i,s,e`: converters for integer, string and entity (the `@s` selector does not return an entity. If the entity is used multiple times, this can be used to capture the converted version)
 * `sin,cos`: sine and cosine functions
 
