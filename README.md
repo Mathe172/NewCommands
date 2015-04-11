@@ -18,7 +18,7 @@ The primary intention of this Minecraft modification was to improve the performa
 ##MCP and Minecraft version
 NewCommands is built on Minecraft 1.8 using MCP 9.10.
 
-To try it out, just copy the files from the `bin`-folder into the jar and launch
+**To try it out, just copy the files from the `bin`-folder into the jar and launch and delete the META-INF folder in the client jar**
 
 To compile, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt). AFTERWARDS copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
 
