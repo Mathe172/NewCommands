@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IPermission;
 import net.minecraft.command.arg.ArgWrapper;
@@ -46,6 +47,8 @@ public class CommandOp extends CommandBase
 		
 		server.getConfigurationManager().addOp(profile);
 		this.notifyOperators(sender, "commands.op.success", new Object[] { name });
+		
+		sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, 1);
 		
 		return 1;
 	}

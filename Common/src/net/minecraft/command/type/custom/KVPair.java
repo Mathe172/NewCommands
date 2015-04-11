@@ -3,6 +3,7 @@ package net.minecraft.command.type.custom;
 import java.util.regex.Matcher;
 
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
@@ -11,18 +12,19 @@ import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.ExCustomCompletable;
+import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 
-public class KVPair extends ExCustomCompletable<Void, ParserSelectorContent.ParserData>
+public class KVPair<D extends ParserData> extends ExCustomCompletable<Void, D>
 {
-	private final SelectorDescriptor descriptor;
+	private final SelectorDescriptor<D> descriptor;
 	
-	public KVPair(final SelectorDescriptor descriptor)
+	public KVPair(final SelectorDescriptor<D> descriptor)
 	{
 		this.descriptor = descriptor;
 	}
 	
 	@Override
-	public Void iParse(final Parser parser, final ParserSelectorContent.ParserData data) throws SyntaxErrorException, CompletionException
+	public Void iParse(final Parser parser, final D data) throws SyntaxErrorException, CompletionException
 	{
 		final Matcher m = parser.aKeyMatcher;
 		
@@ -58,16 +60,14 @@ public class KVPair extends ExCustomCompletable<Void, ParserSelectorContent.Pars
 		return null;
 	}
 	
-	private static final TabCompletion labelCompletion = new TabCompletion("label=", "label");
+	private static final ITabCompletion labelCompletion = new TabCompletion("label=", "label");
 	
 	@Override
-	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final ParserSelectorContent.ParserData data)
+	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final D data)
 	{
-		for (final TabCompletion tc : this.descriptor.getKeyCompletions())
-			if (!data.namedParams.containsKey(tc.name.toLowerCase()))
-				TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, tc);
+		this.descriptor.complete(tcDataSet, parser, startIndex, cData, data);
 		
 		if (data.label == null)
-			TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, labelCompletion);
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, labelCompletion);
 	}
 }

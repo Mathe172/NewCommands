@@ -1,7 +1,9 @@
 package net.minecraft.command.arg;
 
+import net.minecraft.command.CommandException;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.type.TypeID;
+import net.minecraft.command.type.management.Convertable;
+import net.minecraft.command.type.management.TypeID;
 
 public class ArgWrapper<R>
 {
@@ -38,19 +40,18 @@ public class ArgWrapper<R>
 		return wrapper.get(type);
 	}
 	
-	// Checked...
-	@SuppressWarnings("unchecked")
-	public <T> ArgWrapper<T> convertTo(final TypeID<T> target) throws SyntaxErrorException
+	public final <T, E extends CommandException> T convertTo(final Convertable<?, T, E> target) throws E, SyntaxErrorException
 	{
-		if (target == this.type)
-			return (ArgWrapper<T>) this;
-		
-		return new ArgWrapper<T>(target, this.type.convertTo(this.arg, target));
+		return target.convertFrom(this);
+	}
+	
+	public final <T, E extends CommandException> T iConvertTo(final Convertable<T, ?, E> target) throws E, SyntaxErrorException
+	{
+		return this.type.convertTo(this.arg, target);
 	}
 	
 	public ArgWrapper<R> cachedWrapper()
 	{
-		return new ArgWrapper<>(this.type, this.arg.cached());
+		return this.type.wrap(this.arg.cached());
 	}
-	
 }

@@ -24,7 +24,6 @@ import net.minecraft.world.World;
 
 public class CommandSummon extends CommandBase
 {
-	
 	private final CommandArg<Vec3> coords;
 	private final CommandArg<String> name;
 	private final CommandArg<NBTTagCompound> tag;

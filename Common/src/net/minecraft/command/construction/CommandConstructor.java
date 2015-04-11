@@ -14,7 +14,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class CommandConstructor
 {
-	protected final Set<String> names = new HashSet<>();
+	protected final Set<String> names;
 	
 	protected final List<IDataType<?>> args = new ArrayList<>();
 	
@@ -27,9 +27,12 @@ public class CommandConstructor
 		this(null, name, aliases);
 	}
 	
-	public CommandConstructor(IPermission permission, final String name, final String... aliases)
+	public CommandConstructor(final IPermission permission, final String name, final String... aliases)
 	{
 		this.permission = permission;
+		
+		this.names = new HashSet<>(1 + aliases.length);
+		
 		this.names.add(name);
 		
 		for (final String alias : aliases)

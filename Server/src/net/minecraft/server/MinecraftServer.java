@@ -31,8 +31,9 @@ import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
-import net.minecraft.command.completion.TabCompletion;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
+import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.parser.ParsingManager;
@@ -1146,7 +1147,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 				@Override
 				public void run()
 				{
-					Parser.parseCompletion(toComplete, new CompletionData(packet.getCursorIndex(), handler.playerEntity, packet.func_179709_b()), 1).sendPacket(handler);
+					Parser.parseCompletion(new CompletionData(toComplete, packet.getCursorIndex(), handler.playerEntity, packet.func_179709_b()), 1).sendPacket(handler);
 				}
 			});
 		}
@@ -1160,13 +1161,13 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 				@Override
 				public void run()
 				{
-					final Set<TabCompletion> completions = MinecraftServer.this.serverConfigManager.playerCompletions;
-					final Set<TabCompletionData> tcDataSet = new TreeSet<>();
+					final Set<ITabCompletion> completions = MinecraftServer.this.serverConfigManager.playerCompletions;
+					final Set<Weighted> tcDataSet = new TreeSet<>();
 					
-					final CompletionData cData = new CompletionData(cursorIndex, handler.playerEntity, null);
+					final CompletionData cData = new CompletionData(toComplete, cursorIndex, handler.playerEntity, null);
 					
-					for (final TabCompletion tc : completions)
-						TabCompletionData.addToSet(tcDataSet, toComplete, startIndex, cData, tc);
+					for (final ITabCompletion tc : completions)
+						TabCompletionData.addToSet(tcDataSet, startIndex, cData, tc);
 					
 					handler.sendPacket(new S3APacketTabComplete(tcDataSet));
 				}

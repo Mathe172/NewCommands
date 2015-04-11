@@ -22,15 +22,15 @@ public class CommandHandler implements ICommandManager
 			return command.eval(sender);
 		} catch (final CommandException e)
 		{
-			final ChatComponentTranslation errorMsg = new ChatComponentTranslation(e.getMessage());
+			final ChatComponentTranslation errorMsg = new ChatComponentTranslation(e.getMessage(), e.getErrorOjbects());
 			errorMsg.getChatStyle().setColor(EnumChatFormatting.RED);
 			sender.addChatMessage(errorMsg);
-		} catch (final Throwable var9)
+		} catch (final Throwable t)
 		{
-			final ChatComponentTranslation errorMsg = new ChatComponentTranslation("commands.generic.exception", new Object[0]);
+			final ChatComponentTranslation errorMsg = new ChatComponentTranslation("commands.generic.exception");
 			errorMsg.getChatStyle().setColor(EnumChatFormatting.RED);
 			sender.addChatMessage(errorMsg);
-			logger.error("Couldn\'t process command: \'" + command + "\'", var9);
+			logger.error("Couldn\'t process command: \'" + command + "\'", t);
 		}
 		return 0;
 	}

@@ -11,12 +11,16 @@ public class CompletionParser extends Parser
 {
 	public static class CompletionData
 	{
+		public final String toMatch;
+		public final String lowerToMatch;
 		public final int cursorIndex;
 		public final ICommandSender sender;
 		public final BlockPos hovered;
 		
-		public CompletionData(final int cursorIndex, final ICommandSender sender, final BlockPos hovered)
+		public CompletionData(final String toMatch, final int cursorIndex, final ICommandSender sender, final BlockPos hovered)
 		{
+			this.toMatch = toMatch;
+			this.lowerToMatch = toMatch.toLowerCase();
 			this.cursorIndex = cursorIndex;
 			this.sender = sender;
 			this.hovered = hovered;

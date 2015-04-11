@@ -203,7 +203,7 @@ public class CommandResultStats
 		@SuppressWarnings("unused")
 		private static final String __OBFID = "CL_00002363";
 		
-		private Type(final String p_i46050_1_, final int p_i46050_2_, final int statID, final String name)
+		private Type(@SuppressWarnings("unused") final String p_i46050_1_, @SuppressWarnings("unused") final int p_i46050_2_, final int statID, final String name)
 		{
 			this.field_179639_f = statID;
 			this.field_179640_g = name;

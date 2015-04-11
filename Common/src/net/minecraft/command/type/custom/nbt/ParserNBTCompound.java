@@ -85,6 +85,14 @@ public class ParserNBTCompound
 		
 		while (true)
 		{
+			if (parser.findInc(m)) // Because {Name:Value,} is valid... (or at least the output of NBTTagCompound.toString)
+			{
+				if ("}".equals(m.group(1)))
+					return;
+				
+				throw parser.SEE("Unexpected '" + m.group(1) + "' around index ");
+			}
+			
 			pair.parse(parser, data);
 			
 			if (!parser.findInc(m))

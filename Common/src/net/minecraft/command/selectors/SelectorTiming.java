@@ -1,25 +1,25 @@
 package net.minecraft.command.selectors;
 
-import java.util.List;
-import java.util.Map;
-
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.construction.SelectorConstructable;
-import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 
 public class SelectorTiming extends CommandArg<Integer>
 {
 	public static final SelectorConstructable constructable = new SelectorConstructable()
 	{
 		@Override
-		public ArgWrapper<Integer> construct(final List<ArgWrapper<?>> unnamedParams, final Map<String, ArgWrapper<?>> namedParams) throws SyntaxErrorException
+		public ArgWrapper<Integer> construct(final ParserData parserData) throws SyntaxErrorException
 		{
-			return new ArgWrapper<>(TypeIDs.Integer, new SelectorTiming(SelectorDescriptor.getRequiredParam(TypeIDs.Integer, 0, "cmd", unnamedParams, namedParams)));
+			return TypeIDs.Integer.wrap(
+				new SelectorTiming(
+					ParsingUtilities.getRequiredParam(TypeIDs.Integer, 0, "cmd", parserData)));
 		}
 		
 	};

@@ -5,16 +5,15 @@ import net.minecraft.command.ICommandSender;
 
 public class PrimitiveParameter<T> extends CommandArg<T>
 {
+	public final T value;
 	
-	protected final T value;
-	
-	public PrimitiveParameter(T value)
+	public PrimitiveParameter(final T value)
 	{
 		this.value = value;
 	}
 	
 	@Override
-	public T eval(ICommandSender sender) throws CommandException
+	public final T eval(final ICommandSender sender) throws CommandException
 	{
 		return this.value;
 	}

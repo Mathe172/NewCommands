@@ -92,4 +92,9 @@ public class SnapMap<K, V> implements Iterable<Entry<K, V>>
 			}
 		};
 	}
+	
+	public int size()
+	{
+		return this.map.size();
+	}
 }

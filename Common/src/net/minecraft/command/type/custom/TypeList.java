@@ -8,19 +8,20 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CTypeCompletable;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.TypeID;
+import net.minecraft.command.type.management.TypeID;
 
 public class TypeList<T> extends CTypeCompletable<List<T>>
 {
@@ -36,12 +37,12 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 	}
 	
 	@Override
-	public ArgWrapper<List<T>> iParse(final Parser parser) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
 		if (!parser.findInc(parser.oParenthMatcher))
 		{
 			final CommandArg<T> item = this.dataType.parse(parser).arg;
-			return new ArgWrapper<List<T>>(this.type, new CommandArg<List<T>>()
+			return this.type.wrap(new CommandArg<List<T>>()
 			{
 				@Override
 				public List<T> eval(final ICommandSender sender) throws CommandException
@@ -64,7 +65,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 				throw parser.SEE("Expected ',' or ')' around index ");
 			
 			if (")".equals(m.group(1)))
-				return new ArgWrapper<>(this.type, new CommandArg<List<T>>()
+				return this.type.wrap(new CommandArg<List<T>>()
 				{
 					@Override
 					public List<T> eval(final ICommandSender sender) throws CommandException
@@ -79,38 +80,56 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 		}
 	}
 	
-	public static final TabCompletion parenthCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)(\\(\\)?+)?+\\z"), "()", "()")
+	public static final ITabCompletion parenthCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\(?+"), "()", "()")
 	{
 		@Override
-		public final int getCursorOffset(final Matcher m, final CompletionData cData)
+		public boolean complexFit()
+		{
+			return false;
+		}
+		
+		@Override
+		public int getCursorOffset(final Matcher m, final CompletionData cData)
 		{
 			return -1;
 		};
+		
+		@Override
+		public double weightOffset(final Matcher m, final CompletionData cData)
+		{
+			return -1.0;
+		}
+		
+		@Override
+		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
+		{
+			return false;
+		}
 	};
 	
 	@Override
 	public final void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, parenthCompletion);
+		TabCompletionData.addToSet(tcDataSet, startIndex, cData, parenthCompletion);
 	}
 	
 	public static class GParsed<T> extends TypeList<T>
 	{
 		
-		public GParsed(TypeID<List<T>> type, IDataType<ArgWrapper<T>> dataType)
+		public GParsed(final TypeID<List<T>> type, final IDataType<ArgWrapper<T>> dataType)
 		{
 			super(type, dataType);
 		}
 		
 		@Override
-		public final ArgWrapper<List<T>> iParse(Parser parser) throws SyntaxErrorException, CompletionException
+		public final ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 		{
-			final ArgWrapper<List<T>> ret = ParsingUtilities.generalParse(parser, this.type);
+			final ArgWrapper<List<T>> ret = context.generalParse(parser, this.type);
 			
 			if (ret != null)
 				return ret;
 			
-			return super.iParse(parser);
+			return super.iParse(parser, context);
 		}
 	}
 }

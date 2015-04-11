@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.TabCompletion;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -47,9 +47,9 @@ public class NBTPair extends ExCustomCompletable<Void, CompoundData>
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final CompoundData parserData)
 	{
-		for (final TabCompletion tc : this.descriptor.getKeyCompletions())
+		for (final ITabCompletion tc : this.descriptor.getKeyCompletions())
 			if (!parserData.containsKey(tc.name))
-				TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, tc);
+				TabCompletionData.addToSet(tcDataSet, startIndex, cData, tc);
 	}
 	
 }

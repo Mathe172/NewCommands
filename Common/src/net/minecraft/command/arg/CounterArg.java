@@ -30,7 +30,7 @@ public class CounterArg extends CommandArg<Integer> implements Processable
 	
 	public boolean endNotReached()
 	{
-		return this.index < this.end;
+		return this.index <= this.end;
 	}
 	
 	@Override

@@ -11,15 +11,15 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.construction.NBTConstructor;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IComplete;
-import net.minecraft.command.type.TypeID;
 import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.type.management.TypeID;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagDouble;
@@ -34,13 +34,31 @@ public class NBTUtilities
 	
 	private static Set<TypeID<? extends Number>> primitiveTypes = new HashSet<TypeID<? extends Number>>(Arrays.asList(TypeIDs.Byte, TypeIDs.Short, TypeIDs.Integer, TypeIDs.Long, TypeIDs.Float, TypeIDs.Double));
 	
-	public static final TabCompletion braceCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)(\\{\\}?+)?+\\z"), "{}", "{}")
+	public static final ITabCompletion braceCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\{?+"), "{}", "{}")
 	{
+		@Override
+		public boolean complexFit()
+		{
+			return false;
+		}
+		
 		@Override
 		public int getCursorOffset(final Matcher m, final CompletionData cData)
 		{
 			return -1;
 		};
+		
+		@Override
+		public double weightOffset(final Matcher m, final CompletionData cData)
+		{
+			return 1.0;
+		}
+		
+		@Override
+		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
+		{
+			return false;
+		}
 	};
 	
 	public static final IComplete braceCompleter = new IComplete()
@@ -48,17 +66,35 @@ public class NBTUtilities
 		@Override
 		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 		{
-			TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, NBTUtilities.braceCompletion);
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, braceCompletion);
 		}
 	};
 	
-	public static TabCompletion bracketCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)(\\[\\]?+)?+\\z"), "[]", "[]")
+	public static final ITabCompletion bracketCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\[?+\\z"), "[]", "[]")
 	{
+		@Override
+		public boolean complexFit()
+		{
+			return false;
+		}
+		
 		@Override
 		public int getCursorOffset(final Matcher m, final CompletionData cData)
 		{
 			return -1;
 		};
+		
+		@Override
+		public double weightOffset(final Matcher m, final CompletionData cData)
+		{
+			return 1.0;
+		}
+		
+		@Override
+		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
+		{
+			return false;
+		}
 	};
 	
 	public static final IComplete bracketCompleter = new IComplete()
@@ -66,7 +102,7 @@ public class NBTUtilities
 		@Override
 		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 		{
-			TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, NBTUtilities.bracketCompletion);
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, bracketCompletion);
 		}
 	};
 	
@@ -87,7 +123,7 @@ public class NBTUtilities
 			@Override
 			public NBTTagByte eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagByte(toConvert.type.convertTo(toConvert.arg, TypeIDs.Byte).eval(sender));
+				return new NBTTagByte(toConvert.iConvertTo(TypeIDs.Byte).eval(sender));
 			}
 		};
 	}
@@ -109,7 +145,7 @@ public class NBTUtilities
 			@Override
 			public NBTTagShort eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagShort(toConvert.type.convertTo(toConvert.arg, TypeIDs.Short).eval(sender));
+				return new NBTTagShort(toConvert.iConvertTo(TypeIDs.Short).eval(sender));
 			}
 		};
 	}
@@ -131,7 +167,7 @@ public class NBTUtilities
 			@Override
 			public NBTTagInt eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagInt(toConvert.type.convertTo(toConvert.arg, TypeIDs.Integer).eval(sender));
+				return new NBTTagInt(toConvert.iConvertTo(TypeIDs.Integer).eval(sender));
 			}
 		};
 	}
@@ -153,7 +189,7 @@ public class NBTUtilities
 			@Override
 			public NBTTagLong eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagLong(toConvert.type.convertTo(toConvert.arg, TypeIDs.Long).eval(sender));
+				return new NBTTagLong(toConvert.iConvertTo(TypeIDs.Long).eval(sender));
 			}
 		};
 	}
@@ -175,7 +211,7 @@ public class NBTUtilities
 			@Override
 			public NBTTagFloat eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagFloat(toConvert.type.convertTo(toConvert.arg, TypeIDs.Float).eval(sender));
+				return new NBTTagFloat(toConvert.iConvertTo(TypeIDs.Float).eval(sender));
 			}
 		};
 	}
@@ -197,7 +233,7 @@ public class NBTUtilities
 			@Override
 			public NBTTagDouble eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagDouble(toConvert.type.convertTo(toConvert.arg, TypeIDs.Double).eval(sender));
+				return new NBTTagDouble(toConvert.iConvertTo(TypeIDs.Double).eval(sender));
 			}
 		};
 	}
@@ -230,8 +266,6 @@ public class NBTUtilities
 			}
 		}
 		
-		return toConvert.type.convertTo(toConvert.arg, TypeIDs.NBTBase);
+		return toConvert.iConvertTo(TypeIDs.NBTBase);
 	}
-	
-	public static final NBTConstructor baseDescriptor = new NBTConstructor();
 }

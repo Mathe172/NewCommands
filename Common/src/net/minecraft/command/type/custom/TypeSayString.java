@@ -7,30 +7,35 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.ChatComponentList;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
-import net.minecraft.command.type.IParse;
 import net.minecraft.command.type.CTypeParse;
-import net.minecraft.command.type.base.CompositeString;
+import net.minecraft.command.type.IParse;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
-public class TypeSayString extends CTypeParse<String>
+public class TypeSayString extends CTypeParse<IChatComponent>
 {
-	public static final CDataType<String> sayStringType = new TypeSayString();
+	public static final CDataType<IChatComponent> sayStringType = new TypeSayString();
 	
 	public static final Pattern sayStringPattern = Pattern.compile("\\G[^@\\$]*+([@\\$])");
 	
 	@Override
-	public ArgWrapper<String> parse(final Parser parser) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<IChatComponent> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		final List<CommandArg<String>> parts = new ArrayList<>();
+		parser.incIndex(1);
+		
+		final List<CommandArg<IChatComponent>> parts = new ArrayList<>();
 		
 		final Matcher m = parser.sayStringMatcher;
 		
-		final IParse<ArgWrapper<String>> selectorParser = TypeIDs.String.selectorParser;
-		final IParse<ArgWrapper<String>> labelParser = TypeIDs.String.labelParser;
+		final IParse<ArgWrapper<IChatComponent>> selectorParser = TypeIDs.IChatComponent.selectorParser;
+		final IParse<ArgWrapper<IChatComponent>> labelParser = TypeIDs.IChatComponent.labelParser;
 		
 		int startIndex = parser.getIndex();
 		
@@ -39,14 +44,14 @@ public class TypeSayString extends CTypeParse<String>
 			try
 			{
 				final int index = parser.getIndex();
-				CommandArg<String> ret;
+				CommandArg<IChatComponent> ret;
 				
 				if ("@".equals(m.group(1)))
 					ret = selectorParser.parseSnapshot(parser).arg;
 				else
 					ret = labelParser.parseSnapshot(parser).arg;
 				
-				parts.add(new PrimitiveParameter<>(parser.toParse.substring(startIndex, index - 1)));
+				parts.add(new PrimitiveParameter<IChatComponent>(new ChatComponentText(parser.toParse.substring(startIndex, index - 1))));
 				
 				parts.add(ret);
 				
@@ -61,11 +66,11 @@ public class TypeSayString extends CTypeParse<String>
 		parser.setIndexEnd();
 		
 		if (parts.isEmpty())
-			return new ArgWrapper<>(TypeIDs.String, parser.toParse.substring(startIndex));
+			return TypeIDs.IChatComponent.wrap(new ChatComponentText(parser.toParse.substring(startIndex)));
 		
-		if (startIndex != parser.len - 1)
-			parts.add(new PrimitiveParameter<>(parser.toParse.substring(startIndex)));
+		if (startIndex != parser.len)
+			parts.add(new PrimitiveParameter<IChatComponent>(new ChatComponentText(parser.toParse.substring(startIndex))));
 		
-		return new ArgWrapper<>(TypeIDs.String, new CompositeString(parts));
+		return TypeIDs.IChatComponent.wrap(new ChatComponentList(parts));
 	}
 }

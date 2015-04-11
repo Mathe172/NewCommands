@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.command.parser.ParsingManager;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.play.server.S3APacketTabComplete;
@@ -11,15 +12,15 @@ import net.minecraft.server.MinecraftServer;
 
 public class TCDSet
 {
-	public final Set<TabCompletionData> primitiveData = new TreeSet<>();
+	public final Set<Weighted> primitiveData = new TreeSet<>();
 	public final Set<DataRequest> requests = new HashSet<>();
 	
-	public final void add(TabCompletionData tcData)
+	public final void add(final Weighted tcData)
 	{
 		this.primitiveData.add(tcData);
 	}
 	
-	public final void add(DataRequest request)
+	public final void add(final DataRequest request)
 	{
 		this.requests.add(request);
 	}

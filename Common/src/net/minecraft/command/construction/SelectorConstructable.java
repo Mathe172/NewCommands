@@ -1,12 +1,10 @@
 package net.minecraft.command.construction;
 
-import java.util.List;
-import java.util.Map;
-
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 
 public interface SelectorConstructable
 {
-	public ArgWrapper<?> construct(List<ArgWrapper<?>> unnamedParams, Map<String, ArgWrapper<?>> namedParams) throws SyntaxErrorException;
+	public ArgWrapper<?> construct(ParserData parserData) throws SyntaxErrorException;
 }

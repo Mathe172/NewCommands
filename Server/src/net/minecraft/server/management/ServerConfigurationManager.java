@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -84,7 +85,7 @@ public abstract class ServerConfigurationManager
 	
 	/** A list of player entities that exist on this server. */
 	public final List playerEntityList = Lists.newArrayList();
-	public final Set<TabCompletion> playerCompletions = new ConcurrentSkipListSet<>();
+	public final Set<ITabCompletion> playerCompletions = new ConcurrentSkipListSet<>();
 	
 	public final Map field_177454_f = Maps.newHashMap();
 	private final UserListBans bannedPlayers;
@@ -119,7 +120,7 @@ public abstract class ServerConfigurationManager
 	private int playerPingIndex;
 	private static final String __OBFID = "CL_00001423";
 	
-	public ServerConfigurationManager(MinecraftServer server)
+	public ServerConfigurationManager(final MinecraftServer server)
 	{
 		this.bannedPlayers = new UserListBans(FILE_PLAYERBANS);
 		this.bannedIPs = new BanList(FILE_IPBANS);
@@ -132,7 +133,7 @@ public abstract class ServerConfigurationManager
 		this.maxPlayers = 8;
 	}
 	
-	public void initializeConnectionToPlayer(NetworkManager netManager, EntityPlayerMP playerIn)
+	public void initializeConnectionToPlayer(final NetworkManager netManager, final EntityPlayerMP playerIn)
 	{
 		final GameProfile var3 = playerIn.getGameProfile();
 		final PlayerProfileCache var4 = this.mcServer.getPlayerProfileCache();
@@ -211,7 +212,7 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	protected void func_96456_a(ServerScoreboard scoreboardIn, EntityPlayerMP playerIn)
+	protected void func_96456_a(final ServerScoreboard scoreboardIn, final EntityPlayerMP playerIn)
 	{
 		final HashSet var3 = Sets.newHashSet();
 		final Iterator var4 = scoreboardIn.getTeams().iterator();
@@ -245,7 +246,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Sets the NBT manager to the one for the WorldServer given.
 	 */
-	public void setPlayerManager(WorldServer[] p_72364_1_)
+	public void setPlayerManager(final WorldServer[] p_72364_1_)
 	{
 		this.playerNBTManagerObj = p_72364_1_[0].getSaveHandler().getPlayerNBTManager();
 		p_72364_1_[0].getWorldBorder().addListener(new IBorderListener()
@@ -253,48 +254,48 @@ public abstract class ServerConfigurationManager
 			private static final String __OBFID = "CL_00002267";
 			
 			@Override
-			public void onSizeChanged(WorldBorder border, double newSize)
+			public void onSizeChanged(final WorldBorder border, final double newSize)
 			{
 				ServerConfigurationManager.this.sendPacketToAllPlayers(new S44PacketWorldBorder(border, S44PacketWorldBorder.Action.SET_SIZE));
 			}
 			
 			@Override
-			public void func_177692_a(WorldBorder border, double p_177692_2_, double p_177692_4_, long p_177692_6_)
+			public void func_177692_a(final WorldBorder border, final double p_177692_2_, final double p_177692_4_, final long p_177692_6_)
 			{
 				ServerConfigurationManager.this.sendPacketToAllPlayers(new S44PacketWorldBorder(border, S44PacketWorldBorder.Action.LERP_SIZE));
 			}
 			
 			@Override
-			public void onCenterChanged(WorldBorder border, double x, double z)
+			public void onCenterChanged(final WorldBorder border, final double x, final double z)
 			{
 				ServerConfigurationManager.this.sendPacketToAllPlayers(new S44PacketWorldBorder(border, S44PacketWorldBorder.Action.SET_CENTER));
 			}
 			
 			@Override
-			public void onWarningTimeChanged(WorldBorder border, int p_177691_2_)
+			public void onWarningTimeChanged(final WorldBorder border, final int p_177691_2_)
 			{
 				ServerConfigurationManager.this.sendPacketToAllPlayers(new S44PacketWorldBorder(border, S44PacketWorldBorder.Action.SET_WARNING_TIME));
 			}
 			
 			@Override
-			public void onWarningDistanceChanged(WorldBorder border, int p_177690_2_)
+			public void onWarningDistanceChanged(final WorldBorder border, final int p_177690_2_)
 			{
 				ServerConfigurationManager.this.sendPacketToAllPlayers(new S44PacketWorldBorder(border, S44PacketWorldBorder.Action.SET_WARNING_BLOCKS));
 			}
 			
 			@Override
-			public void func_177696_b(WorldBorder border, double p_177696_2_)
+			public void func_177696_b(final WorldBorder border, final double p_177696_2_)
 			{
 			}
 			
 			@Override
-			public void func_177695_c(WorldBorder border, double p_177695_2_)
+			public void func_177695_c(final WorldBorder border, final double p_177695_2_)
 			{
 			}
 		});
 	}
 	
-	public void func_72375_a(EntityPlayerMP playerIn, WorldServer worldIn)
+	public void func_72375_a(final EntityPlayerMP playerIn, final WorldServer worldIn)
 	{
 		final WorldServer var3 = playerIn.getServerForPlayer();
 		
@@ -315,7 +316,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * called during player login. reads the player information from disk.
 	 */
-	public NBTTagCompound readPlayerDataFromFile(EntityPlayerMP playerIn)
+	public NBTTagCompound readPlayerDataFromFile(final EntityPlayerMP playerIn)
 	{
 		final NBTTagCompound var2 = this.mcServer.worldServers[0].getWorldInfo().getPlayerNBTTagCompound();
 		NBTTagCompound var3;
@@ -337,7 +338,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * also stores the NBTTags if this is an intergratedPlayerList
 	 */
-	protected void writePlayerData(EntityPlayerMP playerIn)
+	protected void writePlayerData(final EntityPlayerMP playerIn)
 	{
 		this.playerNBTManagerObj.writePlayerData(playerIn);
 		final StatisticsFile var2 = (StatisticsFile) this.playerStatFiles.get(playerIn.getUniqueID());
@@ -351,7 +352,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Called when a player successfully logs in. Reads player data from disk and inserts the player into the world.
 	 */
-	public void playerLoggedIn(EntityPlayerMP playerIn)
+	public void playerLoggedIn(final EntityPlayerMP playerIn)
 	{
 		this.playerEntityList.add(playerIn);
 		this.playerCompletions.add(new TabCompletion(playerIn.getName()));
@@ -372,7 +373,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * using player's dimension, update their movement when in a vehicle (e.g. cart, boat)
 	 */
-	public void serverUpdateMountedMovingPlayer(EntityPlayerMP playerIn)
+	public void serverUpdateMountedMovingPlayer(final EntityPlayerMP playerIn)
 	{
 		playerIn.getServerForPlayer().getPlayerManager().updateMountedMovingPlayer(playerIn);
 	}
@@ -380,7 +381,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Called when a player disconnects from the game. Writes player data to disk and removes them from the world.
 	 */
-	public void playerLoggedOut(EntityPlayerMP playerIn)
+	public void playerLoggedOut(final EntityPlayerMP playerIn)
 	{
 		playerIn.triggerAchievement(StatList.leaveGameStat);
 		this.writePlayerData(playerIn);
@@ -398,7 +399,7 @@ public abstract class ServerConfigurationManager
 		this.playerEntityList.remove(playerIn);
 		
 		final String name = playerIn.getName();
-		for (final Iterator<TabCompletion> it = this.playerCompletions.iterator(); it.hasNext();)
+		for (final Iterator<ITabCompletion> it = this.playerCompletions.iterator(); it.hasNext();)
 		{
 			if (name.equals(it.next().name))
 			{
@@ -415,7 +416,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * checks ban-lists, then white-lists, then space for the server. Returns null on success, or an error message
 	 */
-	public String allowUserToConnect(SocketAddress address, GameProfile profile)
+	public String allowUserToConnect(final SocketAddress address, final GameProfile profile)
 	{
 		String var4;
 		
@@ -456,7 +457,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * also checks for multiple logins across servers
 	 */
-	public EntityPlayerMP createPlayerForUser(GameProfile profile)
+	public EntityPlayerMP createPlayerForUser(final GameProfile profile)
 	{
 		final UUID var2 = EntityPlayer.getUUID(profile);
 		final ArrayList var3 = Lists.newArrayList();
@@ -497,7 +498,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Called on respawn
 	 */
-	public EntityPlayerMP recreatePlayerEntity(EntityPlayerMP playerIn, int dimension, boolean conqueredEnd)
+	public EntityPlayerMP recreatePlayerEntity(final EntityPlayerMP playerIn, final int dimension, final boolean conqueredEnd)
 	{
 		playerIn.getServerForPlayer().getEntityTracker().removePlayerFromTrackers(playerIn);
 		playerIn.getServerForPlayer().getEntityTracker().untrackEntity(playerIn);
@@ -567,7 +568,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * moves provided player from overworld to nether or vice versa
 	 */
-	public void transferPlayerToDimension(EntityPlayerMP playerIn, int dimension)
+	public void transferPlayerToDimension(final EntityPlayerMP playerIn, final int dimension)
 	{
 		final int var3 = playerIn.dimension;
 		final WorldServer var4 = this.mcServer.worldServerForDimension(playerIn.dimension);
@@ -594,7 +595,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Transfers an entity from a world to another world.
 	 */
-	public void transferEntityToWorld(Entity entityIn, int p_82448_2_, WorldServer p_82448_3_, WorldServer p_82448_4_)
+	public void transferEntityToWorld(final Entity entityIn, final int p_82448_2_, final WorldServer p_82448_3_, final WorldServer p_82448_4_)
 	{
 		double var5 = entityIn.posX;
 		double var7 = entityIn.posZ;
@@ -682,7 +683,7 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	public void sendPacketToAllPlayers(Packet packetIn)
+	public void sendPacketToAllPlayers(final Packet packetIn)
 	{
 		for (int var2 = 0; var2 < this.playerEntityList.size(); ++var2)
 		{
@@ -690,7 +691,7 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	public void sendPacketToAllPlayersInDimension(Packet packetIn, int dimension)
+	public void sendPacketToAllPlayersInDimension(final Packet packetIn, final int dimension)
 	{
 		for (int var3 = 0; var3 < this.playerEntityList.size(); ++var3)
 		{
@@ -703,7 +704,7 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	public void func_177453_a(EntityPlayer p_177453_1_, IChatComponent p_177453_2_)
+	public void func_177453_a(final EntityPlayer p_177453_1_, final IChatComponent p_177453_2_)
 	{
 		final Team var3 = p_177453_1_.getTeam();
 		
@@ -725,7 +726,7 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	public void func_177452_b(EntityPlayer p_177452_1_, IChatComponent p_177452_2_)
+	public void func_177452_b(final EntityPlayer p_177452_1_, final IChatComponent p_177452_2_)
 	{
 		final Team var3 = p_177452_1_.getTeam();
 		
@@ -801,27 +802,27 @@ public abstract class ServerConfigurationManager
 		return this.bannedIPs;
 	}
 	
-	public void addOp(GameProfile profile)
+	public void addOp(final GameProfile profile)
 	{
 		this.ops.addEntry(new UserListOpsEntry(profile, this.mcServer.getOpPermissionLevel()));
 	}
 	
-	public void removeOp(GameProfile profile)
+	public void removeOp(final GameProfile profile)
 	{
 		this.ops.removeEntry(profile);
 	}
 	
-	public boolean canJoin(GameProfile profile)
+	public boolean canJoin(final GameProfile profile)
 	{
 		return !this.whiteListEnforced || this.ops.hasEntry(profile) || this.whiteListedPlayers.hasEntry(profile);
 	}
 	
-	public boolean canSendCommands(GameProfile profile)
+	public boolean canSendCommands(final GameProfile profile)
 	{
 		return this.ops.hasEntry(profile) || this.mcServer.isSinglePlayer() && this.mcServer.worldServers[0].getWorldInfo().areCommandsAllowed() && this.mcServer.getServerOwner().equalsIgnoreCase(profile.getName()) || this.commandsAllowedForAll;
 	}
 	
-	public EntityPlayerMP getPlayerByUsername(String username)
+	public EntityPlayerMP getPlayerByUsername(final String username)
 	{
 		final Iterator var2 = this.playerEntityList.iterator();
 		EntityPlayerMP var3;
@@ -842,7 +843,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * params: x,y,z,r,dimension. The packet is sent to all players within r radius of x,y,z (r^2>x^2+y^2+z^2)
 	 */
-	public void sendToAllNear(double x, double y, double z, double radius, int dimension, Packet packetIn)
+	public void sendToAllNear(final double x, final double y, final double z, final double radius, final int dimension, final Packet packetIn)
 	{
 		this.sendToAllNearExcept((EntityPlayer) null, x, y, z, radius, dimension, packetIn);
 	}
@@ -850,7 +851,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * params: srcPlayer,x,y,z,r,dimension. The packet is not sent to the srcPlayer, but all other players within the search radius
 	 */
-	public void sendToAllNearExcept(EntityPlayer p_148543_1_, double x, double y, double z, double radius, int dimension, Packet p_148543_11_)
+	public void sendToAllNearExcept(final EntityPlayer p_148543_1_, final double x, final double y, final double z, final double radius, final int dimension, final Packet p_148543_11_)
 	{
 		for (int var12 = 0; var12 < this.playerEntityList.size(); ++var12)
 		{
@@ -881,12 +882,12 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	public void addWhitelistedPlayer(GameProfile profile)
+	public void addWhitelistedPlayer(final GameProfile profile)
 	{
 		this.whiteListedPlayers.addEntry(new UserListWhitelistEntry(profile));
 	}
 	
-	public void removePlayerFromWhitelist(GameProfile profile)
+	public void removePlayerFromWhitelist(final GameProfile profile)
 	{
 		this.whiteListedPlayers.removeEntry(profile);
 	}
@@ -921,7 +922,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Updates the time and weather for the given player to those of the given world
 	 */
-	public void updateTimeAndWeatherForPlayer(EntityPlayerMP playerIn, WorldServer worldIn)
+	public void updateTimeAndWeatherForPlayer(final EntityPlayerMP playerIn, final WorldServer worldIn)
 	{
 		final WorldBorder var3 = this.mcServer.worldServers[0].getWorldBorder();
 		playerIn.playerNetServerHandler.sendPacket(new S44PacketWorldBorder(var3, S44PacketWorldBorder.Action.INITIALIZE));
@@ -938,7 +939,7 @@ public abstract class ServerConfigurationManager
 	/**
 	 * sends the players inventory to himself
 	 */
-	public void syncPlayerInventory(EntityPlayerMP playerIn)
+	public void syncPlayerInventory(final EntityPlayerMP playerIn)
 	{
 		playerIn.sendContainerToPlayer(playerIn.inventoryContainer);
 		playerIn.setPlayerHealthUpdated();
@@ -974,12 +975,12 @@ public abstract class ServerConfigurationManager
 		return this.whiteListEnforced;
 	}
 	
-	public void setWhiteListEnabled(boolean whitelistEnabled)
+	public void setWhiteListEnabled(final boolean whitelistEnabled)
 	{
 		this.whiteListEnforced = whitelistEnabled;
 	}
 	
-	public List getPlayersMatchingAddress(String address)
+	public List getPlayersMatchingAddress(final String address)
 	{
 		final ArrayList var2 = Lists.newArrayList();
 		final Iterator var3 = this.playerEntityList.iterator();
@@ -1018,7 +1019,7 @@ public abstract class ServerConfigurationManager
 		return null;
 	}
 	
-	private void func_72381_a(EntityPlayerMP p_72381_1_, EntityPlayerMP p_72381_2_, World worldIn)
+	private void func_72381_a(final EntityPlayerMP p_72381_1_, final EntityPlayerMP p_72381_2_, final World worldIn)
 	{
 		if (p_72381_2_ != null)
 		{
@@ -1045,7 +1046,7 @@ public abstract class ServerConfigurationManager
 		this.playerCompletions.clear();
 	}
 	
-	public void sendChatMsgImpl(IChatComponent component, boolean isChat)
+	public void sendChatMsgImpl(final IChatComponent component, final boolean isChat)
 	{
 		this.mcServer.addChatMessage(component);
 		final int var3 = isChat ? 1 : 0;
@@ -1055,12 +1056,12 @@ public abstract class ServerConfigurationManager
 	/**
 	 * Sends the given string to every player as chat message.
 	 */
-	public void sendChatMsg(IChatComponent component)
+	public void sendChatMsg(final IChatComponent component)
 	{
 		this.sendChatMsgImpl(component, true);
 	}
 	
-	public StatisticsFile getPlayerStatsFile(EntityPlayer playerIn)
+	public StatisticsFile getPlayerStatsFile(final EntityPlayer playerIn)
 	{
 		final UUID var2 = playerIn.getUniqueID();
 		StatisticsFile var3 = var2 == null ? null : (StatisticsFile) this.playerStatFiles.get(var2);
@@ -1088,7 +1089,7 @@ public abstract class ServerConfigurationManager
 		return var3;
 	}
 	
-	public void setViewDistance(int distance)
+	public void setViewDistance(final int distance)
 	{
 		this.viewDistance = distance;
 		
@@ -1109,7 +1110,7 @@ public abstract class ServerConfigurationManager
 		}
 	}
 	
-	public EntityPlayerMP func_177451_a(UUID p_177451_1_)
+	public EntityPlayerMP func_177451_a(final UUID p_177451_1_)
 	{
 		return (EntityPlayerMP) this.field_177454_f.get(p_177451_1_);
 	}

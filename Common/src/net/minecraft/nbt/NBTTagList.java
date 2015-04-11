@@ -29,7 +29,7 @@ public class NBTTagList extends NBTBase
 	 * Write the actual data contents of the tag, implemented in NBT extension classes
 	 */
 	@Override
-	void write(DataOutput output) throws IOException
+	void write(final DataOutput output) throws IOException
 	{
 		if (!this.tagList.isEmpty())
 		{
@@ -50,7 +50,7 @@ public class NBTTagList extends NBTBase
 	}
 	
 	@Override
-	void read(DataInput input, int depth, NBTSizeTracker sizeTracker) throws IOException
+	void read(final DataInput input, final int depth, final NBTSizeTracker sizeTracker) throws IOException
 	{
 		if (depth > 512)
 		{
@@ -90,7 +90,7 @@ public class NBTTagList extends NBTBase
 		for (final Iterator var3 = this.tagList.iterator(); var3.hasNext(); ++var2)
 		{
 			final NBTBase var4 = (NBTBase) var3.next();
-			var1 = var1 + "" + var2 + ':' + var4 + ',';
+			var1 = var1 + "" + var4 + ','; // var1 + "" + var2 + ':' + var4 + ','; (removed the 'index:' part in order to make the output parsable (the original parser simply ignores it...))
 		}
 		
 		return var1 + "]";
@@ -99,7 +99,7 @@ public class NBTTagList extends NBTBase
 	/**
 	 * Adds the provided tag to the end of the list. There is no check to verify this tag is of the same type as any previous tag.
 	 */
-	public void appendTag(NBTBase nbt)
+	public void appendTag(final NBTBase nbt)
 	{
 		if (this.tagType == 0)
 		{
@@ -117,7 +117,7 @@ public class NBTTagList extends NBTBase
 	/**
 	 * Set the given index to the given tag
 	 */
-	public void set(int idx, NBTBase nbt)
+	public void set(final int idx, final NBTBase nbt)
 	{
 		if (idx >= 0 && idx < this.tagList.size())
 		{
@@ -142,7 +142,7 @@ public class NBTTagList extends NBTBase
 	/**
 	 * Removes a tag at the given index.
 	 */
-	public NBTBase removeTag(int i)
+	public NBTBase removeTag(final int i)
 	{
 		return this.tagList.remove(i);
 	}
@@ -159,7 +159,7 @@ public class NBTTagList extends NBTBase
 	/**
 	 * Retrieves the NBTTagCompound at the specified index in the list
 	 */
-	public NBTTagCompound getCompoundTagAt(int i)
+	public NBTTagCompound getCompoundTagAt(final int i)
 	{
 		if (i >= 0 && i < this.tagList.size())
 		{
@@ -172,7 +172,7 @@ public class NBTTagList extends NBTBase
 		}
 	}
 	
-	public int[] getIntArray(int i)
+	public int[] getIntArray(final int i)
 	{
 		if (i >= 0 && i < this.tagList.size())
 		{
@@ -185,7 +185,7 @@ public class NBTTagList extends NBTBase
 		}
 	}
 	
-	public double getDouble(int i)
+	public double getDouble(final int i)
 	{
 		if (i >= 0 && i < this.tagList.size())
 		{
@@ -198,7 +198,7 @@ public class NBTTagList extends NBTBase
 		}
 	}
 	
-	public float getFloat(int i)
+	public float getFloat(final int i)
 	{
 		if (i >= 0 && i < this.tagList.size())
 		{
@@ -214,7 +214,7 @@ public class NBTTagList extends NBTBase
 	/**
 	 * Retrieves the tag String value at the specified index in the list
 	 */
-	public String getStringTagAt(int i)
+	public String getStringTagAt(final int i)
 	{
 		if (i >= 0 && i < this.tagList.size())
 		{
@@ -230,7 +230,7 @@ public class NBTTagList extends NBTBase
 	/**
 	 * Get the tag at the given position
 	 */
-	public NBTBase get(int idx)
+	public NBTBase get(final int idx)
 	{
 		return idx >= 0 && idx < this.tagList.size() ? (NBTBase) this.tagList.get(idx) : new NBTTagEnd();
 	}
@@ -264,7 +264,7 @@ public class NBTTagList extends NBTBase
 	}
 	
 	@Override
-	public boolean equals(Object p_equals_1_)
+	public boolean equals(final Object p_equals_1_)
 	{
 		if (super.equals(p_equals_1_))
 		{
@@ -294,7 +294,7 @@ public class NBTTagList extends NBTBase
 	{
 		boolean copied = false;
 		
-		public CopyOnWrite(NBTTagList tag)
+		public CopyOnWrite(final NBTTagList tag)
 		{
 			this.tagList = tag.tagList;
 		}
@@ -313,13 +313,13 @@ public class NBTTagList extends NBTBase
 		}
 		
 		@Override
-		public NBTTagCompound getCompoundTagAt(int i)
+		public NBTTagCompound getCompoundTagAt(final int i)
 		{
 			return new NBTTagCompound.CopyOnWrite(super.getCompoundTagAt(i));
 		}
 		
 		@Override
-		public NBTBase get(int idx)
+		public NBTBase get(final int idx)
 		{
 			final NBTBase tag = super.get(idx);
 			
@@ -332,21 +332,21 @@ public class NBTTagList extends NBTBase
 		}
 		
 		@Override
-		public void appendTag(NBTBase nbt)
+		public void appendTag(final NBTBase nbt)
 		{
 			shallowCopy();
 			super.appendTag(nbt);
 		}
 		
 		@Override
-		public NBTBase removeTag(int i)
+		public NBTBase removeTag(final int i)
 		{
 			shallowCopy();
 			return super.removeTag(i);
 		}
 		
 		@Override
-		public void set(int idx, NBTBase nbt)
+		public void set(final int idx, final NBTBase nbt)
 		{
 			shallowCopy();
 			super.set(idx, nbt);

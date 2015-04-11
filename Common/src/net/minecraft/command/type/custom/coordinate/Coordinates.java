@@ -7,26 +7,20 @@ import net.minecraft.util.Vec3;
 
 public class Coordinates extends CommandArg<Vec3>
 {
-	private final Coordinate x;
-	private final Coordinate y;
-	private final Coordinate z;
+	private final CommandArg<Double> x;
+	private final CommandArg<Double> y;
+	private final CommandArg<Double> z;
 	
-	public Coordinates(final Coordinate x, final Coordinate y, final Coordinate z)
+	public Coordinates(final CommandArg<Double> x, final CommandArg<Double> y, final CommandArg<Double> z)
 	{
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 	
-	public Vec3 eval(final ICommandSender sender, final ICommandSender origin) throws CommandException
-	{
-		final Vec3 base = origin.getPositionVector();
-		return new Vec3(this.x.evalCoord(sender, base), this.y.evalCoord(sender, base), this.z.evalCoord(sender, base));
-	}
-	
 	@Override
 	public Vec3 eval(final ICommandSender sender) throws CommandException
 	{
-		return this.eval(sender, sender);
+		return new Vec3(this.x.eval(sender), this.y.eval(sender), this.z.eval(sender));
 	}
 }

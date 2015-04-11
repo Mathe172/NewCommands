@@ -4,8 +4,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion;
+import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor;
@@ -21,7 +24,7 @@ import net.minecraft.command.type.custom.nbt.ParserNBTTagCustom;
 
 public final class NBTConstructor extends NBTDescriptor.Compound implements NBTDescriptor.Tag
 {
-	private final Set<TabCompletion> keyCompletions = new HashSet<>();
+	private final Set<ITabCompletion> keyCompletions = new HashSet<>();
 	private final Map<String, NBTDescriptor.Tag> subDescriptors = new HashMap<>();
 	
 	private final ParserNBTTag tagParser = new ParserNBTTagCustom(this, NBTUtilities.braceCompleter);
@@ -29,7 +32,7 @@ public final class NBTConstructor extends NBTDescriptor.Compound implements NBTD
 	private final IExParse<Void, CompoundData> pair = new NBTPair(this);
 	
 	@Override
-	public Set<TabCompletion> getKeyCompletions()
+	public Set<ITabCompletion> getKeyCompletions()
 	{
 		return this.keyCompletions;
 	}
@@ -67,7 +70,14 @@ public final class NBTConstructor extends NBTDescriptor.Compound implements NBTD
 	{
 		this.subDescriptors.put(key, subDescriptor);
 		final String s = key + ":";
-		this.keyCompletions.add(new TabCompletion(s, s, key, false));
+		this.keyCompletions.add(new TabCompletion(s, s, key)
+		{
+			@Override
+			public double weightOffset(final Matcher m, final CompletionData cData)
+			{
+				return -1.0;
+			}
+		});
 		
 		return this;
 	}
@@ -88,7 +98,14 @@ public final class NBTConstructor extends NBTDescriptor.Compound implements NBTD
 	{
 		this.subDescriptors.put(key, new DefaultTag(completer));
 		final String s = key + ":";
-		this.keyCompletions.add(new TabCompletion(s, s, key, false));
+		this.keyCompletions.add(new TabCompletion(s, s, key)
+		{
+			@Override
+			public double weightOffset(final Matcher m, final CompletionData cData)
+			{
+				return -1.0;
+			}
+		});
 		
 		return this;
 	}
@@ -113,7 +130,14 @@ public final class NBTConstructor extends NBTDescriptor.Compound implements NBTD
 		{
 			this.subDescriptors.put(key, NBTDescriptor.defaultTag);
 			final String s = key + ":";
-			this.keyCompletions.add(new TabCompletion(s, s, key, false));
+			this.keyCompletions.add(new TabCompletion(s, s, key)
+			{
+				@Override
+				public double weightOffset(final Matcher m, final CompletionData cData)
+				{
+					return -1.0;
+				}
+			});
 		}
 		return this;
 	}

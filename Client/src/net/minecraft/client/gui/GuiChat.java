@@ -209,7 +209,7 @@ public class GuiChat extends GuiScreen
 		}
 	}
 	
-	public void autoComplete(boolean reverse)
+	public void autoComplete(final boolean reverse)
 	{
 		if (this.cachedTCs == null)
 		{
@@ -237,7 +237,7 @@ public class GuiChat extends GuiScreen
 		{
 			final TabCompleter completer = this.cachedTCs.get(this.tcIndex); // this.tcIterator.next();
 			
-			this.inputField.setText(completer.matchInto(this.cachedInput, this.cachedCursorIndex));
+			this.inputField.setText(completer.matchInto(this.cachedInput));
 			this.inputField.setCursorPosition(completer.newCursorIndex());
 			
 			return;
@@ -315,7 +315,7 @@ public class GuiChat extends GuiScreen
 	{
 		if (this.waitingOnAutocomplete && tcDataList.size() > 0)
 		{
-			this.cachedTCs = new ArrayList<>();// new TreeSet<>();
+			this.cachedTCs = new ArrayList<>(tcDataList.size());
 			
 			final StringBuilder sb = new StringBuilder();
 			
@@ -330,7 +330,6 @@ public class GuiChat extends GuiScreen
 				sb.append(tcData.name());
 			}
 			
-			// this.tcIterator = this.cachedTCs.iterator();
 			this.tcIndex = this.cachedTCs.size();
 			this.nameList = new ChatComponentText(sb.toString());
 			

@@ -6,6 +6,7 @@ import java.util.Set;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.IPermission;
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.descriptors.CommandDescriptor;
 import net.minecraft.command.type.IDataType;
@@ -35,7 +36,7 @@ public class CommandDescriptorConstructable extends CommandDescriptor
 	}
 	
 	@Override
-	public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission)
+	public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
 	{
 		return this.constructable.construct(params, permission);
 	}

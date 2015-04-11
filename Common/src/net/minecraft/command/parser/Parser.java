@@ -14,25 +14,28 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.CompoundArg;
 import net.minecraft.command.arg.Processable;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.selectors.entity.FilterList;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.IParse;
 import net.minecraft.command.type.IType;
-import net.minecraft.command.type.TypeID;
 import net.minecraft.command.type.base.ExCustomParse;
 import net.minecraft.command.type.custom.ParserCommands;
+import net.minecraft.command.type.custom.ParserDouble;
 import net.minecraft.command.type.custom.ParserInt;
 import net.minecraft.command.type.custom.TypeCommand;
 import net.minecraft.command.type.custom.TypeList;
 import net.minecraft.command.type.custom.TypeSayString;
+import net.minecraft.command.type.custom.TypeUntypedOperator;
 import net.minecraft.command.type.custom.Types;
-import net.minecraft.command.type.custom.coordinate.ParserCoordinate;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
 import net.minecraft.command.type.custom.nbt.NBTPair;
 import net.minecraft.command.type.custom.nbt.NBTUtilities;
-import net.minecraft.command.type.custom.nbt.ParserNBTQString;
 import net.minecraft.command.type.custom.nbt.ParserNBTTag;
+import net.minecraft.command.type.management.CConvertable;
 import net.minecraft.command.util.SnapList;
 import net.minecraft.command.util.SnapMap;
 import net.minecraft.entity.Entity;
@@ -71,6 +74,7 @@ public class Parser
 	public final Matcher numberMatcher;
 	
 	public final Matcher intMatcher;
+	public final Matcher doubleMatcher;
 	public final Matcher sayStringMatcher;
 	
 	public final Matcher coordMatcher;
@@ -79,45 +83,62 @@ public class Parser
 	
 	public final Matcher listDelimMatcher;
 	
+	public final Matcher operatorMatcher;
+	
+	public final Matcher inverterMatcher;
+	
+	public final Matcher quoteMatcher;
+	
+	public Context defContext;
+	
 	public Parser(final String toParse, final int startIndex, final boolean completionPatterns)
 	{
+		this.defContext = Context.defContext;
+		
 		this.index = startIndex;
 		
 		this.toParse = toParse;
-		this.len = this.toParse.length();
+		this.len = toParse.length();
 		
-		this.idMatcher = ParsingUtilities.identifierPattern.matcher(this.toParse);
-		this.oParenthMatcher = ParsingUtilities.oParenthPattern.matcher(this.toParse);
+		this.idMatcher = ParsingUtilities.identifierPattern.matcher(toParse);
+		this.oParenthMatcher = ParsingUtilities.oParenthPattern.matcher(toParse);
 		
 		// The Completion-version of the pattern tricks the parser into thinking that the end is not yet reached, thus calling the subparsers for completions
-		this.endingMatcher = completionPatterns ? ParsingUtilities.endingPatternCompletion.matcher(this.toParse) : ParsingUtilities.endingPattern.matcher(this.toParse);
+		this.endingMatcher = completionPatterns ? ParsingUtilities.endingPatternCompletion.matcher(toParse) : ParsingUtilities.endingPattern.matcher(toParse);
 		
-		this.keyMatcher = ParsingUtilities.keyPattern.matcher(this.toParse);
-		this.aKeyMatcher = ParsingUtilities.assignedKeyPattern.matcher(this.toParse);
-		this.listEndMatcher = ParsingUtilities.listEndPattern.matcher(this.toParse);
-		this.generalMatcher = ParsingUtilities.generalPattern.matcher(this.toParse);
-		this.nameMatcher = ParsingUtilities.namePattern.matcher(this.toParse);
-		this.spaceMatcher = ParsingUtilities.spacePattern.matcher(this.toParse);
+		this.keyMatcher = ParsingUtilities.keyPattern.matcher(toParse);
+		this.aKeyMatcher = ParsingUtilities.assignedKeyPattern.matcher(toParse);
+		this.listEndMatcher = ParsingUtilities.listEndPattern.matcher(toParse);
+		this.generalMatcher = ParsingUtilities.generalPattern.matcher(toParse);
+		this.nameMatcher = ParsingUtilities.namePattern.matcher(toParse);
+		this.spaceMatcher = ParsingUtilities.spacePattern.matcher(toParse);
 		
-		this.numberIDMatcher = NBTUtilities.numberIDPattern.matcher(this.toParse);
-		this.specialMatcher = ParserNBTTag.specialPattern.matcher(this.toParse);
+		this.numberIDMatcher = NBTUtilities.numberIDPattern.matcher(toParse);
+		this.specialMatcher = ParserNBTTag.specialPattern.matcher(toParse);
 		
-		this.nbtKeyMatcher = NBTPair.nbtKeyPattern.matcher(this.toParse);
+		this.nbtKeyMatcher = NBTPair.nbtKeyPattern.matcher(toParse);
 		
-		this.escapedMatcher = ParserNBTQString.escapedPattern.matcher(this.toParse);
+		this.escapedMatcher = ParsingUtilities.escapedPattern.matcher(toParse);
 		
-		this.baseMatcher = ParserNBTTag.basePattern.matcher(this.toParse);
-		this.stackedMatcher = ParserNBTTag.stackedPattern.matcher(this.toParse);
-		this.numberMatcher = ParserNBTTag.numberPattern.matcher(this.toParse);
+		this.baseMatcher = ParserNBTTag.basePattern.matcher(toParse);
+		this.stackedMatcher = ParserNBTTag.stackedPattern.matcher(toParse);
+		this.numberMatcher = ParserNBTTag.numberPattern.matcher(toParse);
 		
-		this.intMatcher = ParserInt.IntegerPatternConverter.matcher(this.toParse);
-		this.sayStringMatcher = TypeSayString.sayStringPattern.matcher(this.toParse);
+		this.intMatcher = ParserInt.intPattern.matcher(toParse);
+		this.doubleMatcher = ParserDouble.doublePattern.matcher(toParse);
+		this.sayStringMatcher = TypeSayString.sayStringPattern.matcher(toParse);
 		
-		this.coordMatcher = ParserCoordinate.coordPattern.matcher(this.toParse);
+		this.coordMatcher = TypeCoordinate.coordPattern.matcher(toParse);
 		
-		this.stringMatcher = ParsingUtilities.stringPattern.matcher(this.toParse);
+		this.stringMatcher = ParsingUtilities.stringPattern.matcher(toParse);
 		
-		this.listDelimMatcher = TypeList.listDelimPattern.matcher(this.toParse);
+		this.listDelimMatcher = TypeList.listDelimPattern.matcher(toParse);
+		
+		this.operatorMatcher = TypeUntypedOperator.operatorPattern.matcher(toParse);
+		
+		this.inverterMatcher = FilterList.inverterPattern.matcher(toParse);
+		
+		this.quoteMatcher = ParsingUtilities.quotePattern.matcher(toParse);
 	}
 	
 	public Parser(final String toParse, final int startIndex)
@@ -156,9 +177,9 @@ public class Parser
 		return parseCommand(toParse, 0);
 	}
 	
-	public static TCDSet parseCompletion(final String toParse, final CompletionData cData, final int startIndex)
+	public static TCDSet parseCompletion(final CompletionData cData, final int startIndex)
 	{
-		final CompletionParser completionParser = new CompletionParser(toParse.substring(0, cData.cursorIndex), startIndex, cData);
+		final CompletionParser completionParser = new CompletionParser(cData.toMatch.substring(0, cData.cursorIndex), startIndex, cData);
 		
 		try
 		{
@@ -172,9 +193,9 @@ public class Parser
 		return completionParser.getTCDSet();
 	}
 	
-	public static TCDSet parseCompletion(final String toParse, final CompletionData cData)
+	public static TCDSet parseCompletion(final CompletionData cData)
 	{
-		return parseCompletion(toParse, cData, 0);
+		return parseCompletion(cData, 0);
 	}
 	
 	public static CommandArg<List<String>> parseStatsTarget(final String toParse) throws SyntaxErrorException
@@ -332,9 +353,9 @@ public class Parser
 	{
 	}
 	
-	public Set<TabCompletion> getLabelCompletions()
+	public Set<ITabCompletion> getLabelCompletions()
 	{
-		final Set<TabCompletion> completions = new HashSet<>();
+		final Set<ITabCompletion> completions = new HashSet<>(this.labels.size());
 		
 		for (final String name : this.labels.keySet())
 			completions.add(new TabCompletion(name));
@@ -342,12 +363,12 @@ public class Parser
 		return completions;
 	}
 	
-	public Set<TabCompletion> getLabelCompletions(final TypeID<?> target)
+	public Set<ITabCompletion> getLabelCompletions(final CConvertable<?, ?> target)
 	{
-		final Set<TabCompletion> completions = new HashSet<>();
+		final Set<ITabCompletion> completions = new HashSet<>();
 		
 		for (final Entry<String, ArgWrapper<?>> entry : this.labels)
-			if (target.convertableFrom.contains(entry.getValue().type))
+			if (target.convertableFrom(entry.getValue().type))
 				completions.add(new TabCompletion(entry.getKey()));
 		
 		return completions;
@@ -365,6 +386,8 @@ public class Parser
 		final int saveToProcess = this.saveToProcess();
 		final int saveIgnoreErrors = this.saveIgnoreErrors();
 		
+		final Context defContext = this.defContext;
+		
 		try
 		{
 			return target.parse(this, parserData);
@@ -375,6 +398,8 @@ public class Parser
 			this.restoreLabels(saveLabels);
 			this.restoreToProcess(saveToProcess);
 			this.restoreIgnoreErrors(saveIgnoreErrors);
+			
+			this.defContext = defContext;
 			
 			throw e;
 		}

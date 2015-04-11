@@ -9,16 +9,16 @@ import java.util.Set;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.IPermission;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.TypeID;
 import net.minecraft.command.type.custom.ParserKeyword;
+import net.minecraft.command.type.management.TypeID;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -27,14 +27,14 @@ public abstract class CommandDescriptor
 	private final List<IDataType<?>> paramTypes;
 	private final Map<String, CommandDescriptor> keywords = new HashMap<>();
 	
-	private final Set<TabCompletion> keywordCompletions = new HashSet<>();
+	private final Set<ITabCompletion> keywordCompletions = new HashSet<>();
 	
 	private final ParserKeyword kp = new ParserKeyword(this);
 	
 	public final String usage;
 	public final IPermission permission;
 	
-	public static final Map<TabCompletion, CommandDescriptor> commandCompletions = new HashMap<>();
+	public static final Map<ITabCompletion, CommandDescriptor> commandCompletions = new HashMap<>();
 	private static final Map<String, CommandDescriptor> commands = new HashMap<>();
 	
 	public CommandDescriptor(final IPermission permission, final String usage, final List<IDataType<?>> paramTypes)
@@ -67,7 +67,7 @@ public abstract class CommandDescriptor
 		commands.clear();
 	}
 	
-	public abstract CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission);
+	public abstract CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException;
 	
 	public static void registerCommand(final String name, final CommandDescriptor descriptor)
 	{
@@ -124,7 +124,7 @@ public abstract class CommandDescriptor
 		return this.paramTypes.get(index);
 	}
 	
-	public final Set<TabCompletion> getKeywordCompletions()
+	public final Set<ITabCompletion> getKeywordCompletions()
 	{
 		return this.keywordCompletions;
 	}
@@ -134,7 +134,7 @@ public abstract class CommandDescriptor
 		return this.getRequiredType(i).parse(parser);
 	}
 	
-	public static final Set<TabCompletion> getCompletions()
+	public static final Set<ITabCompletion> getCompletions()
 	{
 		return commandCompletions.keySet();
 	}
@@ -149,20 +149,9 @@ public abstract class CommandDescriptor
 	
 	public static final <T> CommandArg<T> getParam(final TypeID<T> type, final int index, final List<ArgWrapper<?>> params)
 	{
-		
 		if (index < params.size())
-			return params.get(index).get(type);
+			return ArgWrapper.get(type, params.get(index));
 		
 		return null;
-	}
-	
-	public static final <T> CommandArg<T> getRequiredParam(final TypeID<T> type, final int index, final String name, final List<ArgWrapper<?>> params) throws SyntaxErrorException
-	{
-		final CommandArg<T> ret = getParam(type, index, params);
-		
-		if (ret != null)
-			return ret;
-		
-		throw ParsingUtilities.SEE("Missing parameter for command: " + (name != null ? name : index));
 	}
 }

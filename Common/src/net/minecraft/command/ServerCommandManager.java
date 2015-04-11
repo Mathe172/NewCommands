@@ -2,7 +2,11 @@ package net.minecraft.command;
 
 import java.util.Iterator;
 
+import net.minecraft.command.commands.CommandActivate;
+import net.minecraft.command.commands.CommandExecuteAt;
 import net.minecraft.command.commands.CommandFor;
+import net.minecraft.command.commands.CommandGameMode;
+import net.minecraft.command.commands.CommandKill;
 import net.minecraft.command.commands.CommandSay;
 import net.minecraft.command.commands.CommandSummon;
 import net.minecraft.command.commands.dedicated.CommandDeOp;
@@ -10,24 +14,34 @@ import net.minecraft.command.commands.dedicated.CommandOp;
 import net.minecraft.command.commands.dedicated.CommandStop;
 import net.minecraft.command.construction.CommandConstructor;
 import net.minecraft.command.construction.CommandConstructorU;
-import net.minecraft.command.construction.NBTConstructor;
-import net.minecraft.command.construction.NBTConstructorList;
 import net.minecraft.command.construction.SelectorConstructor;
 import net.minecraft.command.descriptors.CommandDescriptor;
 import net.minecraft.command.descriptors.SelectorDescriptor;
+import net.minecraft.command.selectors.PrimitiveWrapper;
+import net.minecraft.command.selectors.SelectorNBT;
+import net.minecraft.command.selectors.SelectorScore;
 import net.minecraft.command.selectors.SelectorSelf;
 import net.minecraft.command.selectors.SelectorTiming;
+import net.minecraft.command.selectors.entity.SelectorDescriptorEntity;
+import net.minecraft.command.selectors.entity.SelectorEntity.SelectorType;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.command.type.custom.CounterType;
+import net.minecraft.command.type.custom.NBTDescriptors;
+import net.minecraft.command.type.custom.Operators;
+import net.minecraft.command.type.custom.ParserInt;
+import net.minecraft.command.type.custom.ParserName;
+import net.minecraft.command.type.custom.Relations;
+import net.minecraft.command.type.custom.TypeAlternatives;
 import net.minecraft.command.type.custom.TypeCommand;
-import net.minecraft.command.type.custom.TypeEntityId;
 import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.custom.TypeSayString;
+import net.minecraft.command.type.custom.TypeScoreObjective;
+import net.minecraft.command.type.custom.TypeSnapshot;
+import net.minecraft.command.type.custom.TypeUntypedOperator;
 import net.minecraft.command.type.custom.Types;
-import net.minecraft.command.type.custom.coordinate.ParserCoordinates;
-import net.minecraft.command.type.custom.nbt.NBTArg;
-import net.minecraft.command.type.custom.nbt.NBTDescriptor;
-import net.minecraft.command.type.custom.nbt.NBTUtilities;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
+import net.minecraft.command.type.custom.nbt.TypeNBTArg;
+import net.minecraft.command.type.custom.nbt.TypeNBTBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
@@ -40,7 +54,8 @@ public class ServerCommandManager extends CommandHandler implements IAdminComman
 	
 	public ServerCommandManager()
 	{
-		TypeIDs.initConverters();
+		Relations.initRelations();
+		TypeIDs.init();
 		
 		CommandBase.setAdminCommander(this);
 		
@@ -48,7 +63,7 @@ public class ServerCommandManager extends CommandHandler implements IAdminComman
 			new CommandConstructorU(IPermission.PermissionLevel2, "commands.for.usage", "for")
 				.optional(new CommandConstructor("safe"), CommandFor.constructable)
 				.then(CounterType.counterType)
-				.then(TypeCommand.parser)
+				.then(TypeCommand.parserSingleCmd)
 				.executes(CommandFor.ignoreErrorConstructable));
 		CommandDescriptor.registerCommand(
 			new CommandConstructorU("commands.say.usage", "say")
@@ -56,10 +71,36 @@ public class ServerCommandManager extends CommandHandler implements IAdminComman
 				.executes(CommandSay.constructable));
 		CommandDescriptor.registerCommand(
 			new CommandConstructorU(IPermission.PermissionLevel2, "commands.summon.usage", "summon")
-				.then(TypeEntityId.type)
-				.optional(ParserCoordinates.centered)
-				.optional(NBTArg.nbtArg)
+				.then(Types.type)
+				.optional(TypeCoordinates.centered)
+				.optional(TypeNBTArg.parserEntity)
 				.executes(CommandSummon.constructable));
+		CommandDescriptor.registerCommand(
+			new CommandConstructorU(IPermission.PermissionLevel2, "commands.kill.usage", "kill")
+				.optional(Types.entityList)
+				.executes(CommandKill.constructable));
+		CommandDescriptor.registerCommand(
+			new CommandConstructorU(IPermission.PermissionLevel2, "commands.gamemode.usage", "gamemode")
+				.then(CommandGameMode.gamemodeParser)
+				.optional(Types.entityList)
+				.executes(CommandGameMode.constructable));
+		CommandDescriptor.registerCommand(
+			new CommandConstructorU(IPermission.PermissionLevel2, "commands.execute.usage", "execute")
+				.then(Types.iCmdSenderList)
+				.then(new TypeSnapshot<>(TypeCoordinates.nonCentered))
+				.optional(new CommandConstructor("detect")
+					.then(TypeCoordinates.nonCentered)
+					.then(Types.blockID)
+					.then(new TypeSnapshot<>(ParserInt.parser))
+					.then(new TypeSnapshot<>(TypeNBTArg.parserBlock)), CommandExecuteAt.constructableDetect)
+				.then(TypeCommand.parserSingleCmd)
+				.executes(CommandExecuteAt.constructable));
+		CommandDescriptor.registerCommand(
+			new CommandConstructorU(IPermission.PermissionLevel2, "commands.activate.usage", "activate")
+				.optional(ParserInt.parser, CommandActivate.constructableDelayed)
+				.optional(TypeCoordinates.nonCentered, CommandActivate.constructablePos)
+				.optional(TypeCoordinates.nonCentered, CommandActivate.constructableBox)
+				.executes(CommandActivate.constructable));
 		
 		SelectorDescriptor.registerSelector("s",
 			new SelectorConstructor(TypeIDs.ICmdSender)
@@ -69,6 +110,37 @@ public class ServerCommandManager extends CommandHandler implements IAdminComman
 			new SelectorConstructor(TypeIDs.Integer)
 				.then("cmd", TypeCommand.parserSingleCmd)
 				.construct(SelectorTiming.constructable));
+		
+		SelectorDescriptor.registerSelector("c",
+			new SelectorConstructor(TypeIDs.Double, TypeIDs.Integer)
+				.then(TypeUntypedOperator.parser)
+				.construct(PrimitiveWrapper.constructable));
+		
+		SelectorDescriptor.registerSelector("o",
+			new SelectorConstructor(TypeIDs.ScoreObjective)
+				.then(TypeScoreObjective.parser)
+				.construct(PrimitiveWrapper.constructable));
+		
+		SelectorDescriptor.registerSelector("sc",
+			new SelectorConstructor(TypeIDs.Integer)
+				.then("objective", TypeScoreObjective.parser)
+				.then("target", Types.UUID)
+				.construct(SelectorScore.constructable));
+		
+		SelectorDescriptor.registerSelector("n",
+			new SelectorConstructor(TypeIDs.NBTBase)
+				.then(new TypeAlternatives(
+					TypeCoordinates.nonCentered,
+					Types.entity,
+					TypeNBTBase.parserDefault,
+					ParserName.parser))
+				.then(ParserName.parser)
+				.construct(SelectorNBT.constructable));
+		
+		SelectorDescriptor.registerSelector("p", new SelectorDescriptorEntity(SelectorType.p));
+		SelectorDescriptor.registerSelector("a", new SelectorDescriptorEntity(SelectorType.a));
+		SelectorDescriptor.registerSelector("r", new SelectorDescriptorEntity(SelectorType.r));
+		SelectorDescriptor.registerSelector("e", new SelectorDescriptorEntity(SelectorType.e));
 		
 		if (MinecraftServer.getServer().isDedicatedServer())
 		{
@@ -84,77 +156,12 @@ public class ServerCommandManager extends CommandHandler implements IAdminComman
 				new CommandConstructorU(IPermission.PermissionLevel4, "commands.stop.usage", "stop")
 					.executes(CommandStop.constructable));
 		}
-		
-		final NBTConstructor base = NBTUtilities.baseDescriptor;
-		
-		base.sKey("Air")
-			.key("CommandStats", new NBTConstructorList(new NBTConstructor()
-				.key("AffectedBlocksName",
-					"AffectedBlocksObjective",
-					"AffectedEntitiesName",
-					"AffectedEntitiesObjective",
-					"AffectedItemsName",
-					"AffectedItemsObjective",
-					"QueryResultName",
-					"QueryResultObjective",
-					"SuccessCountName",
-					"SuccessCountObjective")))
-			.key("CustomName",
-				"Invulnerable")
-			.sKey("CustomNameVisible",
-				"Dimension",
-				"FallDistance",
-				"Fire",
-				"id")
-			
-			.key("Motion", NBTDescriptor.defaultTagList)
-			.key("Rotation", NBTDescriptor.defaultTagList)
-			.key("Pos", NBTDescriptor.defaultTagList)
-			
-			.sKey("OnGround",
-				"PortalCooldown")
-			.key("Riding", base)
-			.sKey("UUID",
-				"UUIDLeast",
-				"UUIDMost")
-			.sKey("AbsorptionAmount")
-			
-			.key("ActiveEffects",
-				new NBTConstructorList(new NBTConstructor()
-					.key("Ambient",
-						"Amplifier",
-						"Duration",
-						"Id")))
-			.sKey("AttackTime")
-			.key("Attributes", new NBTConstructorList(new NBTConstructor()
-				.key("Name",
-					"Base")
-				.key("Modifiers", new NBTConstructorList(new NBTConstructor()
-					.key("Amount",
-						"Name",
-						"Operation")
-					.sKey("UUIDLeast",
-						"UUIDMost")))))
-			
-			.sKey("CanPickUpLoot",
-				"DeathTime",
-				"DropChances",
-				"Equipment",
-				"HealF",
-				"Health",
-				"HurtByTimestamp",
-				"HurtTime")
-			.sKey("Leash", new NBTConstructor()
-				.key("UUIDLeast",
-					"UUIDMost",
-					"X",
-					"Y",
-					"Z"))
-			.sKey("Leashed")
-			
-			.key("NoAI",
-				"PersistenceRequired",
-				"Silent");
+		Operators.init();
+	}
+	
+	static
+	{
+		NBTDescriptors.init();
 	}
 	
 	@Override

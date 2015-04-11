@@ -52,83 +52,94 @@ public class ParserNBTList
 		
 		final ListData data = new ListData();
 		
+		this.parseItems(parser, data);
+		
+		if (data.data.isEmpty())
+		{
+			final NBTTagList list = new NBTTagList();
+			
+			for (final NBTBase item : data.primitiveData)
+				list.appendTag(item);
+			
+			parserData.put(list);
+		}
+		else
+		{
+			if (data.primitiveData.isEmpty())
+			{
+				parserData.put(new CommandArg<NBTBase>()
+				{
+					@Override
+					public NBTTagList eval(final ICommandSender sender) throws CommandException
+					{
+						final NBTTagList list = new NBTTagList();
+						
+						for (final CommandArg<NBTBase> item : data.data)
+							list.appendTag(item.eval(sender));
+						
+						return list;
+					}
+				});
+			}
+			else
+			{
+				final NBTTagList list = new NBTTagList();
+				for (final NBTBase item : data.primitiveData)
+					list.appendTag(item);
+				
+				parserData.put(new CommandArg<NBTBase>()
+				{
+					private boolean firstRun = true;
+					
+					@Override
+					public NBTTagList eval(final ICommandSender sender) throws CommandException
+					{
+						if (this.firstRun)
+						{
+							this.firstRun = false;
+							
+							for (final CommandArg<NBTBase> item : data.data)
+								list.appendTag(item.eval(sender));
+						}
+						else
+						{
+							int i = data.primitiveData.size();
+							
+							for (final CommandArg<NBTBase> item : data.data)
+							{
+								list.set(i, item.eval(sender));
+								++i;
+							}
+						}
+						
+						return list;
+					}
+				});
+			}
+			
+		}
+	}
+	
+	public void parseItems(final Parser parser, final ListData data) throws SyntaxErrorException, CompletionException
+	{
 		final Matcher m = parser.listEndMatcher;
 		
 		for (int i = 0;; ++i)
 		{
+			if (parser.findInc(m)) // Because [Item1,Item2,] is valid... (or at least the output of NBTTagList.toString)
+			{
+				if (!"]".equals(m.group(1)))
+					throw parser.SEE("Unexpected '" + m.group(1) + "' around index ");
+				return;
+			}
+			
 			this.descriptor.getTagDescriptor(i).getTagParser().parse(parser, data);
 			
 			if (!parser.findInc(m))
 				throw parser.SEE("No delimiter found while parsing tag list around index ");
 			
 			if ("]".equals(m.group(1)))
-			{
-				if (data.data.isEmpty())
-				{
-					final NBTTagList list = new NBTTagList();
-					
-					for (final NBTBase item : data.primitiveData)
-						list.appendTag(item);
-					
-					parserData.put(list);
-				}
-				else
-				{
-					if (data.primitiveData.isEmpty())
-					{
-						parserData.put(new CommandArg<NBTBase>()
-						{
-							@Override
-							public NBTTagList eval(final ICommandSender sender) throws CommandException
-							{
-								final NBTTagList list = new NBTTagList();
-								
-								for (final CommandArg<NBTBase> item : data.data)
-									list.appendTag(item.eval(sender));
-								
-								return list;
-							}
-						});
-					}
-					else
-					{
-						final NBTTagList list = new NBTTagList();
-						for (final NBTBase item : data.primitiveData)
-							list.appendTag(item);
-						
-						parserData.put(new CommandArg<NBTBase>()
-						{
-							private boolean firstRun = true;
-							
-							@Override
-							public NBTTagList eval(final ICommandSender sender) throws CommandException
-							{
-								if (this.firstRun)
-								{
-									this.firstRun = false;
-									
-									for (final CommandArg<NBTBase> item : data.data)
-										list.appendTag(item.eval(sender));
-								}
-								else
-								{
-									int i = data.primitiveData.size();
-									
-									for (final CommandArg<NBTBase> item : data.data)
-									{
-										list.set(i, item.eval(sender));
-										++i;
-									}
-								}
-								
-								return list;
-							}
-						});
-					}
-					
-				}
 				return;
-			}
 			
 			if ("}".equals(m.group(1)))
 				throw parser.SEE("Unexpected '}' around index ");

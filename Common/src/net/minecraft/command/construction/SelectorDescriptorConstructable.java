@@ -8,7 +8,8 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.descriptors.SelectorDescriptorDefault;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.TypeID;
+import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
+import net.minecraft.command.type.management.TypeID;
 
 public class SelectorDescriptorConstructable extends SelectorDescriptorDefault
 {
@@ -21,8 +22,8 @@ public class SelectorDescriptorConstructable extends SelectorDescriptorDefault
 	}
 	
 	@Override
-	public ArgWrapper<?> construct(final List<ArgWrapper<?>> unnamedParams, final Map<String, ArgWrapper<?>> namedParams) throws SyntaxErrorException
+	public ArgWrapper<?> construct(final ParserData parserData) throws SyntaxErrorException
 	{
-		return this.constructable.construct(unnamedParams, namedParams);
+		return this.constructable.construct(parserData);
 	}
 }

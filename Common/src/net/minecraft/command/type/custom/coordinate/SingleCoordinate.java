@@ -2,119 +2,63 @@ package net.minecraft.command.type.custom.coordinate;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.Vec3;
+import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.PrimitiveParameter;
+import net.minecraft.command.type.custom.coordinate.Coordinate.CoordValue;
 
 public class SingleCoordinate
 {
-	public static abstract class Centered extends Coordinate
+	public static final CoordValue tildeCoord = new CoordValue(new PrimitiveParameter<>(0.0), false);
+	
+	public static final CommandArg<Double> tildexC = new x(tildeCoord, true, true);
+	public static final CommandArg<Double> tildexNC = new x(tildeCoord, true, false);
+	public static final CommandArg<Double> tildeyC = new y(tildeCoord, true, true);
+	public static final CommandArg<Double> tildeyNC = new y(tildeCoord, true, false);
+	public static final CommandArg<Double> tildezC = new z(tildeCoord, true, true);
+	public static final CommandArg<Double> tildezNC = new z(tildeCoord, true, false);
+	
+	public static class x extends Coordinate
 	{
-		public Centered(final boolean relative, final CoordValue comp)
+		
+		public x(final CoordValue comp, final boolean relative, final boolean centerBlock)
 		{
-			super(relative, comp);
+			super(comp, relative, centerBlock);
 		}
 		
 		@Override
-		public Double evalCoord(final ICommandSender sender, final double base) throws CommandException
+		public Double eval(final ICommandSender sender) throws CommandException
 		{
-			return this.evalCoord(sender, base, true);
+			return this.evalCoord(sender, sender.getPositionVector().xCoord);
 		}
 	}
 	
-	public static abstract class NonCentered extends Coordinate
+	public static class y extends Coordinate
 	{
-		public NonCentered(final boolean relative, final CoordValue comp)
+		
+		public y(final CoordValue comp, final boolean relative, final boolean centerBlock)
 		{
-			super(relative, comp);
+			super(comp, relative, centerBlock);
 		}
 		
 		@Override
-		public Double evalCoord(final ICommandSender sender, final double base) throws CommandException
+		public Double eval(final ICommandSender sender) throws CommandException
 		{
-			return this.evalCoord(sender, base, false);
+			return this.evalCoord(sender, sender.getPositionVector().yCoord);
 		}
 	}
 	
-	public static class xCentered extends Centered
+	public static class z extends Coordinate
 	{
-		public xCentered(final boolean relative, final CoordValue comp)
+		
+		public z(final CoordValue comp, final boolean relative, final boolean centerBlock)
 		{
-			super(relative, comp);
+			super(comp, relative, centerBlock);
 		}
 		
 		@Override
-		public Double evalCoord(final ICommandSender sender, final Vec3 base) throws CommandException
+		public Double eval(final ICommandSender sender) throws CommandException
 		{
-			return this.evalCoord(sender, base.xCoord);
-		}
-	}
-	
-	public static class xNonCentered extends NonCentered
-	{
-		public xNonCentered(final boolean relative, final CoordValue comp)
-		{
-			super(relative, comp);
-		}
-		
-		@Override
-		public Double evalCoord(final ICommandSender sender, final Vec3 base) throws CommandException
-		{
-			return this.evalCoord(sender, base.xCoord);
-		}
-	}
-	
-	public static class yCentered extends Centered
-	{
-		public yCentered(final boolean relative, final CoordValue comp)
-		{
-			super(relative, comp);
-		}
-		
-		@Override
-		public Double evalCoord(final ICommandSender sender, final Vec3 base) throws CommandException
-		{
-			return this.evalCoord(sender, base.yCoord);
-		}
-	}
-	
-	public static class yNonCentered extends NonCentered
-	{
-		public yNonCentered(final boolean relative, final CoordValue comp)
-		{
-			super(relative, comp);
-		}
-		
-		@Override
-		public Double evalCoord(final ICommandSender sender, final Vec3 base) throws CommandException
-		{
-			return this.evalCoord(sender, base.yCoord);
-		}
-	}
-	
-	public static class zCentered extends Centered
-	{
-		public zCentered(final boolean relative, final CoordValue comp)
-		{
-			super(relative, comp);
-		}
-		
-		@Override
-		public Double evalCoord(final ICommandSender sender, final Vec3 base) throws CommandException
-		{
-			return this.evalCoord(sender, base.zCoord);
-		}
-	}
-	
-	public static class zNonCentered extends NonCentered
-	{
-		public zNonCentered(final boolean relative, final CoordValue comp)
-		{
-			super(relative, comp);
-		}
-		
-		@Override
-		public Double evalCoord(final ICommandSender sender, final Vec3 base) throws CommandException
-		{
-			return this.evalCoord(sender, base.zCoord);
+			return this.evalCoord(sender, sender.getPositionVector().zCoord);
 		}
 	}
 	

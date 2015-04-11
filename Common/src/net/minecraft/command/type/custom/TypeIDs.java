@@ -9,25 +9,26 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.arg.CommandArg;
-import net.minecraft.command.type.Converter;
-import net.minecraft.command.type.TypeID;
-import net.minecraft.command.type.custom.coordinate.Coordinate.CoordValueDec;
-import net.minecraft.command.type.custom.coordinate.Coordinate.CoordValueInt;
+import net.minecraft.command.type.custom.coordinate.Coordinate;
+import net.minecraft.command.type.custom.coordinate.Coordinate.CoordValue;
+import net.minecraft.command.type.management.CConverter;
+import net.minecraft.command.type.management.Converter;
+import net.minecraft.command.type.management.SConverter;
+import net.minecraft.command.type.management.TypeID;
+import net.minecraft.command.type.management.TypeID.ExceptionProvider;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.Vec3;
 
 public class TypeIDs
 {
-	
-	private TypeIDs()
-	{
-	};
-	
 	public static final TypeID<Byte> Byte = new TypeID<>("Byte");
 	public static final TypeID<Short> Short = new TypeID<>("Short");
 	public static final TypeID<Integer> Integer = new TypeID<>("Integer");
@@ -35,453 +36,342 @@ public class TypeIDs
 	public static final TypeID<Float> Float = new TypeID<>("Float");
 	public static final TypeID<Double> Double = new TypeID<>("Double");
 	
-	public static final TypeID<Double> CoordValue = new TypeID<>("CoordValue");
 	public static final TypeID<Vec3> Coordinates = new TypeID<>("Coordinates");
 	
 	public static final TypeID<String> String = new TypeID<>("String");
+	
+	public static final TypeID<IChatComponent> IChatComponent = new TypeID<IChatComponent>("IChatComponent");
 	
 	public static final TypeID<NBTBase> NBTBase = new TypeID<>("NBTBase");
 	public static final TypeID<NBTTagCompound> NBTCompound = new TypeID<>("NBTCompound");
 	
 	public static final TypeID<ICommandSender> ICmdSender = new TypeID<>("ICommandSender");
+	public static final TypeID<List<ICommandSender>> ICmdSenderList = TypeIDs.ICmdSender.addList();
 	
 	public static final TypeID<Entity> Entity = new TypeID<>("Entity");
 	public static final TypeID<String> UUID = new TypeID<>("UUID");
 	
-	public static final TypeID<List<Entity>> EntityList = new TypeID<>("EntityList");
-	public static final TypeID<List<String>> UUIDList = new TypeID<>("UUIDList");
-	
-	public static final void initConverters()
+	public static final TypeID<List<Entity>> EntityList = TypeIDs.Entity.addList(new ExceptionProvider()
 	{
-		TypeIDs.Integer.addConverter(TypeIDs.String, new Converter<Integer, String>()
+		@Override
+		public CommandException create()
+		{
+			return new EntityNotFoundException();
+		}
+	});
+	
+	public static final TypeID<List<String>> UUIDList = TypeIDs.UUID.addList();
+	public static final TypeID<List<String>> StringList = TypeIDs.String.addList();
+	
+	public static final TypeID<ScoreObjective> ScoreObjective = new TypeID<>("ScoreObjective");
+	
+	public static final void init()
+	{
+		Coordinate.typeCoord.init();
+		TypeIDs.Byte.init();
+		TypeIDs.Coordinates.init();
+		TypeIDs.Double.init();
+		TypeIDs.Entity.init();
+		TypeIDs.EntityList.init();
+		TypeIDs.Float.init();
+		TypeIDs.IChatComponent.init();
+		TypeIDs.ICmdSender.init();
+		TypeIDs.ICmdSenderList.init();
+		TypeIDs.Integer.init();
+		TypeIDs.Long.init();
+		TypeIDs.NBTBase.init();
+		TypeIDs.NBTCompound.init();
+		TypeIDs.ScoreObjective.init();
+		TypeIDs.Short.init();
+		TypeIDs.String.init();
+		TypeIDs.StringList.init();
+		TypeIDs.UUID.init();
+		TypeIDs.UUIDList.init();
+		
+		TypeIDs.String.addDefaultConverter(TypeIDs.IChatComponent, new CConverter<String, IChatComponent>()
 		{
 			@Override
-			public CommandArg<String> convert(final CommandArg<Integer> toConvert)
+			public IChatComponent convert(final String toConvert)
 			{
-				return new CommandArg<String>()
+				return new ChatComponentText(toConvert);
+			}
+		});
+		
+		TypeIDs.Integer.addPrimitiveConverter(TypeIDs.String, new CConverter<Integer, String>()
+		{
+			@Override
+			public String convert(final Integer toConvert)
+			{
+				return toConvert.toString();
+			}
+		});
+		
+		TypeIDs.Double.addPrimitiveConverter(TypeIDs.String, new CConverter<Double, String>()
+		{
+			@Override
+			public String convert(final Double toConvert)
+			{
+				return toConvert.toString();
+			}
+		});
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Integer, new CConverter<String, Integer>()
+		{
+			@Override
+			public Integer convert(final String toConvert) throws CommandException
+			{
+				try
 				{
-					@Override
-					public String eval(final ICommandSender sender) throws CommandException
-					{
-						return toConvert.eval(sender).toString();
-					}
-				};
-			}
-		});
-		
-		TypeIDs.Double.addConverter(TypeIDs.String, new Converter<Double, String>()
-		{
-			@Override
-			public CommandArg<String> convert(final CommandArg<Double> toConvert)
-			{
-				return new CommandArg<String>()
+					return new Integer(toConvert);
+				} catch (final NumberFormatException e)
 				{
-					@Override
-					public String eval(final ICommandSender sender) throws CommandException
-					{
-						return toConvert.eval(sender).toString();
-					}
-				};
+					throw new NumberInvalidException("Cannot convert " + toConvert + " to int");
+				}
 			}
 		});
 		
-		TypeIDs.String.addConverter(TypeIDs.Integer, new Converter<String, Integer>()
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Double, new CConverter<String, Double>()
 		{
 			@Override
-			public CommandArg<Integer> convert(final CommandArg<String> toConvert)
+			public Double convert(final String toConvert) throws CommandException
 			{
-				return new CommandArg<Integer>()
+				try
 				{
-					@Override
-					public Integer eval(final ICommandSender sender) throws CommandException
-					{
-						String res = "";
-						try
-						{
-							res = toConvert.eval(sender);
-							return new Integer(res);
-						} catch (final NumberFormatException e)
-						{
-							throw new NumberInvalidException("Cannot convert " + res + " to int", new Object[0]);
-						}
-						
-					}
-				};
-			}
-		});
-		
-		TypeIDs.String.addConverter(TypeIDs.Double, new Converter<String, Double>()
-		{
-			@Override
-			public CommandArg<Double> convert(final CommandArg<String> toConvert)
-			{
-				return new CommandArg<Double>()
+					return new Double(toConvert);
+				} catch (final NumberFormatException e)
 				{
-					@Override
-					public Double eval(final ICommandSender sender) throws CommandException
-					{
-						String res = "";
-						try
-						{
-							res = toConvert.eval(sender);
-							return new Double(res);
-						} catch (final NumberFormatException e)
-						{
-							throw new NumberInvalidException("Cannot convert " + res + " to double", new Object[0]);
-						}
-						
-					}
-				};
+					throw new NumberInvalidException("Cannot convert " + toConvert + " to double");
+				}
 			}
 		});
 		
-		TypeIDs.Integer.addConverter(TypeIDs.Double, new Converter<Integer, Double>()
+		TypeIDs.Integer.addPrimitiveConverter(TypeIDs.Double, new CConverter<Integer, Double>()
 		{
 			@Override
-			public CommandArg<Double> convert(final CommandArg<Integer> toConvert)
+			public Double convert(final Integer toConvert)
 			{
-				return new CommandArg<Double>()
-				{
-					@Override
-					public Double eval(final ICommandSender sender) throws CommandException
-					{
-						return new Double(toConvert.eval(sender));
-					}
-				};
+				return new Double(toConvert);
 			}
-		});
-		
-		TypeIDs.Double.addConverter(TypeIDs.Integer, new Converter<Double, Integer>()
-		{
-			@Override
-			public CommandArg<Integer> convert(final CommandArg<Double> toConvert)
-			{
-				return new CommandArg<Integer>()
-				{
-					@Override
-					public Integer eval(final ICommandSender sender) throws CommandException
-					{
-						return new Integer(toConvert.eval(sender).intValue());
-					}
-				};
-			}
-		});
-		
-		TypeIDs.Integer.addConverter(TypeIDs.NBTBase, new Converter<Integer, NBTBase>()
-		{
-			@Override
-			public CommandArg<NBTBase> convert(final CommandArg<Integer> toConvert)
-			{
-				return new CommandArg<NBTBase>()
-				{
-					@Override
-					public NBTTagInt eval(final ICommandSender sender) throws CommandException
-					{
-						return new NBTTagInt(toConvert.eval(sender));
-					}
-				};
-			}
-		});
-		
-		TypeIDs.Double.addConverter(TypeIDs.NBTBase, new Converter<Double, NBTBase>()
-		{
-			@Override
-			public CommandArg<NBTBase> convert(final CommandArg<Double> toConvert)
-			{
-				return new CommandArg<NBTBase>()
-				{
-					@Override
-					public NBTTagDouble eval(final ICommandSender sender) throws CommandException
-					{
-						return new NBTTagDouble(toConvert.eval(sender));
-					}
-				};
-			}
-		});
-		
-		TypeIDs.String.addConverter(TypeIDs.NBTBase, new Converter<String, NBTBase>()
-		{
-			@Override
-			public CommandArg<NBTBase> convert(final CommandArg<String> toConvert)
-			{
-				return new CommandArg<NBTBase>()
-				{
-					@Override
-					public NBTTagString eval(final ICommandSender sender) throws CommandException
-					{
-						return new NBTTagString(toConvert.eval(sender));
-					}
-				};
-			}
-		});
-		
-		TypeIDs.NBTBase.addConverter(TypeIDs.Integer, new Converter<NBTBase, Integer>()
-		{
-			@Override
-			public CommandArg<Integer> convert(final CommandArg<NBTBase> toConvert)
-			{
-				return new CommandArg<Integer>()
-				{
-					@Override
-					public Integer eval(final ICommandSender sender) throws CommandException
-					{
-						final NBTBase res = toConvert.eval(sender);
-						if (!(res instanceof NBTBase.NBTPrimitive))
-							throw new CommandException("Cannot convert from this NBT to int", new Object[0]);
-						
-						return ((NBTBase.NBTPrimitive) res).getInt();
-					}
-				};
-			}
-		});
-		
-		TypeIDs.NBTBase.addConverter(TypeIDs.Double, new Converter<NBTBase, Double>()
-		{
-			@Override
-			public CommandArg<Double> convert(final CommandArg<NBTBase> toConvert)
-			{
-				return new CommandArg<Double>()
-				{
-					@Override
-					public Double eval(final ICommandSender sender) throws CommandException
-					{
-						final NBTBase res = toConvert.eval(sender);
-						if (!(res instanceof NBTBase.NBTPrimitive))
-							throw new CommandException("Cannot convert from this NBT to double", new Object[0]);
-						
-						return ((NBTBase.NBTPrimitive) res).getDouble();
-					}
-				};
-			}
-		});
-		
-		TypeIDs.NBTBase.addConverter(TypeIDs.String, new Converter<NBTBase, String>()
-		{
-			@Override
-			public CommandArg<String> convert(final CommandArg<NBTBase> toConvert)
-			{
-				return new CommandArg<String>()
-				{
-					@Override
-					public String eval(final ICommandSender sender) throws CommandException
-					{
-						return toConvert.eval(sender).toString();
-					}
-				};
-			}
-		});
-		
-		TypeIDs.ICmdSender.addConverter(TypeIDs.String, new Converter<ICommandSender, String>()
-		{
-			@Override
-			public CommandArg<java.lang.String> convert(final CommandArg<ICommandSender> toConvert)
-			{
-				return new CommandArg<String>()
-				{
-					@Override
-					public String eval(final ICommandSender sender) throws CommandException
-					{
-						return toConvert.eval(sender).getName();
-					}
-				};
-			}
-		});
-		
-		TypeIDs.Integer.addConverter(TypeIDs.CoordValue, new Converter<Integer, Double>()
-		{
-			@Override
-			public CoordValueInt convert(final CommandArg<Integer> toConvert)
-			{
-				return new CoordValueInt(new CommandArg<Double>()
-				{
-					@Override
-					public Double eval(final ICommandSender sender) throws CommandException
-					{
-						return new Double(toConvert.eval(sender));
-					}
-				});
-			}
-		});
-		
-		TypeIDs.Double.addConverter(TypeIDs.CoordValue, new Converter<Double, Double>()
-		{
-			@Override
-			public CoordValueDec convert(final CommandArg<Double> toConvert)
-			{
-				return new CoordValueDec(toConvert);
-			}
-		});
-		
-		TypeIDs.EntityList.addConverter(TypeIDs.UUIDList, new Converter<List<Entity>, List<String>>()
-		{
-			@Override
-			public CommandArg<List<String>> convert(final CommandArg<List<Entity>> toConvert)
-			{
-				return new CommandArg<List<String>>()
-				{
-					@Override
-					public List<String> eval(final ICommandSender sender) throws CommandException
-					{
-						final List<Entity> entityList = toConvert.eval(sender);
-						final List<String> uuidList = new ArrayList<>(entityList.size());
-						
-						for (final Entity entity : entityList)
-							uuidList.add(ParsingUtilities.getEntityIdentifier(entity));
-						
-						return uuidList;
-					}
-				};
-			}
-		});
-		
-		TypeIDs.ICmdSender.addConverter(TypeIDs.UUIDList, new Converter<ICommandSender, List<String>>()
-		{
 			
+		});
+		
+		TypeIDs.Double.addPrimitiveConverter(TypeIDs.Integer, new CConverter<Double, Integer>()
+		{
 			@Override
-			public CommandArg<List<String>> convert(final CommandArg<ICommandSender> toConvert)
+			public Integer convert(final Double toConvert)
 			{
-				return new CommandArg<List<String>>()
-				{
-					@Override
-					public List<String> eval(final ICommandSender sender) throws CommandException
-					{
-						final ICommandSender iCmdSender = toConvert.eval(sender);
-						
-						if (!(iCmdSender instanceof Entity))
-							throw new CommandException("Unable to convert " + iCmdSender.getName() + " to Entity", new Object[0]);
-						
-						final List<String> uuidList = new ArrayList<>(1);
-						
-						uuidList.add(ParsingUtilities.getEntityIdentifier((Entity) iCmdSender));
-						
-						return uuidList;
-					}
-				};
+				
+				return new Integer(toConvert.intValue());
+			}
+			
+		});
+		
+		TypeIDs.Integer.addDefaultConverter(TypeIDs.NBTBase, new CConverter<Integer, NBTBase>()
+		{
+			@Override
+			public NBTBase convert(final Integer toConvert)
+			{
+				return new NBTTagInt(toConvert);
 			}
 		});
 		
-		TypeIDs.String.addConverter(TypeIDs.UUIDList, new Converter<String, List<String>>()
+		TypeIDs.Double.addDefaultConverter(TypeIDs.NBTBase, new CConverter<Double, NBTBase>()
 		{
 			@Override
-			public CommandArg<List<String>> convert(final CommandArg<String> toConvert)
+			public NBTBase convert(final Double toConvert)
 			{
-				return new CommandArg<List<String>>()
-				{
-					@Override
-					public List<String> eval(final ICommandSender sender) throws CommandException
-					{
-						final List<String> uuidList = new ArrayList<>();
-						
-						uuidList.add(toConvert.eval(sender));
-						
-						return uuidList;
-					}
-				};
+				return new NBTTagDouble(toConvert);
 			}
 		});
 		
-		TypeIDs.String.addConverter(TypeIDs.Entity, new Converter<String, Entity>()
+		TypeIDs.String.addDefaultConverter(TypeIDs.NBTBase, new CConverter<String, NBTBase>()
 		{
 			@Override
-			public CommandArg<Entity> convert(final CommandArg<String> toConvert)
+			public NBTBase convert(final String toConvert)
 			{
-				return new CommandArg<Entity>()
-				{
-					@Override
-					public Entity eval(ICommandSender sender) throws CommandException
-					{
-						final Entity ret = ParsingUtilities.entiyFromIdentifier(toConvert.eval(sender));
-						
-						if (ret == null)
-							throw new EntityNotFoundException("commands.generic.entity.invalidUuid", new Object[0]);
-						
-						return ret;
-					}
-				};
+				return new NBTTagString(toConvert);
 			}
 		});
 		
-		TypeIDs.UUID.addConverter(TypeIDs.Entity, new Converter<String, Entity>()
+		TypeIDs.NBTBase.addPrimitiveConverter(TypeIDs.Integer, new CConverter<NBTBase, Integer>()
 		{
 			@Override
-			public CommandArg<Entity> convert(final CommandArg<String> toConvert)
+			public Integer convert(final NBTBase toConvert) throws CommandException
 			{
-				return new CommandArg<Entity>()
-				{
-					@Override
-					public Entity eval(ICommandSender sender) throws CommandException
-					{
-						final Entity ret = ParsingUtilities.entiyFromIdentifier(toConvert.eval(sender));
-						
-						if (ret == null)
-							throw new EntityNotFoundException("commands.generic.entity.invalidUuid", new Object[0]);
-						
-						return ret;
-					}
-				};
+				if (!(toConvert instanceof NBTBase.NBTPrimitive))
+					throw new CommandException("Cannot convert from this NBT to int");
+				
+				return ((NBTBase.NBTPrimitive) toConvert).getInt();
 			}
 		});
 		
-		TypeIDs.Entity.addConverter(TypeIDs.EntityList, new Converter<Entity, List<Entity>>()
+		TypeIDs.NBTBase.addPrimitiveConverter(TypeIDs.Double, new CConverter<NBTBase, Double>()
 		{
 			@Override
-			public CommandArg<List<Entity>> convert(final CommandArg<Entity> toConvert)
+			public Double convert(final NBTBase toConvert) throws CommandException
 			{
-				return new CommandArg<List<Entity>>()
-				{
-					@Override
-					public List<Entity> eval(final ICommandSender sender) throws CommandException
-					{
-						final List<Entity> entityList = new ArrayList<>();
-						
-						entityList.add(toConvert.eval(sender));
-						
-						return entityList;
-					}
-				};
+				if (!(toConvert instanceof NBTBase.NBTPrimitive))
+					throw new CommandException("Cannot convert from this NBT to double", new Object[0]);
+				
+				return ((NBTBase.NBTPrimitive) toConvert).getDouble();
 			}
 		});
 		
-		TypeIDs.Entity.addConverter(TypeIDs.UUID, new Converter<Entity, String>()
+		TypeIDs.NBTBase.addPrimitiveConverter(TypeIDs.String, new CConverter<NBTBase, String>()
 		{
 			@Override
-			public CommandArg<String> convert(final CommandArg<Entity> toConvert)
+			public String convert(final NBTBase toConvert)
 			{
-				return new CommandArg<String>()
+				switch (toConvert.getId())
 				{
-					@Override
-					public String eval(final ICommandSender sender) throws CommandException
-					{
-						return ParsingUtilities.getEntityIdentifier(toConvert.eval(sender));
-					}
-				};
+				case 8:
+					return ((NBTTagString) toConvert).getString();
+				default:
+					return toConvert.toString();
+				}
 			}
 		});
 		
-		new Converter.Chained<>(TypeIDs.String, TypeIDs.Entity).chain(TypeIDs.EntityList).register();
-		new Converter.Chained<>(TypeIDs.UUID, TypeIDs.Entity).chain(TypeIDs.EntityList).register();
-		
-		TypeIDs.EntityList.addConverter(TypeIDs.Entity, new Converter<List<Entity>, Entity>()
+		TypeIDs.ICmdSender.addPrimitiveConverter(TypeIDs.String, new CConverter<ICommandSender, String>()
 		{
 			@Override
-			public CommandArg<Entity> convert(final CommandArg<List<Entity>> toConvert)
+			public String convert(final ICommandSender toConvert)
 			{
-				return new CommandArg<Entity>()
-				{
-					@Override
-					public Entity eval(ICommandSender sender) throws CommandException
-					{
-						final List<Entity> list = toConvert.eval(sender);
-						
-						if (list.size() != 1)
-							throw new EntityNotFoundException();
-						
-						return list.get(0);
-					}
-				};
+				return toConvert.getName();
+			}
+		});
+		
+		TypeIDs.ICmdSender.addPrimitiveConverter(TypeIDs.UUID, new CConverter<ICommandSender, String>()
+		{
+			@Override
+			public String convert(final ICommandSender toConvert) throws CommandException
+			{
+				if (!(toConvert instanceof Entity))
+					throw new CommandException(toConvert.getName() + " is not an entity");
+				
+				return ParsingUtilities.getEntityIdentifier((Entity) toConvert);
+			}
+		});
+		
+		TypeIDs.UUID.addPrimitiveConverter(TypeIDs.Entity, ParserEntity.UUIDToEntity);
+		
+		TypeIDs.Entity.addPrimitiveConverter(TypeIDs.UUID, new CConverter<Entity, String>()
+		{
+			@Override
+			public String convert(final Entity toConvert)
+			{
+				return ParsingUtilities.getEntityIdentifier(toConvert);
+			}
+		});
+		
+		TypeIDs.Entity.addDefaultConverter(TypeIDs.ICmdSender, ParserICmdSender.EntityToICmdSender);
+		
+		TypeIDs.ICmdSender.addPrimitiveConverter(TypeIDs.Entity, new CConverter<ICommandSender, Entity>()
+		{
+			@Override
+			public Entity convert(final ICommandSender toConvert) throws CommandException
+			{
+				final Entity ret = toConvert.getCommandSenderEntity();
+				
+				if (ret != null)
+					return ret;
+				
+				throw new EntityNotFoundException(toConvert.getName() + " is not an entity");
+			}
+		});
+		
+		TypeIDs.ICmdSender.addPrimitiveConverter(TypeIDs.IChatComponent, new CConverter<ICommandSender, IChatComponent>()
+		{
+			@Override
+			public IChatComponent convert(final ICommandSender toConvert) throws CommandException
+			{
+				return toConvert.getDisplayName();
+			}
+		});
+		
+		TypeIDs.Entity.addPrimitiveConverter(TypeIDs.String, new CConverter<Entity, String>()
+		{
+			@Override
+			public String convert(final Entity toConvert)
+			{
+				return toConvert.getName();
+			}
+		});
+		
+		TypeIDs.Entity.addPrimitiveConverter(TypeIDs.IChatComponent, new CConverter<Entity, IChatComponent>()
+		{
+			@Override
+			public IChatComponent convert(final Entity toConvert)
+			{
+				return toConvert.getDisplayName();
+			}
+		});
+		
+		TypeIDs.EntityList.addPrimitiveConverter(TypeIDs.IChatComponent, new CConverter<List<Entity>, IChatComponent>()
+		{
+			@Override
+			public IChatComponent convert(final List<Entity> toConvert)
+			{
+				final List<IChatComponent> names = new ArrayList<>(toConvert.size());
+				
+				for (final Entity entity : toConvert)
+					names.add(entity.getDisplayName());
+				
+				return ParsingUtilities.join(names);
 			}
 		});
 		
 		new Converter.Chained<>(TypeIDs.EntityList, TypeIDs.Entity).chain(TypeIDs.UUID).register();
+		new Converter.Chained<>(TypeIDs.EntityList, TypeIDs.Entity).chain(TypeIDs.String).register();
+		
+		TypeIDs.NBTCompound.addDefaultConverter(TypeIDs.NBTBase, CConverter.<NBTTagCompound, NBTBase> primitiveConverter());
+		
+		TypeIDs.NBTBase.addPrimitiveConverter(TypeIDs.NBTCompound, new CConverter<NBTBase, NBTTagCompound>()
+		{
+			@Override
+			public NBTTagCompound convert(final NBTBase toConvert) throws CommandException
+			{
+				if (toConvert instanceof NBTTagCompound)
+					return (NBTTagCompound) toConvert;
+				
+				throw new CommandException("Can't convert this NBTBase to NBTTagCompound");
+			}
+		});
+		
+		TypeIDs.ScoreObjective.addPrimitiveConverter(TypeIDs.String, new CConverter<ScoreObjective, String>()
+		{
+			@Override
+			public String convert(final ScoreObjective toConvert)
+			{
+				return toConvert.getDisplayName();
+			}
+		});
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.ScoreObjective, TypeScoreObjective.StringToObjective);
+		
+		TypeIDs.Integer.addConverter(Coordinate.typeCoord, new SConverter<CommandArg<Integer>, CoordValue>()
+		{
+			@Override
+			public CoordValue convert(final CommandArg<Integer> toConvert)
+			{
+				return new CoordValue(new CommandArg<Double>()
+				{
+					@Override
+					public Double eval(final ICommandSender sender) throws CommandException
+					{
+						return new Double(toConvert.eval(sender));
+					}
+				}, false);
+			}
+		});
+		
+		TypeIDs.Double.addConverter(Coordinate.typeCoord, new SConverter<CommandArg<Double>, CoordValue>()
+		{
+			@Override
+			public CoordValue convert(final CommandArg<Double> toConvert)
+			{
+				return new CoordValue(toConvert, true);
+			}
+		});
 	}
 }

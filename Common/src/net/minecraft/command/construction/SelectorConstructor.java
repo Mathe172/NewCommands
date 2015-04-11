@@ -9,7 +9,7 @@ import java.util.Set;
 
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.TypeID;
+import net.minecraft.command.type.management.TypeID;
 
 public class SelectorConstructor
 {
@@ -20,7 +20,8 @@ public class SelectorConstructor
 	
 	public SelectorConstructor(final TypeID<?>... resultTypes)
 	{
-		this.resultTypes = new HashSet<>();
+		this.resultTypes = new HashSet<>(resultTypes.length);
+		
 		for (final TypeID<?> resultType : resultTypes)
 			this.resultTypes.add(resultType);
 	}
@@ -43,7 +44,7 @@ public class SelectorConstructor
 		return this.named(name, dataType);
 	}
 	
-	public SelectorDescriptor construct(final SelectorConstructable constructable)
+	public SelectorDescriptor<?> construct(final SelectorConstructable constructable)
 	{
 		return new SelectorDescriptorConstructable(this.unnamedTypes, this.namedTypes, constructable, this.resultTypes);
 	}

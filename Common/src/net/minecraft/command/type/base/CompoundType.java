@@ -5,6 +5,7 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.CListProvider;
@@ -30,9 +31,9 @@ public class CompoundType<R> extends CTypeCompletable<R>
 	}
 	
 	@Override
-	public ArgWrapper<R> iParse(final Parser parser) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<R> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		return this.tParser.parse(parser);
+		return this.tParser.parse(parser, context);
 	}
 	
 	@Override

@@ -15,11 +15,11 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -31,14 +31,17 @@ import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
-import net.minecraft.command.completion.TabCompletion;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
+import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.command.descriptors.CommandDescriptor;
+import net.minecraft.command.descriptors.OperatorDescriptor;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.parser.ParsingManager;
-import net.minecraft.command.type.TypeID;
+import net.minecraft.command.type.management.Convertable;
+import net.minecraft.command.type.management.relations.Relation;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -528,9 +531,11 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 			}
 		}
 		
-		TypeID.clear();
+		Convertable.clearAll();
+		Relation.clearAll();
 		CommandDescriptor.clear();
 		SelectorDescriptor.clear();
+		OperatorDescriptor.clear();
 	}
 	
 	public boolean isServerRunning()
@@ -969,7 +974,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 				@Override
 				public void run()
 				{
-					Parser.parseCompletion(toComplete, new CompletionData(packet.getCursorIndex(), handler.playerEntity, packet.func_179709_b()), 1).sendPacket(handler);
+					Parser.parseCompletion(new CompletionData(toComplete, packet.getCursorIndex(), handler.playerEntity, packet.func_179709_b()), 1).sendPacket(handler);
 				}
 			});
 		}
@@ -983,13 +988,13 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 				@Override
 				public void run()
 				{
-					final Set<TabCompletion> completions = MinecraftServer.this.serverConfigManager.playerCompletions;
-					final Set<TabCompletionData> tcDataSet = new HashSet<>(completions.size());
+					final Set<ITabCompletion> completions = MinecraftServer.this.serverConfigManager.playerCompletions;
+					final Set<Weighted> tcDataSet = new TreeSet<>();
 					
-					final CompletionData cData = new CompletionData(cursorIndex, handler.playerEntity, null);
+					final CompletionData cData = new CompletionData(toComplete, cursorIndex, handler.playerEntity, null);
 					
-					for (final TabCompletion tc : completions)
-						TabCompletionData.addToSet(tcDataSet, toComplete, startIndex, cData, tc);
+					for (final ITabCompletion tc : completions)
+						TabCompletionData.addToSet(tcDataSet, startIndex, cData, tc);
 					
 					handler.sendPacket(new S3APacketTabComplete(tcDataSet));
 				}
@@ -1020,8 +1025,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 	}
 	
 	/**
-	 * Notifies this sender of some sort of information. This is for messages intended to display to the user. Used for typical output (like "you asked for whether or not this game rule is set, so here's your answer"), warnings (like
-	 * "I fetched this block for you by ID, but I'd like you to know that every time you do this, I die a little inside"), and errors (like "it's not called iron_pixacke, silly").
+	 * Notifies this sender of some sort of information. This is for messages intended to display to the user. Used for typical output (like "you asked for whether or not this game rule is set, so here's your answer"), warnings (like "I fetched this block for you by ID, but I'd like you to know that every time you do this, I die a little inside"), and errors (like "it's not called iron_pixacke, silly").
 	 */
 	@Override
 	public void addChatMessage(final IChatComponent message)

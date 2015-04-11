@@ -3,21 +3,36 @@ package net.minecraft.command.type.custom.nbt;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.completion.TCDSet;
+import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.custom.ParserUntypedSelector;
+import net.minecraft.command.type.IParse;
+import net.minecraft.command.type.base.CustomCompletable;
+import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.type.custom.TypeUntypedSelector;
 import net.minecraft.nbt.NBTBase;
 
-public class ParserNBTSelector
+public class ParserNBTSelector extends CustomCompletable<CommandArg<NBTBase>>
 {
+	public static final IParse<CommandArg<NBTBase>> parser = new ParserNBTSelector();
 	
-	public static CommandArg<NBTBase> parse(final Parser parser) throws SyntaxErrorException, CompletionException
+	@Override
+	public CommandArg<NBTBase> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		final SelectorDescriptor descriptor = ParserUntypedSelector.parseName(parser);
+		final SelectorDescriptor<?> descriptor = TypeUntypedSelector.parseName(parser);
 		
 		final ArgWrapper<?> arg = descriptor.getContentParser().parse(parser);
 		
 		return NBTUtilities.procIdentifier(parser, arg);
+	}
+	
+	@Override
+	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
+	{
+		TabCompletionData.addToSet(tcDataSet, startIndex, cData, TypeIDs.NBTBase.getSelectorCompletions());
 	}
 }

@@ -7,6 +7,7 @@ import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.CommandDescriptor;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.CustomCompletable;
 
@@ -20,7 +21,7 @@ public class ParserKeyword extends CustomCompletable<CommandDescriptor>
 	}
 	
 	@Override
-	public CommandDescriptor iParse(final Parser parser) throws SyntaxErrorException
+	public CommandDescriptor iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		// No parser.checkEnd() needed
 		final Matcher m = parser.keyMatcher;
@@ -45,6 +46,6 @@ public class ParserKeyword extends CustomCompletable<CommandDescriptor>
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		TabCompletionData.addToSet(tcDataSet, parser.toParse, startIndex, cData, this.descriptor.getKeywordCompletions());
+		TabCompletionData.addToSet(tcDataSet, startIndex, cData, this.descriptor.getKeywordCompletions());
 	}
 }

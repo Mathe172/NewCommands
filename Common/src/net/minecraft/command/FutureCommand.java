@@ -9,38 +9,34 @@ import net.minecraft.command.parser.ParsingManager;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
-public class FutureCommand
+public class FutureCommand extends IFutureCommand
 {
-	private String commandStored;
-	private Future<CommandArg<Integer>> fCommand;
-	private CommandArg<Integer> command;
+	Future<CommandArg<Integer>> fCommand;
+	CommandArg<Integer> command;
 	
 	public FutureCommand()
 	{
-		this.commandStored = "";
+		super("");
 		this.fCommand = null;
 		this.command = initCommand;
 	}
 	
 	public FutureCommand(final String command)
 	{
-		this.commandStored = command;
+		super(command);
 		this.command = null;
-		this.fCommand = ParsingManager.submit(this.commandStored);
+		this.fCommand = ParsingManager.submit(command);
 	}
 	
-	public final String get()
+	@Override
+	public void set(final String command)
 	{
-		return this.commandStored;
-	}
-	
-	public final void set(final String command)
-	{
-		this.commandStored = command;
+		super.set(command);
 		this.command = null;
-		this.fCommand = ParsingManager.submit(this.commandStored);
+		this.fCommand = ParsingManager.submit(command);
 	}
 	
+	@Override
 	public CommandArg<Integer> getCommand()
 	{
 		if (this.command == null)
@@ -52,7 +48,7 @@ public class FutureCommand
 					this.command = this.fCommand.get();
 				} catch (final InterruptedException e)
 				{
-					this.command = Parser.parseCommand(this.commandStored);
+					this.command = Parser.parseCommand(get());
 				}
 			} catch (final ExecutionException | SyntaxErrorException e)
 			{

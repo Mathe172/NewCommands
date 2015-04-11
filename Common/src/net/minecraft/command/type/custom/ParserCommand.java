@@ -15,11 +15,12 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.completion.DataRequest;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.TabCompletion;
-import net.minecraft.command.completion.TabCompletionData;
+import net.minecraft.command.completion.ITabCompletion;
+import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.command.descriptors.CommandDescriptor;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.base.CustomCompletable;
@@ -27,7 +28,7 @@ import net.minecraft.command.type.base.CustomCompletable;
 public class ParserCommand extends CustomCompletable<CommandBase>
 {
 	@Override
-	public final CommandBase iParse(final Parser parser) throws SyntaxErrorException, CompletionException
+	public final CommandBase iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
 		final Matcher m = parser.keyMatcher;
 		
@@ -94,11 +95,11 @@ public class ParserCommand extends CustomCompletable<CommandBase>
 		@Override
 		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 		{
-			final Map<TabCompletionData, CommandDescriptor> completions = new HashMap<>();
+			final Map<Weighted, CommandDescriptor> completions = new HashMap<>();
 			
-			for (final Entry<TabCompletion, CommandDescriptor> e : CommandDescriptor.commandCompletions.entrySet())
+			for (final Entry<ITabCompletion, CommandDescriptor> e : CommandDescriptor.commandCompletions.entrySet())
 			{
-				final TabCompletionData tcData = e.getKey().getMatchData(parser.toParse, startIndex, cData);
+				final Weighted tcData = e.getKey().getMatchData(startIndex, cData);
 				
 				if (tcData != null)
 					completions.put(tcData, e.getValue());
@@ -109,7 +110,7 @@ public class ParserCommand extends CustomCompletable<CommandBase>
 				@Override
 				public void process()
 				{
-					for (final Entry<TabCompletionData, CommandDescriptor> e : completions.entrySet())
+					for (final Entry<Weighted, CommandDescriptor> e : completions.entrySet())
 					{
 						final IPermission permission = e.getValue().permission;
 						if (permission == null || permission.canCommandSenderUseCommand(cData.sender))
@@ -118,7 +119,7 @@ public class ParserCommand extends CustomCompletable<CommandBase>
 				}
 				
 				@Override
-				public void createCompletions(final Set<TabCompletionData> tcDataSet)
+				public void createCompletions(final Set<Weighted> tcDataSet)
 				{
 				}
 			});

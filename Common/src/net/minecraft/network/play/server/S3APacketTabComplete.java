@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.minecraft.command.completion.TabCompletionData;
+import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
@@ -20,9 +21,9 @@ public class S3APacketTabComplete implements Packet
 	{
 	}
 	
-	public S3APacketTabComplete(final Set<TabCompletionData> tcDataSet)
+	public S3APacketTabComplete(final Set<Weighted> tcDataSet)
 	{
-		this.tcDataList = new ArrayList<>(tcDataSet);
+		this.tcDataList = new ArrayList<TabCompletionData>(tcDataSet);
 	}
 	
 	/**
@@ -36,7 +37,7 @@ public class S3APacketTabComplete implements Packet
 		
 		for (int i = 0; i < amount; ++i)
 		{
-			this.tcDataList.add(new TabCompletionData(data.readStringFromBuffer(32767), data.readInt(), data.readStringFromBuffer(32767), data.readInt(), data.readBoolean()));
+			this.tcDataList.add(new TabCompletionData(data.readStringFromBuffer(32767), data.readInt(), data.readInt(), data.readStringFromBuffer(32767), data.readInt()));
 		}
 	}
 	
@@ -52,9 +53,9 @@ public class S3APacketTabComplete implements Packet
 		{
 			data.writeString(tcData.name);
 			data.writeInt(tcData.startIndex);
+			data.writeInt(tcData.endIndex);
 			data.writeString(tcData.replacement);
 			data.writeInt(tcData.newCursorIndex);
-			data.writeBoolean(tcData.primitiveFit);
 		}
 	}
 	

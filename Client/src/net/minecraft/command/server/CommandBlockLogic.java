@@ -10,6 +10,8 @@ import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.FutureCommand;
 import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.IFutureCommand;
+import net.minecraft.command.arg.CommandArg;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.player.EntityPlayer;
@@ -32,12 +34,37 @@ public abstract class CommandBlockLogic implements ICommandSender
 	/** The previously run command. */
 	private IChatComponent lastOutput = null;
 	
-	private final FutureCommand command = new FutureCommand();
+	private final IFutureCommand command;
+	
+	public CommandBlockLogic()
+	{
+		this.command = MinecraftServer.getServer().isCallingFromMinecraftThread() ? new FutureCommand() : new ClientFutureCommand();
+	}
 	
 	/** The custom name of the command block. (defaults to "@") */
 	private String customName = "@";
 	private final CommandResultStats field_175575_g = new CommandResultStats();
 	private static final String __OBFID = "CL_00000128";
+	
+	private static final class ClientFutureCommand extends IFutureCommand
+	{
+		public ClientFutureCommand()
+		{
+			super("");
+		}
+		
+		public ClientFutureCommand(final String commandStored)
+		{
+			super(commandStored);
+		}
+		
+		// Should never be called on the client thread
+		@Override
+		public CommandArg<Integer> getCommand()
+		{
+			return null;
+		}
+	}
 	
 	/**
 	 * returns the successCount int.
@@ -206,8 +233,7 @@ public abstract class CommandBlockLogic implements ICommandSender
 	}
 	
 	/**
-	 * Notifies this sender of some sort of information. This is for messages intended to display to the user. Used for typical output (like "you asked for whether or not this game rule is set, so here's your answer"), warnings (like
-	 * "I fetched this block for you by ID, but I'd like you to know that every time you do this, I die a little inside"), and errors (like "it's not called iron_pixacke, silly").
+	 * Notifies this sender of some sort of information. This is for messages intended to display to the user. Used for typical output (like "you asked for whether or not this game rule is set, so here's your answer"), warnings (like "I fetched this block for you by ID, but I'd like you to know that every time you do this, I die a little inside"), and errors (like "it's not called iron_pixacke, silly").
 	 */
 	@Override
 	public void addChatMessage(final IChatComponent message)

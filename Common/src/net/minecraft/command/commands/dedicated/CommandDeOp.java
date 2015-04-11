@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IPermission;
 import net.minecraft.command.arg.ArgWrapper;
@@ -41,14 +42,12 @@ public class CommandDeOp extends CommandBase
 		final GameProfile profile = server.getConfigurationManager().getOppedPlayers().getGameProfileFromName(name);
 		
 		if (profile == null)
-		{
 			throw new CommandException("commands.deop.failed", new Object[] { name });
-		}
-		else
-		{
-			server.getConfigurationManager().removeOp(profile);
-			this.notifyOperators(sender, "commands.deop.success", new Object[] { name });
-		}
+		
+		server.getConfigurationManager().removeOp(profile);
+		this.notifyOperators(sender, "commands.deop.success", new Object[] { name });
+		
+		sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, 1);
 		
 		return 1;
 	}

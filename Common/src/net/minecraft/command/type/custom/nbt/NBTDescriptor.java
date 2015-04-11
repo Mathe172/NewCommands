@@ -3,7 +3,7 @@ package net.minecraft.command.type.custom.nbt;
 import java.util.Collections;
 import java.util.Set;
 
-import net.minecraft.command.completion.TabCompletion;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound.CompoundData;
@@ -23,7 +23,7 @@ public abstract class NBTDescriptor
 	{
 		public abstract IExParse<Void, CompoundData> getPair();
 		
-		public abstract Set<TabCompletion> getKeyCompletions();
+		public abstract Set<ITabCompletion> getKeyCompletions();
 		
 		public abstract Tag getSubDescriptor(String key);
 		
@@ -93,7 +93,7 @@ public abstract class NBTDescriptor
 		}
 		
 		@Override
-		public Set<TabCompletion> getKeyCompletions()
+		public Set<ITabCompletion> getKeyCompletions()
 		{
 			return Collections.emptySet();
 		}

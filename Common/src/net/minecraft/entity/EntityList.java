@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.entity.ai.EntityMinecartMobSpawner;
 import net.minecraft.entity.boss.EntityDragon;
@@ -101,7 +102,7 @@ public class EntityList
 	public static final Map entityEggs = Maps.newLinkedHashMap();
 	private static final String __OBFID = "CL_00001538";
 	
-	public static final Set<TabCompletion> completions = new HashSet<>();
+	public static final Set<ITabCompletion> completions = new HashSet<>();
 	
 	/**
 	 * adds a mapping between Entity classes and both a string representation and an ID
@@ -387,6 +388,8 @@ public class EntityList
 		addMapping(EntityRabbit.class, "Rabbit", 101, 10051392, 7555121);
 		addMapping(EntityVillager.class, "Villager", 120, 5651507, 12422002);
 		addMapping(EntityEnderCrystal.class, "EnderCrystal", 200);
+		
+		completions.add(new TabCompletion("LightningBolt"));
 	}
 	
 	public static class EntityEggInfo

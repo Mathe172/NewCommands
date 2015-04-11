@@ -6,24 +6,40 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IParse;
 import net.minecraft.command.type.base.CustomParse;
 
-public class ParserPreCommand extends CustomParse<CommandArg<Integer>>
+public class ParserPreCommand
 {
-	@Override
-	public final CommandArg<Integer> parse(final Parser parser) throws SyntaxErrorException, CompletionException
+	
+	public static final CommandArg<Integer> parse(final Parser parser, final boolean standalone) throws SyntaxErrorException, CompletionException
 	{
 		final Matcher oParenthMatcher = parser.oParenthMatcher;
 		
 		if (parser.findInc(oParenthMatcher))
+		{
 			// state is correct after this call ('inParenths-block' in ParserCommands.parse)
-			return parser.parseInit(ParserCommands.parserInParenths);
+			final CommandArg<Integer> ret = parser.parseInit(ParserCommands.parserInParenths);
+			
+			// If this is not the topmost instance of the command-parsing routine called, endingMatcher must be in a valid state
+			if (!standalone)
+			{
+				final Matcher endingMatcher = parser.endingMatcher;
+				
+				// Ensure that the endingMatcher is in the required state (whitespaces processed + match found)
+				if (!parser.find(endingMatcher))
+					throw parser.SEE("Expected ')' or end of string around index ");
+				
+				parser.incIndex(endingMatcher.group(1).length());
+			}
+			return ret;
+		}
 		
 		final Matcher idMatcher = parser.idMatcher;
 		
-		final IParse<ArgWrapper<?>> selectorParser = ParserUntypedSelector.parser;
+		final IParse<ArgWrapper<?>> selectorParser = TypeUntypedSelector.parser;
 		
 		while (parser.findInc(idMatcher) && !"/".equals(idMatcher.group(1)))
 		{
@@ -36,5 +52,22 @@ public class ParserPreCommand extends CustomParse<CommandArg<Integer>>
 		return ParserCommand.parser.parse(parser);
 	}
 	
-	public static final IParse<CommandArg<Integer>> parser = new ParserPreCommand();
+	/** NEVER call this parser unless you know what you're doing! (see comments in code) */
+	public static final IParse<CommandArg<Integer>> parserInternal = new CustomParse<CommandArg<Integer>>()
+	{
+		@Override
+		public CommandArg<Integer> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+		{
+			return ParserPreCommand.parse(parser, false);
+		}
+	};
+	
+	public static final IParse<CommandArg<Integer>> parser = new CustomParse<CommandArg<Integer>>()
+	{
+		@Override
+		public CommandArg<Integer> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+		{
+			return ParserPreCommand.parse(parser, true);
+		}
+	};
 }

@@ -46,10 +46,10 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 				ParserNBTQString.parse(parser, parserData);
 				return null;
 			case "\\@":
-				parserData.put(ParserNBTSelector.parse(parser));
+				parserData.put(ParserNBTSelector.parser.parse(parser));
 				return null;
 			case "\\$":
-				parserData.put(ParserNBTLabel.parse(parser));
+				parserData.put(ParserNBTLabel.parser.parse(parser));
 				return null;
 			case "[":
 				this.descriptor.getListParser().parse(parser, parserData);

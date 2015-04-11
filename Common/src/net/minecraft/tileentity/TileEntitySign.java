@@ -4,6 +4,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.FutureCommand;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.IFutureCommand;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
@@ -24,7 +25,7 @@ import com.google.gson.JsonParseException;
 public class TileEntitySign extends TileEntity
 {
 	public final IChatComponent[] signText = new IChatComponent[] { new ChatComponentText(""), new ChatComponentText(""), new ChatComponentText(""), new ChatComponentText("") };
-	private final FutureCommand[] commands = new FutureCommand[this.signText.length];
+	private final IFutureCommand[] commands = new IFutureCommand[this.signText.length];
 	
 	/**
 	 * The index of the line currently being edited. Only used on client side, but defined on both. Note this is only really used when the > < are going to be visible.
@@ -272,7 +273,7 @@ public class TileEntitySign extends TileEntity
 			}
 		};
 		
-		for (final FutureCommand command : this.commands)
+		for (final IFutureCommand command : this.commands)
 		{
 			if (command != null)
 				MinecraftServer.getServer().getCommandManager().executeCommand(var2, command.getCommand());
