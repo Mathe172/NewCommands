@@ -1,20 +1,26 @@
 # NewCommands
 ##Description
 The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system. After a few months of work, this is the first working version. Although a lot of the commands are still missing, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
+
+###For end users
 * FULL backwards-compatibility (well almost... some things are interpreted that wouldn't have been before) - the syntax was just extended, not altered
 * Commands in command blocks are asynchronously precompiled to greatly improve the performance of high frequency command block contraptions
 * Everything can be used everywhere and more than once: Even inside selctors it is possible to write commands and the result can also be labeled for multiple usages later in the command
+* Tab completion works everywhere and automatically: Everything the engine understands can be completed (and additionaly abbreviations (see below for examples)), no matter how complex the command is, and all this with minimal to no effort. The completion engine even understands NBT-Tags and helps completing them.
+
+###For developers
 * The parsing is handled by a central unit to which arbitrary ways of parsing the command can be added - from simple Integers to fully customized parsers
 * Commands and selectors can easily be added using an intuitive chaining syntax, using predefined building blocks or completely new ones (as mentioned in the point above). It is also possible to register completely custom ones that would be too complex for this syntax, as it is the case with the Entity selector (since it requires dynamic parameter names for the `score_<name>` parameters)
-* Tab completion works everywhere and automatically: Everything the engine understands can be completed (and additionaly abbreviations (see below for examples)), no matter how complex the command is, and all this with minimal to no effort. The completion engine even understands NBT-Tags and helps completing them. It is also processed asynchronously (except some thread-critical sections acquiring data from the main thread)
-* Extremely modular: There is no difference between commands and other types (except that one is called by default) meaning they can be used everywhere interchangeably.
+* Tab completion is also processed asynchronously (except some thread-critical sections acquiring data from the main thread)
+* Extremely modular: There is no difference between commands and other types (except that one is called by default) meaning they can be used everywhere interchangeably. It would for example be possible to parse the complete command (except the name) using a custom parser
+* Everything is loaded at runtime: Command-, selector-, type- (...) registration is always possible, even at runtime
 
 ##MCP and Minecraft version
 NewCommands is built on Minecraft 1.8 using MCP 9.10.
 
 To try it out, just copy the files from the `bin`-folder into the jar and launch
 
-To compile use both `Common/src/` and `Client/src/`/`Server/src/`, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt)
+To compile, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt). AFTERWARDS copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
 
 **Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272)) - direct execution using the `startclient.bat` files is still possible
 
@@ -50,21 +56,39 @@ $<label-name>
 ```
 Conversions from one data type to another are performed automatically if necessary (and possible) - this means a selector/label returning a list of entities can be also be used as a text component or anything else that is compatible (multiple different uses of one label are also possible)
 
-We plan to greatly expand the number of available selectors: While the existing ones are of course planned (not yet implemented), there will be several new ones:
-* `@s`: Self-selector - returns currently executing entity/command block (already implemented)
+We plan to greatly expand the number of available selectors: There a of course the current selectors, but also a wide range of new ones:
+* `@s`: Self-selector - returns currently executing entity/command block
+* `@p,@a,@r,@e`: The current entity selectors. Nearly the same as before, except: `xyz=` as shorthand for all coordinates, useful when using the result of other selectors, `nbt=`: self explaining. Also, `team,name,type` accept lists when written in parentheses (`type=!(Player,Snowball)` for example)
+* `@o`: Captures a score objective (when using the same objectvie multiple times, this is much more efficient)
+* `@sc`: Returns the score of a entity in the specified scoreboard (example: `@sc[score_name,entity_name]`)
+* `@n`: To read NBT-data. Takes an entity, NBT-object (from selectors), coordinates (for blocks) or a string and can read a specific element from the resulting NBT (numbers can be used for lists) (example: `@n[@e[type=Snowball,c=1],Motion.0]`: returns the velocity in the x-direction of the nearest snowball)
 * `@t`: Timing selector - while more a proof of concept, this selector takes a complete command as argument and returns the execution- (without compilation-) time in microseconds
-* `@c`: Calculation selector: Allows the user to perform arbitrary calculations (not yet implemented)
-* `@...`: Selectors to access scores and even NBT data of any entity/block (effectively allowing things like copying entities or even blocks into falling-sand entities)
+* `@c`: Calculation selector: Allows the user to perform arbitrary calculations. Because of technical limitations, the selector uses prefix notation (`+ 1 2` instead of `1 + 2`) A list of operators can be found below
+
+###Operators (for calculation selector)
+* `+,-,*`: the standard operators (note that for `-1`, `- 0 1` has to be written (or `-0 1` as shorthand))
+* `sq,sqrt`: square and squareroot operator
+* `x,y,z,rx,ry`: returns a specific coordinate (or pitch/yaw) of an entity
+* `pos`: returns the position of an entity (perfect for use with the entity selector, for example `@e[xyz=@c[pos @e[name=some_entity],c=1]`
+* `i,s,e`: converters for integer, string and entity (the `@s` selector does not return an entity. If the entity is used multiple times, this can be used to capture the converted version)
+* `sin,cos`: sine and cosine functions
 
 ##Examples
 ```
 for x 1 5 summon Blaze ~ ~$x ~ {CustomName:"Blaze #\$x"}
 ```
-Summons 4 (end index is exclusive) Blazes on top of each other, named 'Blaze #1', ... (note that inside NBT-Tags, selectors and labels have to be escaped using `\` to improve backwards-compatibility)
+Summons 5 Blazes on top of each other, named 'Blaze #1', ... (note that inside NBT-Tags, selectors and labels have to be escaped using `\` to improve backwards-compatibility)
+
 ```
-@t[cmd=(for x -10 10 for y -10 10 summon PrimedTnt ~$x ~50 ~$y),label=timeTaken] say The execution took $timeTaken microseconds
+activate, @p[label=p] @c[cos ry $p,label=fy] @c[-0 * $fy sin rx $p,label=dx] @c[* $fy cos rx $p,label=dz] @c[-0 sin ry $p,label=dy] execute $p (execute @e[type=Snowball,c=1,r=5] kill @s, for safe n 5 500 summon PrimedTnt ~@c[* $n $dx] ~@c[* $n $dy] ~@c[* $n $dz])
 ```
-Summons an array of 400 TNT 50 blocks above and outputs the time taken to do so (this only takes ~8ms! despite the huge amount of entities created). Notes: The `cmd=` can also be omitted; The parentheses are necessary since the for command would otherwise try to interpret `label=timeTaken` as chained command (the selector only expects a single command by default, more have to be grouped using parentheses). This behaviour might change for the `for`-command
+This command summons a ray of TNT in the direction the player is looking at when they throw a snowball. Without going in full detail, these are the main steps performed by the command:
+* `activate` triggers the command-block in the next tick (this replaces the setblock-clock)
+* calculate some things used to summon the ray in the correct direction
+* `execute` on the player and the on the nearest snowball
+* when a snowball is found, `kill` it and `summon` the ray using a `for`-loop. The `safe`-flag tells the `for`-command to stop when the first `summon` fails (we reached the top/bottom of the world
+
+Note: To start the command, power the command-block once
 
 ###Tab completion
 As mentioned, tab completion understands abbreviations: (`|` is the cursor)
@@ -137,3 +161,5 @@ public SelectorTiming(final CommandArg<Integer> command)
 	this.command = command;
 }
 ```
+
+More detailed explanations on request, since it would be too much to decribe it all
