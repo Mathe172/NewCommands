@@ -162,4 +162,4 @@ public SelectorTiming(final CommandArg<Integer> command)
 }
 ```
 
-More detailed explanations on request, since it would be too much to decribe it all
+More detailed explanations on request, since it would be too much to describe it all
