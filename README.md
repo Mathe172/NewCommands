@@ -20,7 +20,11 @@ NewCommands is built on Minecraft 1.8 using MCP 9.10.
 
 **To try it out, just copy the files from the `bin`-folder into the jar and launch and delete the META-INF folder in the client jar**
 
-To compile, delete the unused files from `net/minecraft/command`, a list of the ones to keep can be found [here](https://github.com/Mathe172/NewCommands/blob/master/Classes%20to%20keep.txt). AFTERWARDS copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
+To compile, delete the unused files from the decompiled source: (see [here](https://github.com/Mathe172/NewCommands/blob/master/obsoleteClasses.dat))
+* A line starting with `-` or `+` represents a folder that needs to be modified
+* `+` means whitelist: Remove everything except the files listed
+* `-` means blacklist: Remove only these files
+AFTERWARDS copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
 
 **Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272)) - direct execution using the `startclient.bat` files is still possible
 
