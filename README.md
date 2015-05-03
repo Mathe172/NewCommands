@@ -1,6 +1,6 @@
 # NewCommands
 ##Description
-The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system. After a few months of work, this is the first working version. Although a lot of the commands are still missing, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
+The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system.  Although a lot of the commands are still missing, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
 
 ###For end users
 * FULL backwards-compatibility (well almost... some things are interpreted that wouldn't have been before) - the syntax was just extended, not altered
@@ -72,6 +72,8 @@ We plan to greatly expand the number of available selectors: There are of course
 * `pos`: returns the position of an entity (perfect for use with the entity selector, for example `@e[xyz=@c[pos @e[name=some_entity]],c=1]`
 * `i,s,e`: converters for integer, string and entity (the `@s` selector does not return an entity. If the entity is used multiple times, this can be used to capture the converted version)
 * `sin,cos`: sine and cosine functions
+* `slot`: Returns `SelectedItemSlot` for the specified player
+* `items`: Takes a list of items in the slot-format (`[{Slot:...,...},{Slot:...,...},...]`) and a list of integers. Returns a list only containing the items specified by the list in the right order
 
 ##Examples
 ```
@@ -89,6 +91,12 @@ This command summons a ray of TNT in the direction the player is looking at when
 * when a snowball is found, `kill` it and `summon` the ray using a `for`-loop. The `safe`-flag tells the `for`-command to stop when the first `summon` fails (we reached the top/bottom of the world
 
 Note: To start the command, power the command-block once
+
+```
+activate, execute @p (tp @e[name=Mirror] ~ ~ ~ @c[-0 rx @s] @c[ry @s], @c[items @n[@s,Inventory] (@c[slot @s],100,101,102,103),label=i] entitydata @e[name=Mirror] {Equipment:\$i})
+```
+
+Lets every entity named `Mirror` mirror your head rotation and equipment (As can be seen, the currently selected slot as well as your armor are copied)
 
 ###Tab completion
 As mentioned, tab completion understands abbreviations: (`|` is the cursor)
@@ -113,53 +121,80 @@ There are only a few basic structures:
 #Registration examples
 The following example is the complete code required to register the `summon`-command (the necessary `IDataType's` are part of the default set)
 ```java
-CommandDescriptor.registerCommand(
-	new CommandConstructorU(IPermission.PermissionLevel2, "commands.summon.usage", "summon")
-		.then(TypeEntityId.type)
-		.optional(ParserCoordinates.centered)
-		.optional(NBTArg.nbtArg)
-		.executes(CommandSummon.constructable));
+public final class Commands extends RegistrationHelper
+{
+	...
+	
+	public static final void init()
+	{
+	...
+	register(command(CommandSummon.constructable, IPermission.level2, usage("commands.summon.usage"), "summon")
+		.then(Types.entityID)
+		.optional(TypeCoordinates.nonCentered)
+		.optional(TypeNBTArg.parserEntity));
+	...
+	}
+	
+	...
+}
 		
 //----CommandSummon.java----
 public static final CommandConstructable constructable = new CommandConstructable()
 {
 	@Override
-	public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission)
+	public CommandSummon construct(final ParserData data)
 	{
-		return new CommandSummon(params.get(0).get(TypeIDs.String), CommandDescriptor.getParam(TypeIDs.Coordinates, 1, params), CommandDescriptor.getParam(TypeIDs.NBTCompound, 2, params), permission);
+		return new CommandSummon(
+			getParam(TypeIDs.String, data),
+			getParam(TypeIDs.Coordinates, data),
+			getParam(TypeIDs.NBTCompound, data));
 	}
 };
 	
-public CommandSummon(final CommandArg<String> name, final CommandArg<Vec3> coords, final CommandArg<NBTTagCompound> nbt, final IPermission permission)
+public CommandSummon(final CommandArg<String> name, final CommandArg<Vec3> coords, final CommandArg<NBTTagCompound> nbt)
 {
-  super(permission);
-  this.coords = coords;
-  this.name = name;
-  this.tag = nbt;
+	this.coords = coords;
+	this.name = name;
+	this.tag = nbt;
 }
 ```
 
 This one registers the timing-selector:
 ```java
-SelectorDescriptor.registerSelector("t",
-	new SelectorConstructor(TypeIDs.Integer)
-		.then("cmd", TypeCommand.parserSingleCmd)
-		.construct(SelectorTiming.constructable));
+public final class Selectors extends RegistrationHelper
+{
+	...
+	
+	public static final void init()
+	{
+		...
+		
+		register("t", selector(IPermission.unrestricted, TypeIDs.Integer)
+			.then("cmd", TypeCommand.parserSingleCmd)
+			.construct(SelectorTiming.constructable));
+		...
+	}
+	
+	...
+}
 		
 //----SelectorTiming.java----
-public static final SelectorConstructable constructable = new SelectorConstructable()
-{
-	@Override
-	public ArgWrapper<Integer> construct(final List<ArgWrapper<?>> unnamedParams, final Map<String, ArgWrapper<?>> namedParams) throws SyntaxErrorException
+	public static final SelectorConstructable constructable = new SelectorConstructable()
 	{
-		return new ArgWrapper<>(TypeIDs.Integer, new SelectorTiming(SelectorDescriptor.getRequiredParam(TypeIDs.Integer, 0, "cmd", unnamedParams, namedParams)));
+		@Override
+		public ArgWrapper<Integer> construct(final ParserData parserData) throws SyntaxErrorException
+		{
+			return TypeIDs.Integer.wrap(
+				new SelectorTiming(
+					getRequiredParam(TypeIDs.Integer, 0, "cmd", parserData)));
+		}
+		
+	};
+	
+	public SelectorTiming(final CommandArg<Integer> command)
+	{
+		this.command = command;
 	}
-};
-
-public SelectorTiming(final CommandArg<Integer> command)
-{
-	this.command = command;
-}
 ```
 
 More detailed explanations on request, since it would be too much to describe it all
