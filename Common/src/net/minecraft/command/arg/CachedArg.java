@@ -24,7 +24,7 @@ public class CachedArg<T> extends CommandArg<T> implements Processable
 	public T eval(final ICommandSender sender) throws CommandException
 	{
 		if (this.value == null)
-			throw new CommandException("Could not evaluate chached Argument: No value set", new Object[] {});
+			throw new CommandException("Could not evaluate chached Argument: No value set");
 		return this.value;
 	}
 }

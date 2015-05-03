@@ -159,7 +159,7 @@ public class EntityList
 			
 			if (var3 != null)
 			{
-				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance(new Object[] { worldIn });
+				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance( worldIn );
 			}
 		} catch (final Exception var4)
 		{
@@ -193,7 +193,7 @@ public class EntityList
 			
 			if (var3 != null)
 			{
-				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance(new Object[] { worldIn });
+				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance( worldIn );
 			}
 		} catch (final Exception var4)
 		{
@@ -225,7 +225,7 @@ public class EntityList
 			
 			if (var3 != null)
 			{
-				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance(new Object[] { worldIn });
+				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance( worldIn );
 			}
 		} catch (final Exception var4)
 		{

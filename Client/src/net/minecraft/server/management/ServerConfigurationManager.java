@@ -170,11 +170,11 @@ public abstract class ServerConfigurationManager
 		
 		if (!playerIn.getName().equalsIgnoreCase(var6))
 		{
-			var13 = new ChatComponentTranslation("multiplayer.player.joined.renamed", new Object[] { playerIn.getDisplayName(), var6 });
+			var13 = new ChatComponentTranslation("multiplayer.player.joined.renamed",  playerIn.getDisplayName(), var6 );
 		}
 		else
 		{
-			var13 = new ChatComponentTranslation("multiplayer.player.joined", new Object[] { playerIn.getDisplayName() });
+			var13 = new ChatComponentTranslation("multiplayer.player.joined",  playerIn.getDisplayName() );
 		}
 		
 		var13.getChatStyle().setColor(EnumChatFormatting.YELLOW);

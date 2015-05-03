@@ -14,7 +14,7 @@ public interface Context
 		@Override
 		public final <R> ArgWrapper<R> generalParse(final Parser parser, final TypeID<R> target) throws SyntaxErrorException, CompletionException
 		{
-			return ParsingUtilities.generalParse(parser, target, parser.generalMatcher);
+			return ParsingUtilities.generalParse(parser, target, parser.getMatcher(ParsingUtilities.generalMatcher));
 		}
 	};
 }

@@ -1,65 +1,27 @@
 package net.minecraft.command;
 
 import net.minecraft.block.Block;
-import net.minecraft.command.arg.CommandArg;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
-public abstract class CommandBase extends CommandArg<Integer>// ICommand
+public final class CommandBase
 {
-	private final IPermission permission;
-	private static IAdminCommand theAdmin;
 	@SuppressWarnings("unused")
 	private static final String __OBFID = "CL_00001739";
 	
-	public CommandBase(final IPermission permission)
+	private CommandBase()
 	{
-		this.permission = permission;
 	}
 	
-	/**
-	 * Sets the static IAdminCommander.
-	 */
-	public static void setAdminCommander(final IAdminCommand command)
-	{
-		theAdmin = command;
-	}
-	
-	public abstract int procCommand(ICommandSender sender) throws CommandException;
-	
-	private final int procCommandChecked(final ICommandSender sender) throws CommandException
-	{
-		if (this.permission.canCommandSenderUseCommand(sender))
-			return this.procCommand(sender);
-		
-		final ChatComponentTranslation errorMessage = new ChatComponentTranslation("commands.generic.permission", new Object[0]);
-		errorMessage.getChatStyle().setColor(EnumChatFormatting.RED);
-		sender.addChatMessage(errorMessage);
-		
-		return 0;
-	}
-	
-	public void notifyOperators(final ICommandSender sender, final String msgFormat, final Object... msgParams)
+	public static void notifyOperators(final ICommandSender sender, final String msgFormat, final Object... msgParams)
 	{
 		notifyOperators(sender, 0, msgFormat, msgParams);
 	}
 	
-	public void notifyOperators(final ICommandSender sender, final int p_152374_2_, final String msgFormat, final Object... msgParams)
+	public static void notifyOperators(final ICommandSender sender, final int flags, final String msgFormat, final Object... msgParams)
 	{
-		if (theAdmin != null)
-		{
-			theAdmin.notifyOperators(sender, this.permission, p_152374_2_, msgFormat, msgParams);
-		}
-	}
-	
-	@Override
-	public final Integer eval(final ICommandSender sender) throws CommandException
-	{
-		final int ret = this.procCommandChecked(sender);
-		sender.func_174794_a(CommandResultStats.Type.SUCCESS_COUNT, ret);
-		
-		return ret;
+		ServerCommandManager.notifyOperators(sender, flags, msgFormat, msgParams);
 	}
 	
 	public static int parseInt(final String input) throws NumberInvalidException
@@ -69,7 +31,7 @@ public abstract class CommandBase extends CommandArg<Integer>// ICommand
 			return Integer.parseInt(input);
 		} catch (final NumberFormatException e)
 		{
-			throw new NumberInvalidException("commands.generic.num.invalid", new Object[] { input });
+			throw new NumberInvalidException("commands.generic.num.invalid", input);
 		}
 	}
 	
@@ -83,17 +45,12 @@ public abstract class CommandBase extends CommandArg<Integer>// ICommand
 		final int ret = parseInt(input);
 		
 		if (ret < min)
-		{
-			throw new NumberInvalidException("commands.generic.num.tooSmall", new Object[] { Integer.valueOf(ret), Integer.valueOf(min) });
-		}
-		else if (ret > max)
-		{
-			throw new NumberInvalidException("commands.generic.num.tooBig", new Object[] { Integer.valueOf(ret), Integer.valueOf(max) });
-		}
-		else
-		{
-			return ret;
-		}
+			throw new NumberInvalidException("commands.generic.num.tooSmall", ret, min);
+		
+		if (ret > max)
+			throw new NumberInvalidException("commands.generic.num.tooBig", ret, max);
+		
+		return ret;
 	}
 	
 	public static int parseInt(final int input, final int min) throws NumberInvalidException
@@ -104,17 +61,12 @@ public abstract class CommandBase extends CommandArg<Integer>// ICommand
 	public static int parseInt(final int input, final int min, final int max) throws NumberInvalidException
 	{
 		if (input < min)
-		{
-			throw new NumberInvalidException("commands.generic.num.tooSmall", new Object[] { Integer.valueOf(input), Integer.valueOf(min) });
-		}
-		else if (input > max)
-		{
-			throw new NumberInvalidException("commands.generic.num.tooBig", new Object[] { Integer.valueOf(input), Integer.valueOf(max) });
-		}
-		else
-		{
-			return input;
-		}
+			throw new NumberInvalidException("commands.generic.num.tooSmall", input, min);
+		
+		if (input > max)
+			throw new NumberInvalidException("commands.generic.num.tooBig", input, max);
+		
+		return input;
 	}
 	
 	/**
@@ -125,13 +77,25 @@ public abstract class CommandBase extends CommandArg<Integer>// ICommand
 		final ResourceLocation resource = new ResourceLocation(id);
 		
 		if (!Block.blockRegistry.containsKey(resource))
-			throw new NumberInvalidException("commands.give.notFound", new Object[] { resource });
+			throw new NumberInvalidException("commands.give.notFound", resource);
 		
 		final Block block = (Block) Block.blockRegistry.getObject(resource);
 		
 		if (block == null)
-			throw new NumberInvalidException("commands.give.notFound", new Object[] { resource });
+			throw new NumberInvalidException("commands.give.notFound", resource);
 		
 		return block;
+	}
+	
+	public static void message(final ICommandSender sender, final EnumChatFormatting format, final String message, final Object... args)
+	{
+		final ChatComponentTranslation chatComponent = new ChatComponentTranslation(message, args);
+		chatComponent.getChatStyle().setColor(format);
+		sender.addChatMessage(chatComponent);
+	}
+	
+	public static void errorMessage(final ICommandSender sender, final String message, final Object... args)
+	{
+		message(sender, EnumChatFormatting.RED, message, args);
 	}
 }

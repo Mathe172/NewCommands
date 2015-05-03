@@ -3,13 +3,13 @@ package net.minecraft.command.type.custom;
 import java.util.Set;
 
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.completion.ProviderCompleter;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CListProvider;
-import net.minecraft.command.type.ProviderCompleter;
 import net.minecraft.command.type.base.CustomCompletable;
 import net.minecraft.command.type.management.CConvertable;
 

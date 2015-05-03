@@ -3,13 +3,14 @@ package net.minecraft.command.descriptors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion.Escaped;
 import net.minecraft.command.completion.TabCompletion.SingleChar;
@@ -23,9 +24,10 @@ public abstract class OperatorDescriptor
 {
 	private static final Map<String, OperatorDescriptor> operators = new HashMap<>();
 	
-	private static final Set<ITabCompletion> operatorCompletions = new HashSet<>();
+	public static final Map<ITabCompletion, IPermission> operatorCompletions = new HashMap<>();
 	
 	private final Set<TypeID<?>> resultTypes;
+	private final IPermission permission;
 	
 	private final List<IDataType<?>> operands;
 	
@@ -45,10 +47,10 @@ public abstract class OperatorDescriptor
 		if (operators.put(name, descriptor) != null)
 			throw new IllegalArgumentException("Operator already registerd: " + name);
 		
-		operatorCompletions.add(completion);
+		operatorCompletions.put(completion, descriptor.permission);
 		
 		for (final TypeID<?> resultType : descriptor.resultTypes)
-			resultType.addOperator(completion);
+			resultType.addOperator(completion, descriptor.permission);
 	}
 	
 	public static final void register(final String name, final OperatorDescriptor descriptor)
@@ -56,24 +58,21 @@ public abstract class OperatorDescriptor
 		register(name, name.length() == 1 ? new SingleChar(name.charAt(0)) : new Escaped(name), descriptor);
 	}
 	
-	public OperatorDescriptor(final Set<TypeID<?>> resultTypes, final List<IDataType<?>> operands)
+	public OperatorDescriptor(final Set<TypeID<?>> resultTypes, final IPermission permission, final List<IDataType<?>> operands)
 	{
 		this.resultTypes = resultTypes;
 		this.operands = operands;
+		this.permission = permission;
 	}
 	
-	public OperatorDescriptor(final Set<TypeID<?>> resultTypes, final IDataType<?>... operands)
+	public OperatorDescriptor(final Set<TypeID<?>> resultTypes, final IPermission permission, final IDataType<?>... operands)
 	{
 		this.resultTypes = resultTypes;
+		this.permission = permission;
 		this.operands = Arrays.asList(operands);
 	}
 	
-	public static final Set<ITabCompletion> getCompletions()
-	{
-		return operatorCompletions;
-	}
-	
-	public abstract ArgWrapper<?> construct(List<ArgWrapper<?>> operands);
+	public abstract ArgWrapper<?> construct(List<ArgWrapper<?>> operands) throws SyntaxErrorException;
 	
 	public final ArgWrapper<?> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
@@ -82,14 +81,14 @@ public abstract class OperatorDescriptor
 		for (final IDataType<?> operand : this.operands)
 			operands.add(operand.parse(parser, context));
 		
-		return this.construct(operands);
+		return PermissionWrapper.wrap(this.construct(operands), this.permission);
 	}
 	
 	public static class Primitive extends OperatorDescriptor
 	{
-		public Primitive(final Set<TypeID<?>> resultTypes, final IDataType<?> operand)
+		public Primitive(final Set<TypeID<?>> resultTypes, final IPermission permission, final IDataType<?> operand)
 		{
-			super(resultTypes, operand);
+			super(resultTypes, permission, operand);
 		}
 		
 		@Override

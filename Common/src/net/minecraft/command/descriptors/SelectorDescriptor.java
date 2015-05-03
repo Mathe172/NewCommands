@@ -1,11 +1,13 @@
 package net.minecraft.command.descriptors;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
@@ -22,6 +24,7 @@ import net.minecraft.command.type.management.TypeID;
 public abstract class SelectorDescriptor<D extends ParserData>
 {
 	private final Set<TypeID<?>> resultTypes;
+	private final IPermission permission;
 	
 	private final KVPair<D> kvPair;
 	
@@ -30,11 +33,12 @@ public abstract class SelectorDescriptor<D extends ParserData>
 	public abstract void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final D data);
 	
 	private final static HashMap<String, SelectorDescriptor<?>> selectors = new HashMap<>();
-	private static final Set<ITabCompletion> selectorCompletions = new HashSet<>();
+	public static final Map<ITabCompletion, IPermission> selectorCompletions = new HashMap<>();
 	
-	public SelectorDescriptor(final Set<TypeID<?>> resultTypes)
+	public SelectorDescriptor(final Set<TypeID<?>> resultTypes, final IPermission permission)
 	{
 		this.resultTypes = resultTypes;
+		this.permission = permission;
 		this.kvPair = new KVPair<D>(this);
 		this.contentParser = new TypeSelectorContent<D>(this);
 	}
@@ -51,10 +55,10 @@ public abstract class SelectorDescriptor<D extends ParserData>
 			throw new IllegalArgumentException("Selector already registerd: " + name);
 		
 		final ITabCompletion completion = name.length() == 1 ? new TabCompletion.SingleChar(name.charAt(0)) : new TabCompletion(name);
-		selectorCompletions.add(completion);
+		selectorCompletions.put(completion, descriptor.permission);
 		
 		for (final TypeID<?> resultType : descriptor.resultTypes)
-			resultType.addSelector(completion);
+			resultType.addSelector(completion, descriptor.permission);
 	}
 	
 	public static void registerSelector(final SelectorDescriptor<?> descriptor, final String... names)
@@ -76,11 +80,6 @@ public abstract class SelectorDescriptor<D extends ParserData>
 	
 	public abstract ArgWrapper<?> construct(D data) throws SyntaxErrorException;
 	
-	public static final Set<ITabCompletion> getCompletions()
-	{
-		return selectorCompletions;
-	}
-	
 	public abstract void parse(final Parser parser, final String key, final D data) throws SyntaxErrorException, CompletionException;
 	
 	public abstract void parse(final Parser parser, final D data) throws SyntaxErrorException, CompletionException;
@@ -90,9 +89,9 @@ public abstract class SelectorDescriptor<D extends ParserData>
 		return this.kvPair;
 	}
 	
-	public IParse<ArgWrapper<?>> getContentParser()
+	public final ArgWrapper<?> parse(final Parser parser) throws SyntaxErrorException, CompletionException
 	{
-		return this.contentParser;
+		return PermissionWrapper.wrap(this.contentParser.parse(parser), this.permission);
 	}
 	
 	public abstract D newParserData();

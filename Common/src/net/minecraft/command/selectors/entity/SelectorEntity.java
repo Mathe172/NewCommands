@@ -14,9 +14,10 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
+import net.minecraft.command.construction.SelectorConstructable;
 import net.minecraft.command.selectors.entity.FilterList.InvertableArg;
 import net.minecraft.command.selectors.entity.SelectorDescriptorEntity.ExParserData;
-import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.custom.coordinate.Coordinates;
 import net.minecraft.command.type.custom.coordinate.SingleCoordinate;
 import net.minecraft.entity.Entity;
@@ -85,13 +86,13 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	{
 		this.selType = selType;
 		
-		final CommandArg<Vec3> coords = ParsingUtilities.getParam(TypeIDs.Coordinates, "xyz", parserData);
+		final CommandArg<Vec3> coords = SelectorConstructable.getParam(TypeIDs.Coordinates, "xyz", parserData);
 		
 		if (coords == null)
 		{
-			final CommandArg<Double> x = ParsingUtilities.getParam(TypeIDs.Double, 0, "x", parserData);
-			final CommandArg<Double> y = ParsingUtilities.getParam(TypeIDs.Double, 1, "y", parserData);
-			final CommandArg<Double> z = ParsingUtilities.getParam(TypeIDs.Double, 2, "z", parserData);
+			final CommandArg<Double> x = SelectorConstructable.getParam(TypeIDs.Double, 0, "x", parserData);
+			final CommandArg<Double> y = SelectorConstructable.getParam(TypeIDs.Double, 1, "y", parserData);
+			final CommandArg<Double> z = SelectorConstructable.getParam(TypeIDs.Double, 2, "z", parserData);
 			
 			this.coords = new Coordinates(
 				x == null ? SingleCoordinate.tildexNC : x,
@@ -101,24 +102,24 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		else
 			this.coords = coords;
 		
-		this.r = ParsingUtilities.getParam(TypeIDs.Integer, 3, "r", parserData);
-		this.rm = ParsingUtilities.getParam(TypeIDs.Integer, "rm", parserData);
-		this.dx = ParsingUtilities.getParam(TypeIDs.Double, "dx", parserData);
-		this.dy = ParsingUtilities.getParam(TypeIDs.Double, "dy", parserData);
-		this.dz = ParsingUtilities.getParam(TypeIDs.Double, "dz", parserData);
-		this.c = ParsingUtilities.getParam(TypeIDs.Integer, "c", parserData);
-		this.m = ParsingUtilities.getParam(TypeIDs.Integer, "m", parserData);
-		this.l = ParsingUtilities.getParam(TypeIDs.Integer, "l", parserData);
-		this.lm = ParsingUtilities.getParam(TypeIDs.Integer, "lm", parserData);
-		this.rx = ParsingUtilities.getParam(TypeIDs.Double, "rx", parserData);
-		this.rxm = ParsingUtilities.getParam(TypeIDs.Double, "rxm", parserData);
-		this.ry = ParsingUtilities.getParam(TypeIDs.Double, "ry", parserData);
-		this.rym = ParsingUtilities.getParam(TypeIDs.Double, "rym", parserData);
+		this.r = SelectorConstructable.getParam(TypeIDs.Integer, 3, "r", parserData);
+		this.rm = SelectorConstructable.getParam(TypeIDs.Integer, "rm", parserData);
+		this.dx = SelectorConstructable.getParam(TypeIDs.Double, "dx", parserData);
+		this.dy = SelectorConstructable.getParam(TypeIDs.Double, "dy", parserData);
+		this.dz = SelectorConstructable.getParam(TypeIDs.Double, "dz", parserData);
+		this.c = SelectorConstructable.getParam(TypeIDs.Integer, "c", parserData);
+		this.m = SelectorConstructable.getParam(TypeIDs.Integer, "m", parserData);
+		this.l = SelectorConstructable.getParam(TypeIDs.Integer, "l", parserData);
+		this.lm = SelectorConstructable.getParam(TypeIDs.Integer, "lm", parserData);
+		this.rx = SelectorConstructable.getParam(TypeIDs.Double, "rx", parserData);
+		this.rxm = SelectorConstructable.getParam(TypeIDs.Double, "rxm", parserData);
+		this.ry = SelectorConstructable.getParam(TypeIDs.Double, "ry", parserData);
+		this.rym = SelectorConstructable.getParam(TypeIDs.Double, "rym", parserData);
 		this.name = parserData.name;
 		this.team = parserData.team;
 		this.type = parserData.type;
 		
-		this.nbt = ParsingUtilities.getParam(TypeIDs.NBTCompound, "nbt", parserData);
+		this.nbt = SelectorConstructable.getParam(TypeIDs.NBTCompound, "nbt", parserData);
 		
 		final Map<String, MutablePair<CommandArg<Integer>, CommandArg<Integer>>> pScores = parserData.primitiveScores;
 		
@@ -147,7 +148,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 					final ScoreObjective objective = scoreboard.getObjective(score.getKey());
 					
 					if (objective == null)
-						throw new CommandException("Objective not found: " + score.getKey(), new Object[0]);
+						throw new CommandException("Objective not found: " + score.getKey());
 					
 					final CommandArg<Integer> minArg = score.getValue().left;
 					final CommandArg<Integer> maxArg = score.getValue().right;
@@ -285,14 +286,9 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		return this.applySelType(sender, matches, coords);
 	}
 	
-	private static <T> T sEval(final CommandArg<T> toEval, final ICommandSender sender) throws CommandException
-	{
-		return toEval != null ? toEval.eval(sender) : null;
-	}
-	
 	private List<Entity> applySelType(final ICommandSender sender, final List<Entity> matches, final Vec3 origin) throws CommandException
 	{
-		final Integer c = sEval(this.c, sender);
+		final Integer c = CommandArg.eval(this.c, sender);
 		
 		if (this.selType == SelectorType.r)
 		{
@@ -358,7 +354,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	{
 		if (!EntityList.func_180125_b(type))
 		{
-			final ChatComponentTranslation var3 = new ChatComponentTranslation("commands.generic.entity.invalidType", new Object[] { type });
+			final ChatComponentTranslation var3 = new ChatComponentTranslation("commands.generic.entity.invalidType",  type );
 			var3.getChatStyle().setColor(EnumChatFormatting.RED);
 			sender.addChatMessage(var3);
 			return false;
@@ -539,8 +535,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	
 	private void lPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
 	{
-		final Integer l = sEval(this.l, sender);
-		final Integer lm = sEval(this.lm, sender);
+		final Integer l = CommandArg.eval(this.l, sender);
+		final Integer lm = CommandArg.eval(this.lm, sender);
 		
 		if (l != null && l >= 0)
 		{
@@ -598,9 +594,9 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	
 	private AxisAlignedBB dPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender, final Vec3 origin) throws CommandException
 	{
-		final Double dx = sEval(this.dx, sender);
-		final Double dy = sEval(this.dy, sender);
-		final Double dz = sEval(this.dz, sender);
+		final Double dx = CommandArg.eval(this.dx, sender);
+		final Double dy = CommandArg.eval(this.dy, sender);
+		final Double dz = CommandArg.eval(this.dz, sender);
 		
 		final AxisAlignedBB box = createBox(origin, dx, dy, dz);
 		
@@ -661,8 +657,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	
 	private AxisAlignedBB rPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender, final BlockPos origin) throws CommandException
 	{
-		final Integer r = sEval(this.r, sender);
-		final Integer rm = sEval(this.rm, sender);
+		final Integer r = CommandArg.eval(this.r, sender);
+		final Integer rm = CommandArg.eval(this.rm, sender);
 		
 		final AxisAlignedBB box = createBox(origin, r);
 		
@@ -721,10 +717,10 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	
 	private void rotPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
 	{
-		final Double ry = sEval(this.ry, sender);
-		final Double rym = sEval(this.rym, sender);
-		final Double rx = sEval(this.rx, sender);
-		final Double rxm = sEval(this.rxm, sender);
+		final Double ry = CommandArg.eval(this.ry, sender);
+		final Double rym = CommandArg.eval(this.rym, sender);
+		final Double rx = CommandArg.eval(this.rx, sender);
+		final Double rxm = CommandArg.eval(this.rxm, sender);
 		
 		if (rx != null)
 		{

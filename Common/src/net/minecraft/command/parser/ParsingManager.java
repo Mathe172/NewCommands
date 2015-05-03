@@ -8,8 +8,12 @@ import java.util.concurrent.Future;
 
 import net.minecraft.command.arg.CommandArg;
 
-public class ParsingManager
+public final class ParsingManager
 {
+	private ParsingManager()
+	{
+	}
+	
 	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
 	
 	public static final Future<CommandArg<Integer>> submit(final String toParse)

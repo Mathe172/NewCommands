@@ -1,6 +1,7 @@
 package net.minecraft.tileentity;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.FutureCommand;
 import net.minecraft.command.ICommandSender;
@@ -11,7 +12,6 @@ import net.minecraft.event.ClickEvent;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S33PacketUpdateSign;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentProcessor;
 import net.minecraft.util.ChatComponentText;
@@ -276,7 +276,7 @@ public class TileEntitySign extends TileEntity
 		for (final IFutureCommand command : this.commands)
 		{
 			if (command != null)
-				MinecraftServer.getServer().getCommandManager().executeCommand(var2, command.getCommand());
+				CommandHandler.executeCommand(var2, command.getCommand());
 		}
 		
 		return true;

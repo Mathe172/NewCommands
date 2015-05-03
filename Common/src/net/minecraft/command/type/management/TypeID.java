@@ -7,7 +7,13 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
-import net.minecraft.command.type.custom.Relations;
+import net.minecraft.command.collections.Relations;
+import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.Context;
+import net.minecraft.command.parser.Parser;
+import net.minecraft.command.type.CDataType;
+import net.minecraft.command.type.CTypeParse;
+import net.minecraft.command.type.IParse;
 
 public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 {
@@ -46,6 +52,18 @@ public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 	public ArgWrapper<T> wrap(final T toWrap)
 	{
 		return new ArgWrapper<>(this, toWrap);
+	}
+	
+	public CDataType<T> wrap(final IParse<? extends CommandArg<T>> toWrap)
+	{
+		return new CTypeParse<T>()
+		{
+			@Override
+			public ArgWrapper<T> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+			{
+				return TypeID.this.wrap(toWrap.parse(parser, context));
+			}
+		};
 	}
 	
 	public final <U> void addPrimitiveConverter(final TypeID<U> type, final Converter<T, U, ?> converter)

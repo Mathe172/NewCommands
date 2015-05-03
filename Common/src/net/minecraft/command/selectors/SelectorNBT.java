@@ -2,15 +2,14 @@ package net.minecraft.command.selectors;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
+import net.minecraft.command.collections.Types;
 import net.minecraft.command.construction.SelectorConstructable;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
-import net.minecraft.command.type.custom.Types;
 import net.minecraft.command.type.management.TypeID;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
@@ -27,8 +26,8 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 		@Override
 		public ArgWrapper<NBTBase> construct(final ParserData parserData) throws SyntaxErrorException
 		{
-			final ArgWrapper<?> nbt = ParsingUtilities.getRequiredParam(0, parserData);
-			final CommandArg<String> path = ParsingUtilities.getParam(TypeIDs.String, 1, parserData);
+			final ArgWrapper<?> nbt = getRequiredParam(0, parserData);
+			final CommandArg<String> path = getParam(TypeIDs.String, 1, parserData);
 			
 			final TypeID<?> type = nbt.type;
 			

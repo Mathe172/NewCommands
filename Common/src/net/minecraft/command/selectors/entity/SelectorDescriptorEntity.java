@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.command.IPermission;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.completion.DataRequest;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
@@ -29,7 +31,6 @@ import net.minecraft.command.selectors.entity.SelectorEntity.SelectorType;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.custom.ParserDouble;
 import net.minecraft.command.type.custom.ParserInt;
-import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.custom.TypeNullable;
 import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
@@ -100,7 +101,7 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 	
 	public SelectorDescriptorEntity(final SelectorType selType)
 	{
-		super(new HashSet<TypeID<?>>(Arrays.asList(TypeIDs.EntityList)));
+		super(new HashSet<TypeID<?>>(Arrays.asList(TypeIDs.EntityList)), IPermission.unrestricted);
 		
 		this.selType = selType;
 	}

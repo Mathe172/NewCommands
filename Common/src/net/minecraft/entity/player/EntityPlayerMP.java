@@ -804,7 +804,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 			
 			if (var2.isLocked() && !this.func_175146_a(var2.getLockCode()) && !this.func_175149_v())
 			{
-				this.playerNetServerHandler.sendPacket(new S02PacketChat(new ChatComponentTranslation("container.isLocked", new Object[] { chestInventory.getDisplayName() }), (byte) 2));
+				this.playerNetServerHandler.sendPacket(new S02PacketChat(new ChatComponentTranslation("container.isLocked",  chestInventory.getDisplayName() ), (byte) 2));
 				this.playerNetServerHandler.sendPacket(new S29PacketSoundEffect("random.door_close", this.posX, this.posY, this.posZ, 1.0F, 1.0F));
 				return;
 			}

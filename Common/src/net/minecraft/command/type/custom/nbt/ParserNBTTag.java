@@ -3,6 +3,7 @@ package net.minecraft.command.type.custom.nbt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
@@ -19,12 +20,12 @@ import net.minecraft.nbt.NBTTagString;
 
 public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 {
-	public final static Pattern specialPattern = Pattern.compile("\\G\\s*+([\"\\[{]|\\\\[@\\$])");
+	public final static MatcherRegistry specialMatcher = new MatcherRegistry("\\G\\s*+([\"\\[{]|\\\\[@\\$])");
 	
-	public final static Pattern basePattern = Pattern.compile("\\G[^\\[,}\\]]*+(?:(\\[)|(?=,|}|\\]))");
-	public final static Pattern stackedPattern = Pattern.compile("\\G[^\\[\\]]*+(\\[|\\])");
+	public final static MatcherRegistry baseMatcher = new MatcherRegistry("\\G[^\\[,}\\]]*+(?:(\\[)|(?=,|}|\\]))");
+	public final static MatcherRegistry stackedMatcher = new MatcherRegistry("\\G[^\\[\\]]*+(\\[|\\])");
 	
-	public final static Pattern numberPattern = Pattern.compile("\\G\\s*+(?>(([+-]?+)(?=\\.?+\\d)(\\d*+)([bsl]|(\\.\\d*+)?+([df]?+))|true|false))(?=\\s*+[,\\]}])", Pattern.CASE_INSENSITIVE);
+	public final static MatcherRegistry numberMatcher = new MatcherRegistry(Pattern.compile("\\G\\s*+(?>(([+-]?+)(?=\\.?+\\d)(\\d*+)([bsl]|(\\.\\d*+)?+([df]?+))|true|false))(?=\\s*+[,\\]}])", Pattern.CASE_INSENSITIVE));
 	
 	private final Tag descriptor;
 	
@@ -36,7 +37,7 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 	@Override
 	public Void parse(final Parser parser, final NBTData parserData) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.specialMatcher;
+		final Matcher m = parser.getMatcher(specialMatcher);
 		
 		if (parser.findInc(m))
 		{
@@ -60,7 +61,7 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 			}
 		}
 		
-		final Matcher nm = parser.numberMatcher;
+		final Matcher nm = parser.getMatcher(numberMatcher);
 		
 		if (parser.findInc(nm))
 		{
@@ -124,8 +125,8 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 		final int startIndex = parser.getIndex();
 		int level = 0;
 		
-		final Matcher bm = parser.baseMatcher;
-		final Matcher sm = parser.stackedMatcher;
+		final Matcher bm = parser.getMatcher(baseMatcher);
+		final Matcher sm = parser.getMatcher(stackedMatcher);
 		
 		while (true)
 		{

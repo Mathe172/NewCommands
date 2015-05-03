@@ -3,15 +3,16 @@ package net.minecraft.command.type.custom;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.ITabCompletion;
+import net.minecraft.command.completion.ProviderCompleter;
+import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CListProvider;
-import net.minecraft.command.type.ProviderCompleter;
 import net.minecraft.command.type.base.CustomCompletable;
 
 public class TypeUntypedLabel extends CustomCompletable<ArgWrapper<?>>
@@ -38,7 +39,7 @@ public class TypeUntypedLabel extends CustomCompletable<ArgWrapper<?>>
 	
 	public static ArgWrapper<?> parseLabel(final Parser parser) throws SyntaxErrorException
 	{
-		final Matcher m = parser.nameMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.nameMatcher);
 		
 		parser.find(m);
 		

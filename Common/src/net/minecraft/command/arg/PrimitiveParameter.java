@@ -17,5 +17,4 @@ public class PrimitiveParameter<T> extends CommandArg<T>
 	{
 		return this.value;
 	}
-	
 }

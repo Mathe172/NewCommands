@@ -1,12 +1,12 @@
 package net.minecraft.command.type.custom;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.OperatorDescriptor;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -15,9 +15,9 @@ import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.TypeCompletable;
 import net.minecraft.command.type.management.TypeID;
 
-public class TypeUntypedOperator extends TypeCompletable<ArgWrapper<?>>
+public final class TypeUntypedOperator extends TypeCompletable<ArgWrapper<?>>
 {
-	public static final Pattern operatorPattern = Pattern.compile("\\G\\s*+([^\\s]++)(?=\\s)");
+	public static final MatcherRegistry operatorMatcher = new MatcherRegistry("\\G\\s*+([^\\s]++)(?=\\s)");
 	
 	public static final Context mathContext = new Context()
 	{
@@ -35,6 +35,10 @@ public class TypeUntypedOperator extends TypeCompletable<ArgWrapper<?>>
 	
 	public static final TypeUntypedOperator parser = new TypeUntypedOperator();
 	
+	private TypeUntypedOperator()
+	{
+	}
+	
 	@Override
 	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
@@ -45,7 +49,7 @@ public class TypeUntypedOperator extends TypeCompletable<ArgWrapper<?>>
 	{
 		parser.proposeCompletion();
 		
-		final Matcher m = parser.operatorMatcher;
+		final Matcher m = parser.getMatcher(operatorMatcher);
 		
 		if (!parser.find(m))
 			return null;
@@ -63,6 +67,7 @@ public class TypeUntypedOperator extends TypeCompletable<ArgWrapper<?>>
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		TabCompletionData.addToSet(tcDataSet, startIndex, cData, OperatorDescriptor.getCompletions());
+		PermissionWrapper.complete(tcDataSet, startIndex, cData, OperatorDescriptor.operatorCompletions);
 	}
+	
 }

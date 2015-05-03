@@ -15,7 +15,7 @@ public class ChatComponentProcessor
 {
 	private static final String __OBFID = "CL_00002310";
 	
-	public static IChatComponent func_179985_a(ICommandSender sender, IChatComponent toProcess, Entity target) throws CommandException
+	public static IChatComponent func_179985_a(final ICommandSender sender, final IChatComponent toProcess, final Entity target) throws CommandException
 	{
 		IChatComponent ret = null;
 		
@@ -30,7 +30,7 @@ public class ChatComponentProcessor
 			{
 				try
 				{
-					playerName = Parser.parseUUID(playerName).eval(sender);
+					playerName = Parser.parseScoreHolder(playerName).eval(sender);
 				} catch (final EntityNotFoundException e)
 				{
 					throw e;

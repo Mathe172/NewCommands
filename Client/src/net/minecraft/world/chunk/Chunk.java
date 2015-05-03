@@ -905,7 +905,7 @@ public class Chunk
 		
 		if (var2 != this.xPosition || var3 != this.zPosition)
 		{
-			logger.warn("Wrong location! (" + var2 + ", " + var3 + ") should be (" + this.xPosition + ", " + this.zPosition + "), " + entityIn, new Object[] { entityIn });
+			logger.warn("Wrong location! (" + var2 + ", " + var3 + ") should be (" + this.xPosition + ", " + this.zPosition + "), " + entityIn,  entityIn );
 			entityIn.setDead();
 		}
 		

@@ -30,34 +30,44 @@ public abstract class Coordinate extends CommandArg<Double>
 	
 	private final CoordValue comp;
 	private final boolean relative;
-	private final boolean centerBlock;
+	private final boolean center;
 	
-	public Coordinate(final CoordValue comp, final boolean relative, final boolean centerBlock)
+	public Coordinate(final CoordValue comp, final boolean relative, final boolean tryCenter)
 	{
 		this.comp = comp;
 		this.relative = relative;
-		this.centerBlock = centerBlock;
+		this.center = !this.comp.hasDecimal && tryCenter;
 	}
 	
 	public final Double evalCoord(final ICommandSender sender, final double base) throws CommandException
 	{
-		if (this.relative && Double.isNaN(base))
-			throw new NumberInvalidException("commands.generic.num.invalid", new Object[] { Double.valueOf(base) });
-		
-		double result = this.relative ? (this.comp.hasDecimal ? base : Math.floor(base)) : 0.;
-		
-		if (!this.comp.hasDecimal && this.centerBlock) // && !this.relative
-			result += 0.5;
-		
-		result += this.comp.eval(sender);
-		
+		return this.addBase(this.evalShift(sender), base);
+	}
+	
+	public double evalShift(final ICommandSender sender) throws CommandException
+	{
+		return (!this.relative && this.center ? 0.5 : 0.) + this.comp.eval(sender);
+	}
+	
+	public void validate(final double result) throws CommandException
+	{
 		if (result < -30000000.)
-			throw new NumberInvalidException("commands.generic.double.tooSmall", new Object[] { Double.valueOf(result), Integer.valueOf(-30000000) });
+			throw new NumberInvalidException("commands.generic.double.tooSmall", result, -30000000);
 		
 		if (result > 30000000.)
-			throw new NumberInvalidException("commands.generic.double.tooBig", new Object[] { Double.valueOf(result), Integer.valueOf(30000000) });
+			throw new NumberInvalidException("commands.generic.double.tooBig", result, 30000000);
+	}
+	
+	public double addBase(final double shift, final double base) throws CommandException
+	{
+		if (this.relative && Double.isNaN(base))
+			throw new NumberInvalidException("commands.generic.num.invalid", base);
 		
-		return result;
+		final double ret = (this.relative ? base : 0.) + shift;
+		
+		this.validate(ret);
+		
+		return ret;
 	}
 	
 	public final boolean isRelative()

@@ -1,8 +1,10 @@
 package net.minecraft.command.type.management;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.type.IParse;
@@ -16,11 +18,11 @@ public abstract class CConvertable<T, W> extends Convertable<T, W, SyntaxErrorEx
 	public final IParse<W> labelParser = new TypeLabel<>(this);
 	public final IParse<W> operatorParser = new TypeOperator<>(this);
 	
-	private final Set<ITabCompletion> directSelectors = new HashSet<>();
-	private final Set<ITabCompletion> possibleSelectors = new HashSet<>();
+	private final Map<ITabCompletion, IPermission> directSelectors = new HashMap<>();
+	private final Map<ITabCompletion, IPermission> possibleSelectors = new HashMap<>();
 	
-	private final Set<ITabCompletion> directOperators = new HashSet<>();
-	private final Set<ITabCompletion> possibleOperators = new HashSet<>();
+	private final Map<ITabCompletion, IPermission> directOperators = new HashMap<>();
+	private final Map<ITabCompletion, IPermission> possibleOperators = new HashMap<>();
 	
 	public CConvertable(final String name)
 	{
@@ -39,55 +41,55 @@ public abstract class CConvertable<T, W> extends Convertable<T, W, SyntaxErrorEx
 		this.possibleOperators.clear();
 	}
 	
-	public final void addSelector(final ITabCompletion selector)
+	public final void addSelector(final ITabCompletion selector, final IPermission permission)
 	{
-		this.directSelectors.add(selector);
+		this.directSelectors.put(selector, permission);
 		
-		this.possibleSelectors.add(selector);
+		this.possibleSelectors.put(selector, permission);
 		
 		for (final Convertable<?, ?, ?> convertable : this.convertableTo)
-			convertable.addPossibleSelector(selector);
+			convertable.addPossibleSelector(selector, permission);
 	}
 	
-	public final void addOperator(final ITabCompletion operator)
+	public final void addOperator(final ITabCompletion operator, final IPermission permission)
 	{
-		this.directOperators.add(operator);
+		this.directOperators.put(operator, permission);
 		
-		this.possibleOperators.add(operator);
+		this.possibleOperators.put(operator, permission);
 		
 		for (final Convertable<?, ?, ?> convertable : this.convertableTo)
-			convertable.addPossibleOperator(operator);
+			convertable.addPossibleOperator(operator, permission);
 	}
 	
-	public final Set<ITabCompletion> getSelectorCompletions()
+	public final Map<ITabCompletion, IPermission> getSelectorCompletions()
 	{
 		return this.possibleSelectors;
 	}
 	
-	public final Set<ITabCompletion> getOperatorCompletions()
+	public final Map<ITabCompletion, IPermission> getOperatorCompletions()
 	{
 		return this.possibleOperators;
 	}
 	
 	@Override
-	public void addPossibleSelector(final ITabCompletion tc)
+	public void addPossibleSelector(final ITabCompletion tc, final IPermission permission)
 	{
-		this.possibleSelectors.add(tc);
+		this.possibleSelectors.put(tc, permission);
 	}
 	
 	@Override
-	public void addPossibleOperator(final ITabCompletion tc)
+	public void addPossibleOperator(final ITabCompletion tc, final IPermission permission)
 	{
-		this.possibleOperators.add(tc);
+		this.possibleOperators.put(tc, permission);
 	}
 	
 	@Override
 	public void adjustCompletions(final Convertable<?, ?, ?> target)
 	{
-		for (final ITabCompletion selector : this.directSelectors)
-			target.addPossibleSelector(selector);
+		for (final Entry<ITabCompletion, IPermission> selector : this.directSelectors.entrySet())
+			target.addPossibleSelector(selector.getKey(), selector.getValue());
 		
-		for (final ITabCompletion operator : this.directOperators)
-			target.addPossibleOperator(operator);
+		for (final Entry<ITabCompletion, IPermission> operator : this.directOperators.entrySet())
+			target.addPossibleOperator(operator.getKey(), operator.getValue());
 	}
 }

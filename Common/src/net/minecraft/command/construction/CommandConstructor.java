@@ -1,92 +1,168 @@
 package net.minecraft.command.construction;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Set;
 
-import net.minecraft.command.IPermission;
-import net.minecraft.command.descriptors.CommandDescriptor;
+import net.minecraft.command.construction.ICommandConstructor.CPU;
 import net.minecraft.command.type.IDataType;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-public class CommandConstructor
+public class CommandConstructor implements CPU
 {
-	protected final Set<String> names;
+	public final Set<CommandProtoDescriptor> baseCommands;
 	
-	protected final List<IDataType<?>> args = new ArrayList<>();
+	public final Set<CommandProtoDescriptor> ends;
 	
-	protected final Set<Pair<Set<String>, CommandDescriptor>> subCommands = new HashSet<>();
-	
-	protected final IPermission permission;
-	
-	public CommandConstructor(final String name, final String... aliases)
+	public CommandConstructor(final Set<CommandProtoDescriptor> baseCommands, final Set<CommandProtoDescriptor> ends)
 	{
-		this(null, name, aliases);
+		this.baseCommands = baseCommands;
+		this.ends = ends;
 	}
 	
-	public CommandConstructor(final IPermission permission, final String name, final String... aliases)
+	public CommandConstructor(final Set<CommandProtoDescriptor> baseCommands)
 	{
-		this.permission = permission;
-		
-		this.names = new HashSet<>(1 + aliases.length);
-		
-		this.names.add(name);
-		
-		for (final String alias : aliases)
-			this.names.add(alias);
+		this.baseCommands = baseCommands;
+		this.ends = new HashSet<>();
+		this.ends.addAll(baseCommands);
 	}
 	
+	public CommandConstructor(final CommandProtoDescriptor baseCommand)
+	{
+		this.baseCommands = Collections.singleton(baseCommand);
+		this.ends = new HashSet<>();
+		this.ends.add(baseCommand);
+	}
+	
+	@Override
 	public final CommandConstructor then(final IDataType<?> arg)
 	{
-		if (!this.subCommands.isEmpty())
-			return new CCO(this).then(arg);
+		CommandProtoDescriptor newEnd = null;
 		
-		this.args.add(arg);
+		final Iterator<CommandProtoDescriptor> it = this.ends.iterator();
+		
+		while (it.hasNext())
+		{
+			final CommandProtoDescriptor end = it.next();
+			
+			if (end.subCommands.isEmpty())
+				end.args.add(arg);
+			else
+			{
+				if (newEnd == null)
+				{
+					newEnd = new CommandProtoDescriptor.NoConstructable(null, "");
+					newEnd.args.add(arg);
+				}
+				
+				end.subCommands.add(newEnd);
+				it.remove();
+			}
+		}
+		
+		if (newEnd != null)
+			this.ends.add(newEnd);
+		
 		return this;
 	}
 	
-	@SafeVarargs
-	public final CommandConstructor sub(final Pair<Set<String>, CommandDescriptor>... subCommands)
+	@Override
+	public final CommandConstructor sub(final ICommandConstructor... subCommands)
 	{
-		for (final Pair<Set<String>, CommandDescriptor> subCommand : subCommands)
-			this.subCommands.add(subCommand);
+		for (final CommandProtoDescriptor end : this.ends)
+		{
+			end.useEmptyConstructable = true;
+			for (final ICommandConstructor subCommand : subCommands)
+				end.subCommands.addAll(subCommand.baseCommands());
+		}
+		
+		this.ends.clear();
+		
+		for (final ICommandConstructor subCommand : subCommands)
+			this.ends.addAll(subCommand.ends());
 		
 		return this;
 	}
 	
+	/**
+	 * Single optional argument. If {@code arg} is missing while parsing, the command is finished (the whole subcommand-tree is dependent on {@code arg})
+	 */
+	@Override
 	public final CommandConstructor optional(final IDataType<?> arg)
 	{
-		return new CCOptional(this).then(arg);
+		this.optional(arg, new CommandProtoDescriptor.NoConstructable(null, ""));
+		
+		return this;
 	}
 	
+	/**
+	 * Single optional argument. If {@code arg} is missing while parsing, the command is finished (the whole subcommand-tree is dependent on this {@code arg})
+	 * 
+	 * @param constructable
+	 *            Used to construct the command that is terminated exactly after {@code arg}
+	 */
+	@Override
 	public final CommandConstructor optional(final IDataType<?> arg, final CommandConstructable constructable)
 	{
-		return new CCOptConstructable(this, constructable).then(arg);
-	}
-	
-	public final CommandConstructor optional(final CommandConstructor constructor, final CommandConstructable constructable)
-	{
-		return new CCOptConstructables(this, new ImmutablePair<>(constructor, constructable));
-	}
-	
-	@SafeVarargs
-	public final CommandConstructor optinal(final Pair<CommandConstructor, CommandConstructable>... commands)
-	{
-		return new CCOptConstructables(this, commands);
-	}
-	
-	public final CommandConstructor optional(final CommandConstructor... commands)
-	{
-		return new CCOptionals(this, commands);
-	}
-	
-	public Pair<Set<String>, CommandDescriptor> executes(final CommandConstructable constructable)
-	{
-		final CommandDescriptor descriptor = new CommandDescriptorConstructable(constructable, this.permission, null, this.args, this.subCommands);
+		this.optional(arg, new CommandProtoDescriptor.Constructable(constructable, null, ""));
 		
-		return new ImmutablePair<>(this.names, descriptor);
+		return this;
+	}
+	
+	private final void optional(final IDataType<?> arg, final CommandProtoDescriptor descriptor)
+	{
+		descriptor.args.add(arg);
+		
+		for (final CommandProtoDescriptor end : this.ends)
+			end.subCommands.add(descriptor);
+		
+		this.ends.clear();
+		this.ends.add(descriptor);
+	}
+	
+	/**
+	 * Multiple optional subCommands. Everything added after this call gets added to all subCommands and to {@code this}
+	 */
+	@Override
+	public final CommandConstructor optional(final ICommandConstructor... commands)
+	{
+		for (final CommandProtoDescriptor end : this.ends)
+			for (final ICommandConstructor command : commands)
+				end.subCommands.addAll(command.baseCommands());
+		
+		for (final ICommandConstructor command : commands)
+			this.ends.addAll(command.ends());
+		
+		return this;
+	}
+	
+	@Override
+	public final Set<CommandProtoDescriptor> baseCommands()
+	{
+		return this.baseCommands;
+	}
+	
+	@Override
+	public final Set<CommandProtoDescriptor> ends()
+	{
+		return this.ends;
+	}
+	
+	@Override
+	public final CommandConstructor sub(final C... subCommands)
+	{
+		return this.sub((ICommandConstructor[]) subCommands);
+	}
+	
+	@Override
+	public final CommandConstructor sub(final P... subCommands)
+	{
+		return this.sub((ICommandConstructor[]) subCommands);
+	}
+	
+	@Override
+	public CommandConstructor sub(final CP... subCommands)
+	{
+		return this.sub((ICommandConstructor[]) subCommands);
 	}
 }

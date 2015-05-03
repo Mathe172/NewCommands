@@ -54,9 +54,34 @@ public class TabCompletion extends TabCompletionBase
 		return 1.0 / (distance + 1);
 	}
 	
+	public TabCompletion(final String replacement, final String keyword, final String name, final boolean allowSpaces)
+	{
+		this(createPattern(keyword, allowSpaces), replacement, name);
+	}
+	
 	public TabCompletion(final String replacement, final String keyword, final String name)
 	{
-		this(createPattern(keyword), replacement, name);
+		this(createPattern(keyword, true), replacement, name);
+	}
+	
+	public TabCompletion(final String keyword, final String name, final boolean allowSpaces)
+	{
+		this(keyword, keyword, name, allowSpaces);
+	}
+	
+	public TabCompletion(final String name, final boolean allowSpaces)
+	{
+		this(name, name, name, allowSpaces);
+	}
+	
+	public TabCompletion(final String keyword, final String name)
+	{
+		this(keyword, keyword, name);
+	}
+	
+	public TabCompletion(final String name)
+	{
+		this(name, name, name);
 	}
 	
 	private static boolean isVowel(final char c)
@@ -70,11 +95,11 @@ public class TabCompletion extends TabCompletionBase
 		return isVowel(c) ? vowelWeight : 1.0;
 	}
 	
-	private static Pattern createPattern(final String keyword)
+	private static Pattern createPattern(final String keyword, final boolean allowSpaces)
 	{
-		final StringBuilder sb = new StringBuilder(keyword.length() * 3 + 10); // 3 * #chars (char + '?+') + 8 ('^(\s*+)(') - 2 (no '?+' after first) + 4 (')?+$' at the end)
+		final StringBuilder sb = new StringBuilder(keyword.length() * 3 + (allowSpaces ? 13 : 9)); // 3 * #chars [char + '?+'] + 9:5 ['\A(\s*+)(':'\A()('] - 2 [no '?+' after first] + 6 [')?+\Z'] at the end)
 		
-		sb.append("\\A(\\s*+)(");
+		sb.append(allowSpaces ? "\\A(\\s*+)(" : "\\A()(");
 		sb.append(keyword, 0, 1);
 		
 		for (int i = 1; i < keyword.length(); ++i)
@@ -86,16 +111,6 @@ public class TabCompletion extends TabCompletionBase
 		sb.append(")?+\\z");
 		
 		return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
-	}
-	
-	public TabCompletion(final String keyword, final String name)
-	{
-		this(keyword, keyword, name);
-	}
-	
-	public TabCompletion(final String name)
-	{
-		this(name, name, name);
 	}
 	
 	public static void addEscaped(final StringBuilder sb, final char c)
@@ -126,16 +141,16 @@ public class TabCompletion extends TabCompletionBase
 	
 	public static class Escaped extends TabCompletion
 	{
-		public Escaped(final String replacement, final String keyword, final String name)
+		public Escaped(final String replacement, final String keyword, final String name, final boolean allowSpaces)
 		{
-			super(createPattern(keyword), replacement, name);
+			super(createPattern(keyword, allowSpaces), replacement, name);
 		}
 		
-		private static Pattern createPattern(final String keyword)
+		private static Pattern createPattern(final String keyword, final boolean allowSpaces)
 		{
-			final StringBuilder sb = new StringBuilder(keyword.length() * 3 + 10); // 3 * #chars (char + '?+') + 8 ('^(\s*+)(') - 2 (no '?+' after first) + 4 (')?+$' at the end)
+			final StringBuilder sb = new StringBuilder(keyword.length() * 3 + (allowSpaces ? 13 : 9)); // 3 * #chars [char + '?+'] + 9:5 ['\A(\s*+)(':'\A()('] - 2 [no '?+' after first] + 6 [')?+\Z'] at the end)
 			
-			sb.append("\\A(\\s*+)(");
+			sb.append(allowSpaces ? "\\A(\\s*+)(" : "\\A()(");
 			
 			addEscaped(sb, keyword.charAt(0));
 			
@@ -152,12 +167,22 @@ public class TabCompletion extends TabCompletionBase
 		
 		public Escaped(final String keyword, final String name)
 		{
-			this(keyword, keyword, name);
+			this(keyword, keyword, name, true);
 		}
 		
 		public Escaped(final String name)
 		{
-			this(name, name);
+			this(name, name, true);
+		}
+		
+		public Escaped(final String keyword, final String name, final boolean allowSpaces)
+		{
+			this(keyword, keyword, name, allowSpaces);
+		}
+		
+		public Escaped(final String name, final boolean allowSpaces)
+		{
+			this(name, name, allowSpaces);
 		}
 	}
 	
@@ -170,7 +195,7 @@ public class TabCompletion extends TabCompletionBase
 	@Override
 	public double weightOffset(final Matcher m, final CompletionData cData)
 	{
-		return 0;
+		return 0.0;
 	}
 	
 	@Override

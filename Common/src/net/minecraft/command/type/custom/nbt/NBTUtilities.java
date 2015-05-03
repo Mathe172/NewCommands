@@ -8,9 +8,11 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
@@ -18,7 +20,6 @@ import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IComplete;
-import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.management.TypeID;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
@@ -28,13 +29,17 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.nbt.NBTTagShort;
 
-public class NBTUtilities
+public final class NBTUtilities
 {
-	public final static Pattern numberIDPattern = Pattern.compile("\\G\\s*+([bsilfd])", Pattern.CASE_INSENSITIVE);
+	public final static MatcherRegistry numberIDMatcher = new MatcherRegistry(Pattern.compile("\\G\\s*+([bsilfd])", Pattern.CASE_INSENSITIVE));
 	
 	private static Set<TypeID<? extends Number>> primitiveTypes = new HashSet<TypeID<? extends Number>>(Arrays.asList(TypeIDs.Byte, TypeIDs.Short, TypeIDs.Integer, TypeIDs.Long, TypeIDs.Float, TypeIDs.Double));
 	
-	public static final ITabCompletion braceCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\{?+"), "{}", "{}")
+	private NBTUtilities()
+	{
+	}
+	
+	public static final ITabCompletion braceCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\{?+\\z"), "{}", "{}")
 	{
 		@Override
 		public boolean complexFit()
@@ -247,9 +252,10 @@ public class NBTUtilities
 	
 	public static CommandArg<NBTBase> procIdentifier(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
-		if (parser.findInc(parser.numberIDMatcher))
+		final Matcher m = parser.getMatcher(numberIDMatcher);
+		if (parser.findInc(m))
 		{
-			switch (parser.numberIDMatcher.group(1).charAt(0))
+			switch (m.group(1).charAt(0))
 			{
 			case 'b':
 				return getTagByte(toConvert);

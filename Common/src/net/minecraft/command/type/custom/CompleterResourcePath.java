@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
+import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion.Escaped;
@@ -16,56 +18,119 @@ import net.minecraft.util.ResourceLocation;
 
 public class CompleterResourcePath implements IComplete
 {
-	private final Map<String, Set<ITabCompletion>> resources = new HashMap<>();
+	private final Map<String, CompleterResourcePath> subResources = new HashMap<>();
 	private final Set<ITabCompletion> domainCompletions = new HashSet<>();
+	private final Set<ITabCompletion> entryCompletions;
 	
-	private final String defaultDomain;
+	public static final MatcherRegistry pathMatcher = new MatcherRegistry("\\G[\\w]*+[.:]");
+	public static final MatcherRegistry whitespaceMatcher = new MatcherRegistry("\\G\\s*+");
 	
-	public CompleterResourcePath(final String defaultDomain)
+	public CompleterResourcePath(final Set<ITabCompletion> completions)
 	{
-		this.defaultDomain = defaultDomain;
-		
-		this.resources.put(defaultDomain, new HashSet<ITabCompletion>());
-		this.domainCompletions.add(new Escaped(defaultDomain + ":", defaultDomain));
+		this.entryCompletions = completions;
 	}
 	
 	public CompleterResourcePath()
 	{
-		this("minecraft");
+		this.entryCompletions = new HashSet<>();
+	}
+	
+	public CompleterResourcePath(final String... defaultDomains)
+	{
+		this();
+		
+		for (final String domain : defaultDomains)
+		{
+			final String domainPath = domain + ":";
+			this.subResources.put(domainPath.toLowerCase(), new CompleterResourcePath(this.entryCompletions));
+			this.addDomainCompletion(domainPath, domain);
+		}
+		
+	}
+	
+	private final void addDomainCompletion(final String domainPath, final String domain)
+	{
+		this.domainCompletions.add(new Escaped(domainPath, domain, false)
+		{
+			@Override
+			public double weightOffset(final Matcher m, final CompletionData cData)
+			{
+				return 1.0;
+			}
+		});
 	}
 	
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		final int index = parser.toParse.indexOf(':', startIndex);
+		final Matcher whitespaceMatcher = parser.getMatcher(CompleterResourcePath.whitespaceMatcher);
+		whitespaceMatcher.find(startIndex);
 		
-		if (index == -1 || index == cData.cursorIndex - 1)
-			TabCompletionData.addToSet(tcDataSet, startIndex, cData, this.domainCompletions);
+		final Matcher pathMatcher = parser.getMatcher(CompleterResourcePath.pathMatcher);
 		
-		if (index == -1)
-			TabCompletionData.addToSet(tcDataSet, startIndex, cData, this.resources.get(this.defaultDomain));
-		else
+		int index = startIndex + whitespaceMatcher.group().length();
+		CompleterResourcePath completerResourcePath = this;
+		
+		while (completerResourcePath != null)
 		{
-			final Set<ITabCompletion> completions = this.resources.get(parser.toParse.substring(startIndex, index).trim());
-			
-			if (completions != null)
-				TabCompletionData.addToSet(tcDataSet, index + 1, cData, completions);
+			if (pathMatcher.find(index))
+			{
+				completerResourcePath = completerResourcePath.subResources.get(pathMatcher.group().toLowerCase());
+				
+				index += pathMatcher.group().length();
+			}
+			else
+			{
+				TabCompletionData.addToSet(tcDataSet, index, cData, completerResourcePath.domainCompletions);
+				TabCompletionData.addToSet(tcDataSet, index, cData, completerResourcePath.entryCompletions);
+				
+				return;
+			}
 		}
 	}
 	
-	public void registerResource(final ResourceLocation resource)
+	public CompleterResourcePath registerResource(final ResourceLocation... resources)
 	{
-		final String resourceDomain = resource.getResourceDomain();
-		Set<ITabCompletion> completions = this.resources.get(resourceDomain);
+		for (final ResourceLocation resource : resources)
+			registerSingleResource(resource.toString());
+		return this;
+	}
+	
+	private final CompleterResourcePath registerSingleResource(final String resource)
+	{
+		final Matcher m = pathMatcher.matcher(resource);
 		
-		if (completions == null)
+		int index = 0;
+		CompleterResourcePath resourcePath = this;
+		
+		while (m.find(index))
 		{
-			completions = new HashSet<>();
-			this.resources.put(resourceDomain, completions);
+			final String domainName = m.group();
+			CompleterResourcePath resourcePathNew = resourcePath.subResources.get(domainName);
 			
-			this.domainCompletions.add(new Escaped(resourceDomain + ":", resourceDomain));
+			if (resourcePathNew == null)
+			{
+				resourcePathNew = new CompleterResourcePath();
+				resourcePath.addDomainCompletion(domainName, domainName.substring(0, domainName.length() - 1));
+				resourcePath.subResources.put(domainName.toLowerCase(), resourcePathNew);
+			}
+			
+			resourcePath = resourcePathNew;
+			index += domainName.length();
 		}
 		
-		completions.add(new Escaped(resource.getResourcePath()));
+		final String name = resource.substring(index);
+		
+		if (name.length() != 0)
+			resourcePath.entryCompletions.add(new Escaped(name, false));
+		return this;
+	}
+	
+	public final CompleterResourcePath registerResource(final String... resources)
+	{
+		for (final String resource : resources)
+			registerSingleResource(resource);
+		
+		return this;
 	}
 }

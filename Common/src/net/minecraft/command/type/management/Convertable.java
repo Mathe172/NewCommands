@@ -9,10 +9,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.collections.Relations;
 import net.minecraft.command.completion.ITabCompletion;
-import net.minecraft.command.type.custom.Relations;
 import net.minecraft.command.type.management.relations.Relation.Attribute;
 
 public abstract class Convertable<T, W, E extends CommandException>
@@ -231,12 +232,12 @@ public abstract class Convertable<T, W, E extends CommandException>
 	}
 	
 	@SuppressWarnings("unused")
-	public void addPossibleSelector(final ITabCompletion tc)
+	public void addPossibleSelector(final ITabCompletion tc, final IPermission permission)
 	{
 	}
 	
 	@SuppressWarnings("unused")
-	public void addPossibleOperator(final ITabCompletion tc)
+	public void addPossibleOperator(final ITabCompletion tc, final IPermission permission)
 	{
 	}
 	

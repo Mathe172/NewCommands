@@ -8,6 +8,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -15,7 +16,6 @@ import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.CTypeCompletable;
-import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound.CompoundData;
 import net.minecraft.nbt.NBTBase;
@@ -41,7 +41,7 @@ public class TypeNBTBase extends CTypeCompletable<NBTBase>
 		if (ret != null)
 			return ret;
 		
-		final Matcher m = parser.specialMatcher;
+		final Matcher m = parser.getMatcher(ParserNBTTag.specialMatcher);
 		
 		if (!parser.findInc(m) || !"{".equals(m.group(1)))
 			throw parser.SEE("Expected '{' around index ");

@@ -1020,7 +1020,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient
 			if (var4)
 			{
 				final GameSettings var5 = this.gameController.gameSettings;
-				this.gameController.ingameGUI.setRecordPlaying(I18n.format("mount.onboard", new Object[] { GameSettings.getKeyDisplayString(var5.keyBindSneak.getKeyCode()) }), false);
+				this.gameController.ingameGUI.setRecordPlaying(I18n.format("mount.onboard",  GameSettings.getKeyDisplayString(var5.keyBindSneak.getKeyCode()) ), false);
 			}
 		}
 		else if (packetIn.func_149404_c() == 1 && var2 instanceof EntityLiving)
@@ -1397,7 +1397,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient
 		
 		if (var3 >= 0 && var3 < S2BPacketChangeGameState.MESSAGE_NAMES.length && S2BPacketChangeGameState.MESSAGE_NAMES[var3] != null)
 		{
-			var2.addChatComponentMessage(new ChatComponentTranslation(S2BPacketChangeGameState.MESSAGE_NAMES[var3], new Object[0]));
+			var2.addChatComponentMessage(new ChatComponentTranslation(S2BPacketChangeGameState.MESSAGE_NAMES[var3]));
 		}
 		
 		if (var3 == 1)
@@ -1428,15 +1428,15 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient
 			}
 			else if (var4 == 101.0F)
 			{
-				this.gameController.ingameGUI.getChatGUI().printChatMessage(new ChatComponentTranslation("demo.help.movement", new Object[] { GameSettings.getKeyDisplayString(var6.keyBindForward.getKeyCode()), GameSettings.getKeyDisplayString(var6.keyBindLeft.getKeyCode()), GameSettings.getKeyDisplayString(var6.keyBindBack.getKeyCode()), GameSettings.getKeyDisplayString(var6.keyBindRight.getKeyCode()) }));
+				this.gameController.ingameGUI.getChatGUI().printChatMessage(new ChatComponentTranslation("demo.help.movement",  GameSettings.getKeyDisplayString(var6.keyBindForward.getKeyCode()), GameSettings.getKeyDisplayString(var6.keyBindLeft.getKeyCode()), GameSettings.getKeyDisplayString(var6.keyBindBack.getKeyCode()), GameSettings.getKeyDisplayString(var6.keyBindRight.getKeyCode()) ));
 			}
 			else if (var4 == 102.0F)
 			{
-				this.gameController.ingameGUI.getChatGUI().printChatMessage(new ChatComponentTranslation("demo.help.jump", new Object[] { GameSettings.getKeyDisplayString(var6.keyBindJump.getKeyCode()) }));
+				this.gameController.ingameGUI.getChatGUI().printChatMessage(new ChatComponentTranslation("demo.help.jump",  GameSettings.getKeyDisplayString(var6.keyBindJump.getKeyCode()) ));
 			}
 			else if (var4 == 103.0F)
 			{
-				this.gameController.ingameGUI.getChatGUI().printChatMessage(new ChatComponentTranslation("demo.help.inventory", new Object[] { GameSettings.getKeyDisplayString(var6.keyBindInventory.getKeyCode()) }));
+				this.gameController.ingameGUI.getChatGUI().printChatMessage(new ChatComponentTranslation("demo.help.inventory",  GameSettings.getKeyDisplayString(var6.keyBindInventory.getKeyCode()) ));
 			}
 		}
 		else if (var3 == 6)
@@ -1867,7 +1867,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient
 								ServerList.func_147414_b(NetHandlerPlayClient.this.gameController.getCurrentServerData());
 								NetHandlerPlayClient.this.gameController.displayGuiScreen((GuiScreen) null);
 							}
-						}, I18n.format("multiplayer.texturePrompt.line1", new Object[0]), I18n.format("multiplayer.texturePrompt.line2", new Object[0]), 0));
+						}, I18n.format("multiplayer.texturePrompt.line1"), I18n.format("multiplayer.texturePrompt.line2"), 0));
 					}
 				});
 			}

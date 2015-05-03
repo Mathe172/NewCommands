@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.Processable;
@@ -55,7 +56,7 @@ public class TypeSelectorContent<D extends ParserData> extends TypeCompletable<A
 		
 		final IExParse<Void, D> kvPair = this.descriptor.getKVPair();
 		
-		final Matcher m = parser.listEndMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.listEndMatcher);
 		
 		while (true)
 		{

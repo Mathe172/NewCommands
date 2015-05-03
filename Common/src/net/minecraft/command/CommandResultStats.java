@@ -132,7 +132,7 @@ public class CommandResultStats
 				stats.objectiveNames = new String[typeCount];
 			}
 			
-			stats.targets[type.statId()] = new Target(targetString);
+			stats.targets[type.statId()] = Target.create(targetString, stats.targets[type.statId()]); // Only create new Target if needed (makes '/entitydata' a LOT more efficient)
 			stats.objectiveNames[type.statId()] = objectiveName;
 		}
 		else
@@ -281,6 +281,11 @@ public class CommandResultStats
 			this.targetString = targetString;
 			this.fTarget = ParsingManager.submitTarget(this.targetString);
 			this.target = null;
+		}
+		
+		public static Target create(final String targetString, final Target fallback)
+		{
+			return targetString == fallback.targetString ? fallback : new Target(targetString);
 		}
 		
 		public final String get()

@@ -2,12 +2,11 @@ package net.minecraft.command.selectors;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.SelectorConstructable;
-import net.minecraft.command.type.custom.TypeIDs;
 import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.server.MinecraftServer;
@@ -21,8 +20,8 @@ public class SelectorScore extends CommandArg<Integer>
 		{
 			return TypeIDs.Integer.wrap(
 				new SelectorScore(
-					ParsingUtilities.getRequiredParam(TypeIDs.ScoreObjective, 0, "objective", parserData),
-					ParsingUtilities.getRequiredParam(TypeIDs.UUID, 1, "target", parserData)));
+					getRequiredParam(TypeIDs.ScoreObjective, 0, "objective", parserData),
+					getRequiredParam(TypeIDs.UUID, 1, "target", parserData)));
 		}
 	};
 	

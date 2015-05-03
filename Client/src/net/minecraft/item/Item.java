@@ -18,7 +18,7 @@ import net.minecraft.block.BlockSilverfish;
 import net.minecraft.block.BlockStone;
 import net.minecraft.block.BlockStoneBrick;
 import net.minecraft.block.BlockWall;
-import net.minecraft.command.type.custom.Completers;
+import net.minecraft.command.collections.Completers;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;

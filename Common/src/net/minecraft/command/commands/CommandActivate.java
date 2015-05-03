@@ -1,73 +1,61 @@
 package net.minecraft.command.commands;
 
-import java.util.List;
-
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 
-public class CommandActivate extends CommandBase
+public class CommandActivate extends CommandArg<Integer>
 {
-	public static final CommandConstructable constructable = new CommandConstructable()
-	{
-		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
-		{
-			return new CommandActivate(permission);
-		}
-	};
+	protected static final CommandActivate command = new CommandActivate();
+	
+	public static final CommandConstructable constructable = CommandConstructable.primitiveConstructable(command);
 	
 	public static final CommandConstructable constructableDelayed = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
+		public Delayed construct(final ParserData data) throws SyntaxErrorException
 		{
-			return new Delayed(CommandDescriptor.getParam(TypeIDs.Integer, 0, params), permission);
+			return new Delayed(getParam(TypeIDs.Integer, data));
 		}
 	};
 	
 	public static final CommandConstructable constructablePos = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
+		public Pos construct(final ParserData data) throws SyntaxErrorException
 		{
-			return new Pos(CommandDescriptor.getParam(TypeIDs.Integer, 0, params)
-				, CommandDescriptor.getParam(TypeIDs.Coordinates, 1, params)
-				, permission);
+			return new Pos(
+				getParam(TypeIDs.Integer, data),
+				getParam(TypeIDs.Coordinates, data));
 		}
 	};
 	
 	public static final CommandConstructable constructableBox = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
+		public Box construct(final ParserData data) throws SyntaxErrorException
 		{
-			return new Box(CommandDescriptor.getParam(TypeIDs.Integer, 0, params)
-				, CommandDescriptor.getParam(TypeIDs.Coordinates, 1, params)
-				, CommandDescriptor.getParam(TypeIDs.Coordinates, 2, params)
-				, permission);
+			return new Box(getParam(TypeIDs.Integer, data),
+				getParam(TypeIDs.Coordinates, data),
+				getParam(TypeIDs.Coordinates, data));
 		}
 	};
 	
-	public CommandActivate(final IPermission permission)
+	private CommandActivate()
 	{
-		super(permission);
 	}
 	
 	@Override
-	public int procCommand(final ICommandSender sender) throws CommandException
+	public Integer eval(final ICommandSender sender) throws CommandException
 	{
 		procSingleBlock(sender.getPosition(), sender, 1);
 		
@@ -91,18 +79,17 @@ public class CommandActivate extends CommandBase
 		world.scheduleUpdate(pos, world.getBlockState(pos).getBlock(), delay);
 	}
 	
-	public static class Delayed extends CommandBase
+	public static class Delayed extends CommandArg<Integer>
 	{
 		protected final CommandArg<Integer> delay;
 		
-		public Delayed(final CommandArg<Integer> delay, final IPermission permission)
+		public Delayed(final CommandArg<Integer> delay)
 		{
-			super(permission);
 			this.delay = delay;
 		}
 		
 		@Override
-		public int procCommand(final ICommandSender sender) throws CommandException
+		public Integer eval(final ICommandSender sender) throws CommandException
 		{
 			procSingleBlock(sender.getPosition(), sender, this.delay.eval(sender));
 			
@@ -114,14 +101,14 @@ public class CommandActivate extends CommandBase
 	{
 		protected final CommandArg<Vec3> pos;
 		
-		public Pos(final CommandArg<Integer> delay, final CommandArg<Vec3> pos, final IPermission permission)
+		public Pos(final CommandArg<Integer> delay, final CommandArg<Vec3> pos)
 		{
-			super(delay, permission);
+			super(delay);
 			this.pos = pos;
 		}
 		
 		@Override
-		public int procCommand(final ICommandSender sender) throws CommandException
+		public Integer eval(final ICommandSender sender) throws CommandException
 		{
 			procSingleBlock(new BlockPos(this.pos.eval(sender)), sender, this.delay.eval(sender));
 			
@@ -133,14 +120,14 @@ public class CommandActivate extends CommandBase
 	{
 		private final CommandArg<Vec3> pos2;
 		
-		public Box(final CommandArg<Integer> delay, final CommandArg<Vec3> pos, final CommandArg<Vec3> pos2, final IPermission permission)
+		public Box(final CommandArg<Integer> delay, final CommandArg<Vec3> pos, final CommandArg<Vec3> pos2)
 		{
-			super(delay, pos, permission);
+			super(delay, pos);
 			this.pos2 = pos2;
 		}
 		
 		@Override
-		public int procCommand(final ICommandSender sender) throws CommandException
+		public Integer eval(final ICommandSender sender) throws CommandException
 		{
 			final StructureBoundingBox box = new StructureBoundingBox(new BlockPos(this.pos.eval(sender)), new BlockPos(this.pos2.eval(sender)));
 			

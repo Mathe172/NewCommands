@@ -27,8 +27,8 @@ import java.util.concurrent.FutureTask;
 
 import javax.imageio.ImageIO;
 
+import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
-import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.command.completion.ITabCompletion;
@@ -108,7 +108,6 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 	
 	/** List of names of players who are online. */
 	private final List playersOnline = Lists.newArrayList();
-	private final ICommandManager commandManager;
 	public final Profiler theProfiler = new Profiler();
 	private final NetworkSystem networkSystem;
 	private final ServerStatusResponse statusResponse = new ServerStatusResponse();
@@ -211,16 +210,12 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 		this.anvilFile = workDir;
 		this.networkSystem = new NetworkSystem(this);
 		this.profileCache = new PlayerProfileCache(this, profileCacheDir);
-		this.commandManager = this.createNewCommandManager();
 		this.anvilConverterForAnvilFile = new AnvilSaveConverter(workDir);
 		this.authService = new YggdrasilAuthenticationService(proxy, UUID.randomUUID().toString());
 		this.sessionService = this.authService.createMinecraftSessionService();
 		this.profileRepo = this.authService.createProfileRepository();
-	}
-	
-	protected ServerCommandManager createNewCommandManager()
-	{
-		return new ServerCommandManager();
+		
+		ServerCommandManager.init();
 	}
 	
 	/**
@@ -638,8 +633,8 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 			try
 			{
 				final BufferedImage var4 = ImageIO.read(var2);
-				Validate.validState(var4.getWidth() == 64, "Must be 64 pixels wide", new Object[0]);
-				Validate.validState(var4.getHeight() == 64, "Must be 64 pixels high", new Object[0]);
+				Validate.validState(var4.getWidth() == 64, "Must be 64 pixels wide");
+				Validate.validState(var4.getHeight() == 64, "Must be 64 pixels high");
 				ImageIO.write(var4, "PNG", new ByteBufOutputStream(var3));
 				final ByteBuf var5 = Base64.encode(var3);
 				response.setFavicon("data:image/png;base64," + var5.toString(Charsets.UTF_8));
@@ -1062,7 +1057,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 	public String handleRConCommand(final String command)
 	{
 		RConConsoleSource.func_175570_h().resetLog();
-		this.commandManager.executeCommand(RConConsoleSource.func_175570_h(), command);
+		CommandHandler.executeCommand(RConConsoleSource.func_175570_h(), command);
 		return RConConsoleSource.func_175570_h().getLogContents();
 	}
 	
@@ -1213,11 +1208,6 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 	public boolean canCommandSenderUseCommand(final int permissionLevel)
 	{
 		return true;
-	}
-	
-	public ICommandManager getCommandManager()
-	{
-		return this.commandManager;
 	}
 	
 	/**

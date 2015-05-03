@@ -1,16 +1,12 @@
 package net.minecraft.command.commands;
 
-import java.util.List;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.IPermission;
-import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
@@ -22,7 +18,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-public class CommandSummon extends CommandBase
+public class CommandSummon extends CommandArg<Integer>
 {
 	private final CommandArg<Vec3> coords;
 	private final CommandArg<String> name;
@@ -31,22 +27,24 @@ public class CommandSummon extends CommandBase
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission)
+		public CommandSummon construct(final ParserData data)
 		{
-			return new CommandSummon(params.get(0).get(TypeIDs.String), CommandDescriptor.getParam(TypeIDs.Coordinates, 1, params), CommandDescriptor.getParam(TypeIDs.NBTCompound, 2, params), permission);
+			return new CommandSummon(
+				getParam(TypeIDs.String, data),
+				getParam(TypeIDs.Coordinates, data),
+				getParam(TypeIDs.NBTCompound, data));
 		}
 	};
 	
-	public CommandSummon(final CommandArg<String> name, final CommandArg<Vec3> coords, final CommandArg<NBTTagCompound> nbt, final IPermission permission)
+	public CommandSummon(final CommandArg<String> name, final CommandArg<Vec3> coords, final CommandArg<NBTTagCompound> nbt)
 	{
-		super(permission);
 		this.coords = coords;
 		this.name = name;
 		this.tag = nbt;
 	}
 	
 	@Override
-	public int procCommand(final ICommandSender sender) throws CommandException
+	public Integer eval(final ICommandSender sender) throws CommandException
 	{
 		final String name = this.name.eval(sender);
 		final Vec3 targetVec = this.coords != null ? this.coords.eval(sender) : sender.getPositionVector();
@@ -59,12 +57,12 @@ public class CommandSummon extends CommandBase
 		
 		if (!world.isBlockLoaded(new BlockPos(targetVec)))
 		{
-			throw new CommandException("commands.summon.outOfWorld", new Object[0]);
+			throw new CommandException("commands.summon.outOfWorld");
 		}
 		else if ("LightningBolt".equals(name))
 		{
 			world.addWeatherEffect(new EntityLightningBolt(world, x, y, z));
-			this.notifyOperators(sender, "commands.summon.success", new Object[0]);
+			CommandBase.notifyOperators(sender, "commands.summon.success");
 		}
 		else
 		{
@@ -76,12 +74,12 @@ public class CommandSummon extends CommandBase
 				entity = EntityList.createEntityFromNBT(tag, world, name);
 			} catch (final RuntimeException e)
 			{
-				throw new CommandException("commands.summon.failed", new Object[0]);
+				throw new CommandException("commands.summon.failed");
 			}
 			
 			if (entity == null)
 			{
-				throw new CommandException("commands.summon.failed", new Object[0]);
+				throw new CommandException("commands.summon.failed");
 			}
 			else
 			{
@@ -109,7 +107,7 @@ public class CommandSummon extends CommandBase
 					curEntity = newEnity;
 				}
 				
-				this.notifyOperators(sender, "commands.summon.success", new Object[0]);
+				CommandBase.notifyOperators(sender, "commands.summon.success");
 			}
 		}
 		

@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.MatcherRegistry;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
@@ -25,7 +27,7 @@ import net.minecraft.command.type.management.TypeID;
 
 public class TypeList<T> extends CTypeCompletable<List<T>>
 {
-	public static final Pattern listDelimPattern = Pattern.compile("\\G\\s*+([,)])");
+	public static final MatcherRegistry listDelimMatcher = new MatcherRegistry("\\G\\s*+([,)])");
 	
 	public final TypeID<List<T>> type;
 	private final IDataType<ArgWrapper<T>> dataType;
@@ -39,7 +41,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 	@Override
 	public ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		if (!parser.findInc(parser.oParenthMatcher))
+		if (!parser.findInc(parser.getMatcher(ParsingUtilities.oParenthMatcher)))
 		{
 			final CommandArg<T> item = this.dataType.parse(parser).arg;
 			return this.type.wrap(new CommandArg<List<T>>()
@@ -55,7 +57,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 		
 		final List<CommandArg<T>> items = new ArrayList<>();
 		
-		final Matcher m = parser.listDelimMatcher;
+		final Matcher m = parser.getMatcher(listDelimMatcher);
 		
 		while (true)
 		{
@@ -80,7 +82,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 		}
 	}
 	
-	public static final ITabCompletion parenthCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\(?+"), "()", "()")
+	public static final ITabCompletion parenthCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\(?+\\z"), "()", "()")
 	{
 		@Override
 		public boolean complexFit()

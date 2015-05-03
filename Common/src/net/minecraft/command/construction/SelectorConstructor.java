@@ -2,28 +2,27 @@ package net.minecraft.command.construction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.command.IPermission;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.management.TypeID;
 
 public class SelectorConstructor
 {
-	private final List<IDataType<?>> unnamedTypes = new ArrayList<>();
+	private final ArrayList<IDataType<?>> unnamedTypes = new ArrayList<>();
 	private final Map<String, IDataType<?>> namedTypes = new HashMap<>();
 	
 	private final Set<TypeID<?>> resultTypes;
+	private final IPermission permission;
 	
-	public SelectorConstructor(final TypeID<?>... resultTypes)
+	public SelectorConstructor(final IPermission permission, final TypeID<?>... resultTypes)
 	{
-		this.resultTypes = new HashSet<>(resultTypes.length);
-		
-		for (final TypeID<?> resultType : resultTypes)
-			this.resultTypes.add(resultType);
+		this.resultTypes = ParsingUtilities.toSet(resultTypes);
+		this.permission = permission;
 	}
 	
 	public final SelectorConstructor then(final IDataType<?> dataType)
@@ -46,6 +45,7 @@ public class SelectorConstructor
 	
 	public SelectorDescriptor<?> construct(final SelectorConstructable constructable)
 	{
-		return new SelectorDescriptorConstructable(this.unnamedTypes, this.namedTypes, constructable, this.resultTypes);
+		this.unnamedTypes.trimToSize();
+		return new SelectorDescriptorConstructable(this.unnamedTypes, this.namedTypes, constructable, this.resultTypes, this.permission);
 	}
 }

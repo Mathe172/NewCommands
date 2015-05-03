@@ -2,6 +2,7 @@ package net.minecraft.command.type.custom;
 
 import java.util.regex.Matcher;
 
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
@@ -26,7 +27,7 @@ public class KVPair<D extends ParserData> extends ExCustomCompletable<Void, D>
 	@Override
 	public Void iParse(final Parser parser, final D data) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.aKeyMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.aKeyMatcher);
 		
 		if (parser.findInc(m))
 		{
@@ -38,7 +39,7 @@ public class KVPair<D extends ParserData> extends ExCustomCompletable<Void, D>
 				if (data.label != null)
 					throw parser.SEE("Multiple labels encountered while parsing selector around index ");
 				
-				final Matcher km = parser.keyMatcher;
+				final Matcher km = parser.getMatcher(ParsingUtilities.keyMatcher);
 				
 				if (!parser.findInc(km))
 					throw parser.SEE("Expected label name around index ");

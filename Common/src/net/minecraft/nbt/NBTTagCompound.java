@@ -545,30 +545,41 @@ public class NBTTagCompound extends NBTBase
 	 */
 	public void merge(final NBTTagCompound other)
 	{
-		final Iterator<String> var2 = other.tagMap.keySet().iterator();
+		mergeChecked(other);
+	}
+	
+	public boolean mergeChecked(final NBTTagCompound other)
+	{
+		final Iterator<String> it = other.tagMap.keySet().iterator();
 		
-		while (var2.hasNext())
+		boolean modified = false;
+		
+		while (it.hasNext())
 		{
-			final String var3 = var2.next();
-			final NBTBase var4 = other.tagMap.get(var3);
+			final String key = it.next();
+			final NBTBase value = other.tagMap.get(key);
 			
-			if (var4.getId() == 10)
+			if (value.getId() == 10)
 			{
-				if (this.hasKey(var3, 10))
+				if (this.hasKey(key, 10))
 				{
-					final NBTTagCompound var5 = this.getCompoundTag(var3);
-					var5.merge((NBTTagCompound) var4);
+					final NBTTagCompound var5 = this.getCompoundTag(key);
+					modified |= var5.mergeChecked((NBTTagCompound) value);
 				}
 				else
 				{
-					this.setTag(var3, var4.copy());
+					this.setTag(key, new NBTTagCompound.CopyOnWrite((NBTTagCompound) value));
+					modified = true;
 				}
 			}
 			else
 			{
-				this.setTag(var3, var4.copy());
+				this.setTag(key, value.copy());
+				modified = true;
 			}
 		}
+		
+		return modified;
 	}
 	
 	public static class CopyOnWrite extends NBTTagCompound
@@ -590,7 +601,8 @@ public class NBTTagCompound extends NBTBase
 		@Override
 		public void removeTag(final String key)
 		{
-			this.shallowCopy();
+			if (!this.copied && this.hasKey(key))
+				this.shallowCopy();
 			super.removeTag(key);
 		}
 		
@@ -626,7 +638,7 @@ public class NBTTagCompound extends NBTBase
 			else if (tag.getId() == 10)
 				return new CopyOnWrite((NBTTagCompound) tag);
 			else
-				return tag;
+				return tag.copy();
 		}
 		
 		@Override

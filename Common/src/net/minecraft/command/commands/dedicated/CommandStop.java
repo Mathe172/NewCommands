@@ -1,36 +1,27 @@
 package net.minecraft.command.commands.dedicated;
 
-import java.util.List;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.IPermission;
-import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.construction.CommandConstructable;
 import net.minecraft.server.MinecraftServer;
 
-public class CommandStop extends CommandBase
+public final class CommandStop extends CommandArg<Integer>
 {
-	public static final CommandConstructable constructable = new CommandConstructable()
-	{
-		@Override
-		public CommandStop construct(final List<ArgWrapper<?>> params, final IPermission permission)
-		{
-			return new CommandStop(permission);
-		}
-	};
+	private static final CommandStop command = new CommandStop();
 	
-	public CommandStop(final IPermission permission)
+	public static final CommandConstructable constructable = CommandConstructable.primitiveConstructable(command);
+	
+	private CommandStop()
 	{
-		super(permission);
 	}
 	
 	@Override
-	public int procCommand(final ICommandSender sender) throws CommandException
+	public Integer eval(final ICommandSender sender) throws CommandException
 	{
 		if (MinecraftServer.getServer().worldServers != null)
-			this.notifyOperators(sender, "commands.stop.start", new Object[0]);
+			CommandBase.notifyOperators(sender, "commands.stop.start");
 		
 		MinecraftServer.getServer().initiateShutdown();
 		return 0;

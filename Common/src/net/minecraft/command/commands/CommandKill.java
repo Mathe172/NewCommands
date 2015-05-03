@@ -7,62 +7,60 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.EntityNotFoundException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.IPermission;
-import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
 import net.minecraft.entity.Entity;
 
-public class CommandKill extends CommandBase
+public class CommandKill extends CommandArg<Integer>
 {
 	private final CommandArg<List<Entity>> entities;
 	
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission)
+		public CommandArg<Integer> construct(final ParserData data)
 		{
-			final CommandArg<List<Entity>> entities = CommandDescriptor.getParam(TypeIDs.EntityList, 0, params);
+			final CommandArg<List<Entity>> entities = getParam(TypeIDs.EntityList, data);
 			
 			if (entities == null)
-				return new NoParam(permission);
+				return NoParam.command;
 			
-			return new CommandKill(entities, permission);
+			return new CommandKill(entities);
 		}
 	};
 	
-	public CommandKill(final CommandArg<List<Entity>> entities, final IPermission permission)
+	public CommandKill(final CommandArg<List<Entity>> entities)
 	{
-		super(permission);
 		this.entities = entities;
 	}
 	
 	@Override
-	public int procCommand(final ICommandSender sender) throws CommandException
+	public Integer eval(final ICommandSender sender) throws CommandException
 	{
 		final List<Entity> entities = this.entities.eval(sender);
 		
 		for (final Entity entity : entities)
 		{
 			entity.func_174812_G();
-			this.notifyOperators(sender, "commands.kill.successful", new Object[] { entity.getDisplayName() });
+			CommandBase.notifyOperators(sender, "commands.kill.successful", entity.getDisplayName());
 		}
 		
 		sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, entities.size());
 		return entities.size();
 	}
 	
-	public static class NoParam extends CommandBase
+	public static class NoParam extends CommandArg<Integer>
 	{
-		public NoParam(final IPermission permission)
+		private NoParam()
 		{
-			super(permission);
 		}
 		
+		public static final NoParam command = new NoParam();
+		
 		@Override
-		public int procCommand(final ICommandSender sender) throws CommandException
+		public Integer eval(final ICommandSender sender) throws CommandException
 		{
 			final Entity e = sender.getCommandSenderEntity();
 			if (e == null)
@@ -70,7 +68,7 @@ public class CommandKill extends CommandBase
 			
 			e.func_174812_G();
 			
-			this.notifyOperators(sender, "commands.kill.successful", new Object[] { e.getDisplayName() });
+			CommandBase.notifyOperators(sender, "commands.kill.successful", e.getDisplayName());
 			
 			sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, 1);
 			return 1;

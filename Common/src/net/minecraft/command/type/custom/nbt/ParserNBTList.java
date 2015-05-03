@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PrimitiveParameter;
@@ -122,7 +123,7 @@ public class ParserNBTList
 	
 	public void parseItems(final Parser parser, final ListData data) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.listEndMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.listEndMatcher);
 		
 		for (int i = 0;; ++i)
 		{

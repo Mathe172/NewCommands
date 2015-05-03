@@ -10,34 +10,6 @@ public abstract class CommandArg<T>
 	 */
 	public abstract T eval(ICommandSender sender) throws CommandException;
 	
-	//
-	// /**
-	// * Equivalent to SuppressWarnings("unchecked")
-	// */
-	// @SuppressWarnings("unchecked")
-	// public final <U> CommandArg<U> get()
-	// {
-	// return (CommandArg<U>) this;
-	// }
-	//
-	// /**
-	// * Equivalent to SuppressWarnings("unchecked")
-	// */
-	// @SuppressWarnings("unchecked")
-	// public static final <U> CommandArg<U> get(final CommandArg<?> commandArg)
-	// {
-	// return (CommandArg<U>) commandArg;
-	// }
-	//
-	// /**
-	// * Equivalent to SuppressWarnings("unchecked")
-	// */
-	// @SuppressWarnings("unchecked")
-	// public static final <U> CommandArg<U> get(final List<CommandArg<?>> commandArgs, final int index)
-	// {
-	// return index < commandArgs.size() ? (CommandArg<U>) commandArgs.get(index) : null;
-	// }
-	
 	public final Processable processable()
 	{
 		return new Processable()
@@ -54,4 +26,10 @@ public abstract class CommandArg<T>
 	{
 		return new CachedArg<>(this);
 	}
+	
+	public static <T> T eval(final CommandArg<T> toEval, final ICommandSender sender) throws CommandException
+	{
+		return toEval == null ? null : toEval.eval(sender);
+	}
+	
 }

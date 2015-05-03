@@ -1,35 +1,65 @@
 package net.minecraft.command.type.custom;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
-import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.parser.CompletionException;
-import net.minecraft.command.parser.Context;
-import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.CTypeParse;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.MatcherRegistry;
+import net.minecraft.command.NumberInvalidException;
+import net.minecraft.command.collections.Completers;
+import net.minecraft.command.collections.TypeIDs;
+import net.minecraft.command.type.CDataType;
+import net.minecraft.command.type.base.CompoundType;
+import net.minecraft.command.type.management.CConverter;
 
-public class ParserInt extends CTypeParse<Integer>
+public final class ParserInt
 {
-	public static final Pattern intPattern = Pattern.compile("\\G\\s*+([+-]?+\\d++)");
+	public static final MatcherRegistry intMatcher = new MatcherRegistry("\\G\\s*+([+-]?+\\d++)");
 	
-	public static final ParserInt parser = new ParserInt();
-	
-	@Override
-	public ArgWrapper<Integer> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public static final CConverter<String, Integer> stringToInt = new CConverter<String, Integer>()
 	{
-		final ArgWrapper<Integer> ret = context.generalParse(parser, TypeIDs.Integer);
-		
-		if (ret != null)
-			return ret;
-		
-		final Matcher m = parser.intMatcher;
-		
-		if (parser.findInc(m))
-			return TypeIDs.Integer.wrap(Integer.parseInt(m.group(1)));
-		
-		throw parser.SEE("Unable to parse int around index ");
+		@Override
+		public Integer convert(final String toConvert) throws CommandException
+		{
+			try
+			{
+				return new Integer(toConvert);
+			} catch (final NumberFormatException e)
+			{
+				throw new NumberInvalidException("Cannot convert " + toConvert + " to int");
+			}
+		}
+	};
+	
+	public static final CDataType<Integer> parser = new ParserName.CustomType<>(intMatcher, "int", TypeIDs.Integer, stringToInt, true);
+	public static final CDataType<List<Integer>> parserList = new TypeList.GParsed<>(TypeIDs.IntList, parser);
+	
+	private ParserInt()
+	{
 	}
 	
+	public final static class Defaulted extends CompoundType<Integer>
+	{
+		public static final MatcherRegistry intDefMatcher = new MatcherRegistry("\\G\\s*+(\\*|[+-]?+\\d++)");
+		
+		public static final CDataType<Integer> parserMin = new Defaulted(Integer.MIN_VALUE);
+		public static final CDataType<Integer> parserMax = new Defaulted(Integer.MAX_VALUE);
+		
+		public Defaulted(final int def)
+		{
+			super(new ParserName.CustomType<>(intMatcher, "int", TypeIDs.Integer, new CConverter<String, Integer>()
+			{
+				@Override
+				public Integer convert(final String toConvert) throws CommandException
+				{
+					try
+					{
+						return "*".equals(toConvert) ? def : new Integer(toConvert);
+					} catch (final NumberFormatException e)
+					{
+						throw new NumberInvalidException("Cannot convert " + toConvert + " to int");
+					}
+				}
+			}, true), Completers.wildcardCompleter);
+		}
+	}
 }

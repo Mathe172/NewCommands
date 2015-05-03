@@ -13,6 +13,7 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommand;
 import net.minecraft.crash.CrashReport;
@@ -184,7 +185,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 			} catch (final IOException var17)
 			{
 				logger.warn("**** FAILED TO BIND TO PORT!");
-				logger.warn("The exception was: {}", new Object[] { var17.toString() });
+				logger.warn("The exception was: {}",  var17.toString() );
 				logger.warn("Perhaps a server is already running on that port?");
 				return false;
 			}
@@ -432,7 +433,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 		while (!this.pendingCommandList.isEmpty())
 		{
 			final ServerCommand var1 = this.pendingCommandList.remove(0);
-			this.getCommandManager().executeCommand(var1.sender, var1.command.get());
+			CommandHandler.executeCommand(var1.sender, var1.command.get());
 		}
 	}
 	

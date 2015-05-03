@@ -1,5 +1,6 @@
 package net.minecraft.command.descriptors;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -7,9 +8,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.WrongUsageException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.completion.ITabCompletion;
@@ -17,8 +18,7 @@ import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.custom.ParserKeyword;
-import net.minecraft.command.type.management.TypeID;
+import net.minecraft.command.type.custom.command.ParserKeyword;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -31,20 +31,69 @@ public abstract class CommandDescriptor
 	
 	private final ParserKeyword kp = new ParserKeyword(this);
 	
-	public final String usage;
+	public static interface WUEProvider
+	{
+		public WrongUsageException create(ParserData data);
+	}
+	
+	public final WUEProvider usage;
 	public final IPermission permission;
 	
-	public static final Map<ITabCompletion, CommandDescriptor> commandCompletions = new HashMap<>();
+	public static final Map<ITabCompletion, IPermission> commandCompletions = new HashMap<>();
 	private static final Map<String, CommandDescriptor> commands = new HashMap<>();
 	
-	public CommandDescriptor(final IPermission permission, final String usage, final List<IDataType<?>> paramTypes)
+	public static class ParserData
+	{
+		public final List<ArgWrapper<?>> params;
+		public final List<String> path = new ArrayList<>();
+		
+		public ParserData(final CommandDescriptor descriptor)
+		{
+			this.params = new ArrayList<>(descriptor.getParamCount());
+		}
+		
+		public void add(final ArgWrapper<?> item)
+		{
+			this.params.add(item);
+		}
+		
+		public void add(final String keyword)
+		{
+			this.path.add(keyword);
+		}
+		
+		public int index = 0;
+		
+		public ArgWrapper<?> get()
+		{
+			return this.params.get(this.index++);
+		}
+		
+		public ArgWrapper<?> get(final int id)
+		{
+			this.index = id;
+			return this.params.get(id);
+		}
+		
+		public int size()
+		{
+			return this.params.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return this.params.isEmpty();
+		}
+	}
+	
+	public CommandDescriptor(final IPermission permission, final WUEProvider usage, final List<IDataType<?>> paramTypes)
 	{
 		this.permission = permission;
 		this.usage = usage;
 		this.paramTypes = paramTypes;
 	}
 	
-	public CommandDescriptor(final IPermission permission, final String usage, final List<IDataType<?>> paramTypes, final Map<String, CommandDescriptor> keywords)
+	public CommandDescriptor(final IPermission permission, final WUEProvider usage, final List<IDataType<?>> paramTypes, final Map<String, CommandDescriptor> keywords)
 	{
 		this(permission, usage, paramTypes);
 		
@@ -52,7 +101,7 @@ public abstract class CommandDescriptor
 			this.addSubType(entry.getKey(), entry.getValue());
 	}
 	
-	public CommandDescriptor(final IPermission permission, final String usage, final List<IDataType<?>> paramTypes, final Set<Pair<Set<String>, CommandDescriptor>> descriptors)
+	public CommandDescriptor(final IPermission permission, final WUEProvider usage, final List<IDataType<?>> paramTypes, final Set<Pair<Set<String>, CommandDescriptor>> descriptors)
 	{
 		this(permission, usage, paramTypes);
 		
@@ -67,17 +116,14 @@ public abstract class CommandDescriptor
 		commands.clear();
 	}
 	
-	public abstract CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException;
+	public abstract CommandArg<Integer> construct(final ParserData data) throws SyntaxErrorException;
 	
 	public static void registerCommand(final String name, final CommandDescriptor descriptor)
 	{
-		if (descriptor.usage == null)
-			throw new IllegalArgumentException("Base command requires usage information");
-		
 		if (commands.put(name, descriptor) != null)
 			throw new IllegalArgumentException("Command with name '" + name + "' already registered");
 		
-		commandCompletions.put(new TabCompletion(name), descriptor);
+		commandCompletions.put(new TabCompletion(name), descriptor.permission);
 	}
 	
 	public static void registerCommand(final Pair<Set<String>, CommandDescriptor> descriptor)
@@ -104,9 +150,9 @@ public abstract class CommandDescriptor
 		return commands.get(name);
 	}
 	
-	public CommandDescriptor getSubType(final Parser parser) throws SyntaxErrorException, CompletionException
+	public CommandDescriptor getSubType(final Parser parser, final ParserData data) throws SyntaxErrorException, CompletionException
 	{
-		return this.kp.parse(parser);
+		return this.kp.parse(parser, data);
 	}
 	
 	public CommandDescriptor getSubType(final String keyword)
@@ -145,13 +191,5 @@ public abstract class CommandDescriptor
 		
 		for (final String alias : aliases)
 			registerCommand(alias, descriptor);
-	}
-	
-	public static final <T> CommandArg<T> getParam(final TypeID<T> type, final int index, final List<ArgWrapper<?>> params)
-	{
-		if (index < params.size())
-			return ArgWrapper.get(type, params.get(index));
-		
-		return null;
 	}
 }

@@ -6,16 +6,16 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
-import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.type.custom.TypeIDs;
+import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinates.Shift;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -26,35 +26,33 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-public class CommandExecuteAt extends CommandBase
+public class CommandExecuteAt extends CommandArg<Integer>
 {
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
+		public CommandExecuteAt construct(final ParserData data) throws SyntaxErrorException
 		{
 			return new CommandExecuteAt(
-				CommandDescriptor.getParam(TypeIDs.ICmdSenderList, 0, params),
-				CommandDescriptor.getParam(TypeIDs.Coordinates, 1, params),
-				CommandDescriptor.getParam(TypeIDs.Integer, 2, params),
-				permission);
+				getParam(TypeIDs.ICmdSenderList, data),
+				getParam(TypeIDs.Coordinates, data),
+				getParam(TypeIDs.Integer, data));
 		}
 	};
 	
 	public static final CommandConstructable constructableDetect = new CommandConstructable()
 	{
 		@Override
-		public CommandBase construct(final List<ArgWrapper<?>> params, final IPermission permission) throws SyntaxErrorException
+		public Detect construct(final ParserData data) throws SyntaxErrorException
 		{
 			return new CommandExecuteAt.Detect(
-				CommandDescriptor.getParam(TypeIDs.ICmdSenderList, 0, params),
-				CommandDescriptor.getParam(TypeIDs.Coordinates, 1, params),
-				CommandDescriptor.getParam(TypeIDs.Coordinates, 2, params),
-				CommandDescriptor.getParam(TypeIDs.String, 3, params),
-				CommandDescriptor.getParam(TypeIDs.Integer, 4, params),
-				CommandDescriptor.getParam(TypeIDs.NBTCompound, 5, params),
-				CommandDescriptor.getParam(TypeIDs.Integer, 6, params),
-				permission);
+				getParam(TypeIDs.ICmdSenderList, data),
+				getParam(TypeIDs.Coordinates, data),
+				getParam(TypeIDs.Coordinates, data),
+				getParam(TypeIDs.String, data),
+				getParam(TypeIDs.Integer, data),
+				getParam(TypeIDs.NBTCompound, data),
+				getParam(TypeIDs.Integer, data));
 		}
 	};
 	
@@ -62,44 +60,40 @@ public class CommandExecuteAt extends CommandBase
 	private final CommandArg<Vec3> position;
 	private final CommandArg<Integer> command;
 	
-	public CommandExecuteAt(final CommandArg<List<ICommandSender>> targets, final CommandArg<Vec3> position, final CommandArg<Integer> command, final IPermission permission)
+	public CommandExecuteAt(final CommandArg<List<ICommandSender>> targets, final CommandArg<Vec3> position, final CommandArg<Integer> command)
 	{
-		super(permission);
 		this.targets = targets;
 		this.position = position;
 		this.command = command;
 	}
 	
 	@Override
-	public int procCommand(final ICommandSender sender) throws CommandException
+	public Integer eval(final ICommandSender sender) throws CommandException
 	{
 		int successCount = 0;
 		final List<ICommandSender> targets = this.targets.eval(sender);
 		
+		final Shift shift = TypeCoordinates.getShift(this.position, sender);
+		
 		for (final ICommandSender target : targets)
 		{
 			final Vec3 targetPos = target.getPositionVector();
-			ICommandSender wrapped = wrapTarget(target, sender, targetPos);
-			
-			if (this.position != null)
-				wrapped = wrapTarget(target, sender, this.position.eval(wrapped));
-			
-			final ICommandManager server = MinecraftServer.getServer().getCommandManager();
+			final ICommandSender wrapped = this.wrapTarget(target, sender, shift.addBase(targetPos));
 			
 			try
 			{
-				if (check(sender, wrapped))
-					successCount += server.executeCommand(wrapped, this.command); // Can also be changed to '+1 if successfull'
+				if (this.check(sender, wrapped))
+					successCount += CommandHandler.executeCommand(wrapped, this.command); // Can also be changed to '+1 if successfull'
 					
 			} catch (final Throwable t)
 			{
-				throw new CommandException("commands.execute.failed", new Object[] { "", target.getName() });
+				throw new CommandException("commands.execute.failed", "", target.getName());
 			}
 		}
 		
 		if (successCount < 1)
 		{
-			throw new CommandException("commands.execute.allInvocationsFailed", new Object[] { "" }); // The command string is dead... (for the moment)
+			throw new CommandException("commands.execute.allInvocationsFailed", ""); // The command string is dead... (for the moment)
 		}
 		
 		sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, targets.size());
@@ -189,9 +183,9 @@ public class CommandExecuteAt extends CommandBase
 		private final CommandArg<Integer> metadata;
 		private final CommandArg<NBTTagCompound> nbt;
 		
-		public Detect(final CommandArg<List<ICommandSender>> targets, final CommandArg<Vec3> position, final CommandArg<Vec3> blockPosition, final CommandArg<String> blockID, final CommandArg<Integer> metadata, final CommandArg<NBTTagCompound> nbt, final CommandArg<Integer> command, final IPermission permission)
+		public Detect(final CommandArg<List<ICommandSender>> targets, final CommandArg<Vec3> position, final CommandArg<Vec3> blockPosition, final CommandArg<String> blockID, final CommandArg<Integer> metadata, final CommandArg<NBTTagCompound> nbt, final CommandArg<Integer> command)
 		{
-			super(targets, position, command, permission);
+			super(targets, position, command);
 			this.blockPosition = blockPosition;
 			this.blockID = blockID;
 			this.metadata = metadata;
@@ -201,7 +195,7 @@ public class CommandExecuteAt extends CommandBase
 		@Override
 		protected boolean check(final ICommandSender sender, final ICommandSender target)
 		{
-			return MinecraftServer.getServer().getCommandManager().executeCommand(sender, new CommandArg<Integer>()
+			return CommandHandler.executeCommand(sender, new CommandArg<Integer>()
 			{
 				@Override
 				public Integer eval(final ICommandSender sender) throws CommandException
@@ -209,14 +203,14 @@ public class CommandExecuteAt extends CommandBase
 					final World world = target.getEntityWorld();
 					final BlockPos blockPos = new BlockPos(Detect.this.blockPosition.eval(target));
 					
-					final Block block = getBlockByText(Detect.this.blockID.eval(target));
+					final Block block = CommandBase.getBlockByText(Detect.this.blockID.eval(target));
 					
 					final IBlockState blockState = world.getBlockState(blockPos);
 					
 					boolean valid = blockState.getBlock() == block;
 					
 					if (valid && Detect.this.metadata != null)
-						valid = blockState.getBlock().getMetaFromState(blockState) == parseInt(Detect.this.metadata.eval(target), -1, 15);
+						valid = blockState.getBlock().getMetaFromState(blockState) == CommandBase.parseInt(Detect.this.metadata.eval(target), -1, 15);
 					
 					if (valid && Detect.this.nbt != null)
 					{
@@ -236,7 +230,7 @@ public class CommandExecuteAt extends CommandBase
 					if (valid)
 						return 1;
 					
-					throw new CommandException("commands.execute.failed", new Object[] { "detect", target.getName() });
+					throw new CommandException("commands.execute.failed", "detect", target.getName());
 				}
 			}) != 0;
 		}

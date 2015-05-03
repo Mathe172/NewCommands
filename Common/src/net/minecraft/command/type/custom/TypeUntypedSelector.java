@@ -2,10 +2,11 @@ package net.minecraft.command.type.custom;
 
 import java.util.regex.Matcher;
 
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -19,14 +20,12 @@ public class TypeUntypedSelector extends TypeCompletable<ArgWrapper<?>>
 	@Override
 	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		final SelectorDescriptor<?> descriptor = parseName(parser);
-		
-		return descriptor.getContentParser().parse(parser);
+		return parseName(parser).parse(parser);
 	}
 	
 	public static SelectorDescriptor<?> parseName(final Parser parser) throws SyntaxErrorException
 	{
-		final Matcher m = parser.nameMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.nameMatcher);
 		
 		parser.find(m);
 		
@@ -43,7 +42,7 @@ public class TypeUntypedSelector extends TypeCompletable<ArgWrapper<?>>
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		TabCompletionData.addToSet(tcDataSet, startIndex, cData, SelectorDescriptor.getCompletions());
+		PermissionWrapper.complete(tcDataSet, startIndex, cData, SelectorDescriptor.selectorCompletions);
 	}
 	
 	public static IParse<ArgWrapper<?>> parser = new TypeUntypedSelector();

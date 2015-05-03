@@ -6,9 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
+import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.FutureCommand;
-import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IFutureCommand;
 import net.minecraft.command.arg.CommandArg;
@@ -163,12 +163,10 @@ public abstract class CommandBlockLogic implements ICommandSender
 		
 		if (var2 != null && var2.func_175578_N() && var2.isCommandBlockEnabled())
 		{
-			final ICommandManager var3 = var2.getCommandManager();
-			
 			try
 			{
 				this.lastOutput = null;
-				this.successCount = var3.executeCommand(this, this.command.getCommand());
+				this.successCount = CommandHandler.executeCommand(this, this.command.getCommand());
 			} catch (final Throwable var7)
 			{
 				final CrashReport var5 = CrashReport.makeCrashReport(var7, "Executing command block");

@@ -328,7 +328,7 @@ public class NBTTagList extends NBTBase
 			else if (tag.getId() == 10)
 				return new NBTTagCompound.CopyOnWrite((NBTTagCompound) tag);
 			else
-				return tag;
+				return tag.copy();
 		}
 		
 		@Override

@@ -7,9 +7,9 @@ import net.minecraft.util.Vec3;
 
 public class Coordinates extends CommandArg<Vec3>
 {
-	private final CommandArg<Double> x;
-	private final CommandArg<Double> y;
-	private final CommandArg<Double> z;
+	public final CommandArg<Double> x;
+	public final CommandArg<Double> y;
+	public final CommandArg<Double> z;
 	
 	public Coordinates(final CommandArg<Double> x, final CommandArg<Double> y, final CommandArg<Double> z)
 	{

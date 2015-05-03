@@ -2,29 +2,29 @@ package net.minecraft.command.type.base;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.completion.ProviderCompleter;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.CListProvider;
 import net.minecraft.command.type.CTypeCompletable;
 import net.minecraft.command.type.IComplete;
-import net.minecraft.command.type.ProviderCompleter;
+import net.minecraft.command.type.IDataType;
 
 public class CompoundType<R> extends CTypeCompletable<R>
 {
-	private final CDataType<R> tParser;
+	private final IDataType<ArgWrapper<R>> tParser;
 	private final IComplete completer;
 	
-	public CompoundType(final CDataType<R> tParser, final IComplete completer)
+	public CompoundType(final IDataType<ArgWrapper<R>> tParser, final IComplete completer)
 	{
 		this.tParser = tParser;
 		this.completer = completer;
 	}
 	
-	public CompoundType(final CDataType<R> tParser, final CListProvider provider)
+	public CompoundType(final IDataType<ArgWrapper<R>> tParser, final CListProvider provider)
 	{
 		this.tParser = tParser;
 		this.completer = new ProviderCompleter(provider);

@@ -3,8 +3,8 @@ package net.minecraft.command.construction;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.command.completion.ProviderCompleter;
 import net.minecraft.command.type.IComplete;
-import net.minecraft.command.type.ProviderCompleter;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.DefaultTag;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;

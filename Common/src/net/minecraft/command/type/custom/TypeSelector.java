@@ -1,9 +1,8 @@
 package net.minecraft.command.type.custom;
 
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
@@ -23,14 +22,12 @@ public class TypeSelector<T> extends CustomCompletable<T>
 	@Override
 	public T iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		final SelectorDescriptor<?> descriptor = TypeUntypedSelector.parseName(parser);
-		
-		return descriptor.getContentParser().parse(parser).convertTo(this.target);
+		return TypeUntypedSelector.parseName(parser).parse(parser).convertTo(this.target);
 	}
 	
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		TabCompletionData.addToSet(tcDataSet, startIndex, cData, this.target.getSelectorCompletions());
+		PermissionWrapper.complete(tcDataSet, startIndex, cData, this.target.getSelectorCompletions());
 	}
 }

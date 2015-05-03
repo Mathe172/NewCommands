@@ -41,13 +41,13 @@ public abstract class NBTDescriptor
 	public static final Tag defaultTagList = new DefaultTag(NBTUtilities.bracketCompleter);
 	public static final Tag defaultTagCompound = new DefaultTag(NBTUtilities.braceCompleter);
 	
-	public static class DefaultTag implements Tag
+	public static final class DefaultTag implements Tag
 	{
 		private final ParserNBTTag tagParser;
 		private final ParserNBTList listParser = new ParserNBTList(defaultList);
 		private final ParserNBTCompound compoundParser = new ParserNBTCompound(defaultCompound);
 		
-		public DefaultTag()
+		private DefaultTag()
 		{
 			this.tagParser = new ParserNBTTag(this);
 		}

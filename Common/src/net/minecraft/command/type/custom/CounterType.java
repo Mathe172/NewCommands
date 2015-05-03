@@ -2,25 +2,31 @@ package net.minecraft.command.type.custom;
 
 import java.util.regex.Matcher;
 
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.CounterArg;
 import net.minecraft.command.arg.Processable;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.CTypeParse;
 
-public class CounterType extends CTypeParse<Integer>
+public final class CounterType extends CTypeParse<Integer>
 {
-	public static final CDataType<Integer> counterType = new CounterType();
+	public static final CDataType<Integer> parser = new CounterType();
+	
+	private CounterType()
+	{
+	}
 	
 	@Override
 	public ArgWrapper<Integer> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.keyMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.keyMatcher);
 		
 		if (!parser.findInc(m))
 			throw parser.SEE("Unable to find counter name around index ");

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.command.IPermission;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
@@ -25,9 +26,9 @@ public abstract class SelectorDescriptorDefault extends SelectorDescriptor<Parse
 	private final Map<String, IDataType<?>> namedTypes;
 	private final Set<ITabCompletion> keyCompletions;
 	
-	public SelectorDescriptorDefault(final List<IDataType<?>> unnamedTypes, final Map<String, IDataType<?>> namedTypes, final Set<TypeID<?>> resultTypes)
+	public SelectorDescriptorDefault(final List<IDataType<?>> unnamedTypes, final Map<String, IDataType<?>> namedTypes, final Set<TypeID<?>> resultTypes, final IPermission permission)
 	{
-		super(resultTypes);
+		super(resultTypes, permission);
 		this.unnamedTypes = unnamedTypes;
 		this.namedTypes = namedTypes;
 		this.keyCompletions = new HashSet<>(namedTypes.size());

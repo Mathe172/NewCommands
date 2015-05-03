@@ -1,23 +1,23 @@
 package net.minecraft.command;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.CompositeString;
 import net.minecraft.command.arg.PrimitiveParameter;
+import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.IParse;
 import net.minecraft.command.type.base.CustomParse;
-import net.minecraft.command.type.custom.TypeIDs;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 import net.minecraft.command.type.management.CConvertable;
 import net.minecraft.command.type.management.Converter;
 import net.minecraft.command.type.management.TypeID;
@@ -29,30 +29,29 @@ import net.minecraft.util.IChatComponent;
 
 public final class ParsingUtilities
 {
-	public static final Pattern assignedKeyPattern = Pattern.compile("\\G\\s*+([\\w-]++)\\s*+\\=");
-	public static final Pattern listEndPattern = Pattern.compile("\\G\\s*+([,\\]}])");
-	public static final Pattern namePattern = Pattern.compile("\\G[\\w-]*+");
-	public static final Pattern keyPattern = Pattern.compile("\\G\\s*+([\\w-]++)");
-	public static final Pattern endingPattern = Pattern.compile("\\G(\\s*+)([,;)\\]]|\\z)");
-	public static final Pattern endingPatternCompletion = Pattern.compile("\\G(\\s*+)([,;)\\]])");
-	public static final Pattern identifierPattern = Pattern.compile("\\G\\s*+([/@])");
-	public static final Pattern oParenthPattern = Pattern.compile("\\G\\s*+\\(");
-	public static final Pattern generalPattern = Pattern.compile("\\G\\s*+([@\\$])");
-	public static final Pattern spacePattern = Pattern.compile("\\G\\s");
+	public static final MatcherRegistry aKeyMatcher = new MatcherRegistry("\\G\\s*+([\\w-]++)\\s*+\\=");
+	public static final MatcherRegistry listEndMatcher = new MatcherRegistry("\\G\\s*+([,\\]}])");
+	public static final MatcherRegistry nameMatcher = new MatcherRegistry("\\G[\\w-]*+");
+	public static final MatcherRegistry keyMatcher = new MatcherRegistry("\\G\\s*+([\\w-]++)");
+	public static final MatcherRegistry endingMatcher = new MatcherRegistry("\\G(\\s*+)([,;)\\]]|\\z)");
+	public static final MatcherRegistry endingMatcherCompletion = new MatcherRegistry("\\G(\\s*+)([,;)\\]])");
+	public static final MatcherRegistry idMatcher = new MatcherRegistry("\\G\\s*+([/@])");
+	public static final MatcherRegistry oParenthMatcher = new MatcherRegistry("\\G\\s*+\\(");
+	public static final MatcherRegistry generalMatcher = new MatcherRegistry("\\G\\s*+([@\\$])");
+	public static final MatcherRegistry spaceMatcher = new MatcherRegistry("\\G\\s");
 	
-	public static final Pattern stringPattern = Pattern.compile("\\G\\s*+([\\w\\.:-]++)");
+	public static final MatcherRegistry stringMatcher = new MatcherRegistry("\\G\\s*+([\\w\\.:-]++)");
 	
-	public static final Pattern escapedPattern = Pattern.compile("\\G([^\\\\\"]*+)(?:\"|\\\\(.))");
-	public static final Pattern quotePattern = Pattern.compile("\\G\\s*+\"");
+	public static final MatcherRegistry escapedMatcher = new MatcherRegistry("\\G([^\\\\\"]*+)(?:\"|\\\\(.))");
+	public static final MatcherRegistry quoteMatcher = new MatcherRegistry("\\G\\s*+\"");
+	
+	private ParsingUtilities()
+	{
+	}
 	
 	public static SyntaxErrorException SEE(final String message)
 	{
 		return new SyntaxErrorException(message);
-	}
-	
-	public static WrongUsageException WUE(final String message)
-	{
-		return new WrongUsageException(message);
 	}
 	
 	public static <R> R generalParse(final Parser parser, final CConvertable<?, R> target, final Matcher m) throws SyntaxErrorException, CompletionException
@@ -90,7 +89,7 @@ public final class ParsingUtilities
 		}
 	}
 	
-	public static <R> IParse<CommandArg<R>> unwrap(final IDataType<ArgWrapper<R>> toUnwrap)
+	public static <R> IParse<CommandArg<R>> unwrap(final IParse<? extends ArgWrapper<R>> toUnwrap)
 	{
 		return new CustomParse<CommandArg<R>>()
 		{
@@ -126,86 +125,40 @@ public final class ParsingUtilities
 		return ret;
 	}
 	
+	public static String joinNiceString(final Object... elements)
+	{
+		final StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < elements.length; ++i)
+		{
+			final String item = elements[i].toString();
+			
+			if (i > 0)
+			{
+				if (i == elements.length - 1)
+				{
+					sb.append(" and ");
+				}
+				else
+				{
+					sb.append(", ");
+				}
+			}
+			
+			sb.append(item);
+		}
+		
+		return sb.toString();
+	}
+	
+	public static String joinNiceString(final Collection<?> strings)
+	{
+		return joinNiceString(strings.toArray());
+	}
+	
 	public static String getEntityIdentifier(final Entity entity)
 	{
 		return entity instanceof EntityPlayerMP ? entity.getName() : entity.getUniqueID().toString();
-	}
-	
-	public static ArgWrapper<?> getParam(final int index, final ParserData parserData)
-	{
-		return index < parserData.unnamedParams.size() ? parserData.unnamedParams.get(index) : null;
-	}
-	
-	public static ArgWrapper<?> getParam(final int index, final String name, final ParserData parserData)
-	{
-		if (name != null)
-		{
-			final ArgWrapper<?> ret = parserData.namedParams.get(name);
-			if (ret != null)
-				return ret;
-		}
-		
-		return getParam(index, parserData);
-	}
-	
-	public static <T> CommandArg<T> getParam(final TypeID<T> type, final int index, final String name, final ParserData parserData)
-	{
-		return ArgWrapper.get(type, getParam(index, name, parserData));
-	}
-	
-	public static <T> CommandArg<T> getParam(final TypeID<T> type, final int index, final ParserData parserData)
-	{
-		return ArgWrapper.get(type, getParam(index, parserData));
-	}
-	
-	public static <T> CommandArg<T> getParam(final TypeID<T> type, final String name, final ParserData parserData)
-	{
-		return ArgWrapper.get(type, parserData.namedParams.get(name));
-	}
-	
-	public static ArgWrapper<?> getRequiredParam(final int index, final String name, final ParserData parserData) throws SyntaxErrorException
-	{
-		final ArgWrapper<?> ret = getParam(index, name, parserData);
-		
-		if (ret != null)
-			return ret;
-		
-		throw SEE("Missing parameter for selector: " + (name != null ? name : index));
-	}
-	
-	public static ArgWrapper<?> getRequiredParam(final int index, final ParserData parserData) throws SyntaxErrorException
-	{
-		final ArgWrapper<?> ret = getParam(index, parserData);
-		
-		if (ret != null)
-			return ret;
-		
-		throw SEE("Missing parameter for selector: " + index);
-	}
-	
-	public static ArgWrapper<?> getRequiredParam(final String name, final ParserData parserData) throws SyntaxErrorException
-	{
-		final ArgWrapper<?> ret = parserData.namedParams.get(name);
-		
-		if (ret != null)
-			return ret;
-		
-		throw SEE("Missing parameter for selector: " + name);
-	}
-	
-	public static <T> CommandArg<T> getRequiredParam(final TypeID<T> type, final int index, final String name, final ParserData parserData) throws SyntaxErrorException
-	{
-		return getRequiredParam(index, name, parserData).get(type);
-	}
-	
-	public static <T> CommandArg<T> getRequiredParam(final TypeID<T> type, final int index, final ParserData parserData) throws SyntaxErrorException
-	{
-		return getRequiredParam(index, parserData).get(type);
-	}
-	
-	public static <T> CommandArg<T> getRequiredParam(final TypeID<T> type, final String name, final ParserData parserData) throws SyntaxErrorException
-	{
-		return getRequiredParam(name, parserData).get(type);
 	}
 	
 	/**
@@ -219,8 +172,22 @@ public final class ParsingUtilities
 		}
 		else
 		{
-			throw new PlayerNotFoundException("You must specify which player you wish to perform this action on.", new Object[0]);
+			throw new PlayerNotFoundException("You must specify which player you wish to perform this action on.");
 		}
+	}
+	
+	/**
+	 * Note: Does not call generalParse
+	 */
+	public static CommandArg<String> parseString(final Parser parser, final Matcher stringMatcher) throws SyntaxErrorException, CompletionException
+	{
+		if (parser.findInc(stringMatcher))
+			return new PrimitiveParameter<>(stringMatcher.group(1));
+		
+		if (parser.findInc(quoteMatcher))
+			return parseQuotedString(parser);
+		
+		return null;
 	}
 	
 	/**
@@ -228,47 +195,85 @@ public final class ParsingUtilities
 	 */
 	public static CommandArg<String> parseString(final Parser parser) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.stringMatcher;
-		
-		if (parser.findInc(m))
-			return new PrimitiveParameter<>(m.group(1));
-		
-		if (parser.findInc(parser.quoteMatcher))
-			return parseQuotedString(parser);
-		
-		return null;
+		return parseString(parser, stringMatcher);
 	}
 	
-	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter) throws SyntaxErrorException, CompletionException
+	/**
+	 * Note: Does not call generalParse
+	 */
+	public static CommandArg<String> parseString(final Parser parser, final MatcherRegistry m) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, parser.getMatcher(m));
+	}
+	
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final Matcher stringMatcher, final boolean immediate) throws SyntaxErrorException, CompletionException
 	{
 		final ArgWrapper<T> ret = context.generalParse(parser, target);
 		
 		if (ret != null)
 			return ret;
 		
-		final CommandArg<String> ret2 = ParsingUtilities.parseString(parser);
+		final CommandArg<String> ret2 = ParsingUtilities.parseString(parser, stringMatcher);
 		
 		if (ret2 != null)
-			return target.wrap(new CommandArg<T>()
+		{
+			if (immediate && ret2 instanceof PrimitiveParameter<?>)
 			{
-				@Override
-				public T eval(final ICommandSender sender) throws CommandException
+				try
 				{
-					return converter.convert(ret2.eval(sender));
+					return target.wrap(new PrimitiveParameter<>(converter.convert(ret2.eval(null))));
+				} catch (final SyntaxErrorException e)
+				{
+					throw e;
+				} catch (final CommandException e)
+				{
+					throw new SyntaxErrorException(e.getMessage(), e.getErrorOjbects());
 				}
-			});
+			}
+			else
+			{
+				return target.wrap(new CommandArg<T>()
+				{
+					@Override
+					public T eval(final ICommandSender sender) throws CommandException
+					{
+						return converter.convert(ret2.eval(sender));
+					}
+				});
+			}
+		}
 		
 		return null;
 	}
 	
-	public static ArgWrapper<String> parseString(final Parser parser, final Context context, final TypeID<String> target) throws SyntaxErrorException, CompletionException
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final Matcher stringMatcher) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, context, target, converter, stringMatcher, false);
+	}
+	
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, context, target, converter, stringMatcher);
+	}
+	
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final MatcherRegistry m) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, context, target, converter, parser.getMatcher(m));
+	}
+	
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final MatcherRegistry m, final boolean immediate) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, context, target, converter, parser.getMatcher(m), immediate);
+	}
+	
+	public static ArgWrapper<String> parseString(final Parser parser, final Context context, final TypeID<String> target, final Matcher stringMatcher) throws SyntaxErrorException, CompletionException
 	{
 		final ArgWrapper<String> ret = context.generalParse(parser, target);
 		
 		if (ret != null)
 			return ret;
 		
-		final CommandArg<String> ret2 = ParsingUtilities.parseString(parser);
+		final CommandArg<String> ret2 = parseString(parser, stringMatcher);
 		
 		if (ret2 != null)
 			return target.wrap(ret2);
@@ -276,13 +281,21 @@ public final class ParsingUtilities
 		return null;
 	}
 	
+	public static ArgWrapper<String> parseString(final Parser parser, final Context context, final TypeID<String> target) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, context, target, stringMatcher);
+	}
+	
+	public static ArgWrapper<String> parseString(final Parser parser, final Context context, final TypeID<String> target, final MatcherRegistry m) throws SyntaxErrorException, CompletionException
+	{
+		return parseString(parser, context, target, parser.getMatcher(m));
+	}
+	
 	/**
 	 * Note: Does not call generalParse
 	 */
-	public static String parseLiteralString(final Parser parser) throws SyntaxErrorException, CompletionException
+	public static String parseLiteralString(final Parser parser, final Matcher m) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.stringMatcher;
-		
 		if (parser.findInc(m))
 			return m.group(1);
 		
@@ -290,11 +303,27 @@ public final class ParsingUtilities
 	}
 	
 	/**
+	 * Note: Does not call generalParse
+	 */
+	public static String parseLiteralString(final Parser parser, final MatcherRegistry m) throws SyntaxErrorException, CompletionException
+	{
+		return parseLiteralString(parser, parser.getMatcher(m));
+	}
+	
+	/**
+	 * Note: Does not call generalParse
+	 */
+	public static String parseLiteralString(final Parser parser) throws SyntaxErrorException, CompletionException
+	{
+		return parseLiteralString(parser, parser.getMatcher(stringMatcher));
+	}
+	
+	/**
 	 * Requires the opening quotation mark to be parsed!
 	 */
 	public static CommandArg<String> parseQuotedString(final Parser parser) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.escapedMatcher;
+		final Matcher m = parser.getMatcher(escapedMatcher);
 		
 		StringBuilder sb = new StringBuilder();
 		
@@ -338,7 +367,7 @@ public final class ParsingUtilities
 			case '\\':
 				sb.append('\\');
 				continue;
-			case '!':
+			case '!': // '\!' represents 'nothing', useful for stuff like "@s-text" => use "@s\!-text"
 				continue;
 			default:
 				sb.append(m.group(2));
@@ -357,5 +386,25 @@ public final class ParsingUtilities
 		}
 		
 		return sb;
+	}
+	
+	@SafeVarargs
+	public static <T> Set<T> toSet(final T... items)
+	{
+		final Set<T> ret = new HashSet<>(items.length);
+		for (final T typeID : ret)
+			ret.add(typeID);
+		
+		return ret;
+	}
+	
+	public static boolean isTrue(final String toCheck)
+	{
+		return "true".equalsIgnoreCase(toCheck) || "t".equalsIgnoreCase(toCheck) || "1".equalsIgnoreCase(toCheck);
+	}
+	
+	public static boolean isFalse(final String toCheck)
+	{
+		return "false".equalsIgnoreCase(toCheck) || "f".equalsIgnoreCase(toCheck) || "0".equalsIgnoreCase(toCheck);
 	}
 }

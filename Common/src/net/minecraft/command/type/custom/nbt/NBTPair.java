@@ -1,11 +1,11 @@
 package net.minecraft.command.type.custom.nbt;
 
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.ITabCompletion;
+import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -23,12 +23,12 @@ public class NBTPair extends ExCustomCompletable<Void, CompoundData>
 		this.descriptor = descriptor;
 	}
 	
-	public static final Pattern nbtKeyPattern = Pattern.compile("\\G\\s*+([\\w-]*+)\\s*+:");
+	public static final MatcherRegistry nbtKeyMatcher = new MatcherRegistry("\\G\\s*+([\\w-]*+)\\s*+:");
 	
 	@Override
 	public Void iParse(final Parser parser, final CompoundData parserData) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.nbtKeyMatcher;
+		final Matcher m = parser.getMatcher(nbtKeyMatcher);
 		
 		if (!parser.findInc(m))
 			throw parser.SEE("Missing tag name around index ");

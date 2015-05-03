@@ -4,9 +4,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
+import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.FutureCommand;
-import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
@@ -134,12 +134,10 @@ public abstract class CommandBlockLogic implements ICommandSender
 		
 		if (var2 != null && var2.func_175578_N() && var2.isCommandBlockEnabled())
 		{
-			final ICommandManager var3 = var2.getCommandManager();
-			
 			try
 			{
 				this.lastOutput = null;
-				this.successCount = var3.executeCommand(this, this.command.getCommand());
+				this.successCount = CommandHandler.executeCommand(this, this.command.getCommand());
 			} catch (final Throwable var7)
 			{
 				final CrashReport var5 = CrashReport.makeCrashReport(var7, "Executing command block");
@@ -204,8 +202,7 @@ public abstract class CommandBlockLogic implements ICommandSender
 	}
 	
 	/**
-	 * Notifies this sender of some sort of information. This is for messages intended to display to the user. Used for typical output (like "you asked for whether or not this game rule is set, so here's your answer"), warnings (like
-	 * "I fetched this block for you by ID, but I'd like you to know that every time you do this, I die a little inside"), and errors (like "it's not called iron_pixacke, silly").
+	 * Notifies this sender of some sort of information. This is for messages intended to display to the user. Used for typical output (like "you asked for whether or not this game rule is set, so here's your answer"), warnings (like "I fetched this block for you by ID, but I'd like you to know that every time you do this, I die a little inside"), and errors (like "it's not called iron_pixacke, silly").
 	 */
 	@Override
 	public void addChatMessage(final IChatComponent message)

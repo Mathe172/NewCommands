@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.parser.CompletionException;
@@ -79,7 +80,7 @@ public class ParserNBTCompound
 	
 	public void parseItems(final Parser parser, final CompoundData data) throws SyntaxErrorException, CompletionException
 	{
-		final Matcher m = parser.listEndMatcher;
+		final Matcher m = parser.getMatcher(ParsingUtilities.listEndMatcher);
 		
 		final IExParse<Void, CompoundData> pair = this.descriptor.getPair();
 		
