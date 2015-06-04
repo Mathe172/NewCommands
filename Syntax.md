@@ -100,7 +100,7 @@ A complete list of selectors can be found in the table below. Parameter names in
     <td><code>@c</code></td>
     <td><code>&lt;operator&gt; ...</code></td>
     <td>see Operators-section</td>
-    <td>Used to perform calculations. For a complete list of available operators, see <a href="#Operators">below</a></td>
+    <td>Used to perform calculations. For a complete list of available operators, see <a href="#operators">below</a></td>
 </tr>
 </table>
 
