@@ -1,10 +1,11 @@
 package net.minecraft.command.construction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import net.minecraft.command.IPermission;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.descriptors.OperatorDescriptor;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.management.TypeID;
@@ -19,7 +20,7 @@ public class OperatorConstructor
 	public OperatorConstructor(final IPermission permission, final TypeID<?>... resultTypes)
 	{
 		this.permission = permission;
-		this.resultTypes = ParsingUtilities.toSet(resultTypes);
+		this.resultTypes = new HashSet<>(Arrays.asList(resultTypes));
 		
 	}
 	

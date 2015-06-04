@@ -46,7 +46,7 @@ public class TypeUntypedLabel extends CustomCompletable<ArgWrapper<?>>
 		final ArgWrapper<?> label = parser.getLabel(m.group());
 		
 		if (label == null)
-			throw parser.SEE("Unknown label: " + m.group() + " around index ");
+			throw parser.SEE("Unknown label '" + m.group() + "' ");
 		
 		parser.incIndex(m);
 		

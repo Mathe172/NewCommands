@@ -1,10 +1,10 @@
 package net.minecraft.command.type.custom.coordinate;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.collections.Types;
 import net.minecraft.command.parser.CompletionException;
@@ -20,8 +20,8 @@ public abstract class TypeCoordinates
 	public static final CDataType<Vec3> centered = new TypeAlternatives.Typed<>(new Centered(), Types.generalType(TypeIDs.Coordinates));
 	public static final CDataType<Vec3> nonCentered = new TypeAlternatives.Typed<>(new NonCentered(), Types.generalType(TypeIDs.Coordinates));
 	
-	public static final CDataType<Vec3> metaC = new TypeAlternatives.Typed<>(new metaC(), Types.generalType(TypeIDs.Coordinates));
-	public static final CDataType<Vec3> metaNC = new TypeAlternatives.Typed<>(new metaNC(), Types.generalType(TypeIDs.Coordinates));
+	public static final CDataType<Shift> shiftC = new TypeAlternatives.Typed<>(new shiftC(), Types.generalType(TypeIDs.Shift));
+	public static final CDataType<Shift> shiftNC = new TypeAlternatives.Typed<>(new shiftNC(), Types.generalType(TypeIDs.Shift));
 	
 	/**
 	 * y-Coordinate NOT centered
@@ -31,11 +31,11 @@ public abstract class TypeCoordinates
 		@Override
 		public ArgWrapper<Vec3> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 		{
-			final Coordinate x = TypeCoordinateBase.parserxC.parse(parser);
-			final Coordinate y = TypeCoordinateBase.parseryNC.parse(parser);
-			final Coordinate z = TypeCoordinateBase.parserzC.parse(parser);
+			final Coordinate x = TypeCoordinate.xC.parse(parser);
+			final Coordinate y = TypeCoordinate.yNC.parse(parser);
+			final Coordinate z = TypeCoordinate.zC.parse(parser);
 			
-			return TypeIDs.Coordinates.wrap(new Coordinates(x, y, z));
+			return TypeIDs.Coordinates.wrap(Coordinates.create(x, y, z));
 		}
 	}
 	
@@ -44,177 +44,89 @@ public abstract class TypeCoordinates
 		@Override
 		public ArgWrapper<Vec3> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 		{
-			final Coordinate x = TypeCoordinateBase.parserxNC.parse(parser);
-			final Coordinate y = TypeCoordinateBase.parseryNC.parse(parser);
-			final Coordinate z = TypeCoordinateBase.parserzNC.parse(parser);
+			final Coordinate x = TypeCoordinate.xNC.parse(parser);
+			final Coordinate y = TypeCoordinate.yNC.parse(parser);
+			final Coordinate z = TypeCoordinate.zNC.parse(parser);
 			
-			return TypeIDs.Coordinates.wrap(new Coordinates(x, y, z));
-		}
-	}
-	
-	public static class meta extends CommandArg<Vec3>
-	{
-		public final Coordinate x;
-		public final Coordinate y;
-		public final Coordinate z;
-		
-		private meta(final Coordinate x, final Coordinate y, final Coordinate z)
-		{
-			this.x = x;
-			this.y = y;
-			this.z = z;
-		}
-		
-		@Override
-		public Vec3 eval(final ICommandSender sender) throws CommandException
-		{
-			return new Vec3(this.x.eval(sender), this.y.eval(sender), this.z.eval(sender));
-		}
-		
-		public Vec3 addBase(final Vec3 shift, final Vec3 base) throws CommandException
-		{
-			return new Vec3(this.x.addBase(shift.xCoord, base.xCoord), this.y.addBase(shift.yCoord, base.yCoord), this.z.addBase(shift.zCoord, base.zCoord));
+			return TypeIDs.Coordinates.wrap(Coordinates.create(x, y, z));
 		}
 	}
 	
 	/**
 	 * y-Coordinate NOT centered
 	 */
-	private static class metaC extends CTypeParse<Vec3>
+	private static class shiftC extends CTypeParse<Shift>
 	{
 		@Override
-		public ArgWrapper<Vec3> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Shift> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 		{
-			final Coordinate x = TypeCoordinateBase.parserMetaC.parse(parser);
-			final Coordinate y = TypeCoordinateBase.parserMetaNC.parse(parser);
-			final Coordinate z = TypeCoordinateBase.parserMetaC.parse(parser);
+			final Coordinate x = TypeCoordinate.shiftXC.parse(parser);
+			final Coordinate y = TypeCoordinate.shiftYNC.parse(parser);
+			final Coordinate z = TypeCoordinate.shiftZC.parse(parser);
 			
-			return TypeIDs.Coordinates.wrap(new meta(x, y, z));
+			return TypeIDs.Shift.wrap(CoordinatesShift.create(x, y, z));
 		}
 	}
 	
-	private static class metaNC extends CTypeParse<Vec3>
+	private static class shiftNC extends CTypeParse<Shift>
 	{
 		@Override
-		public ArgWrapper<Vec3> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Shift> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 		{
-			final Coordinate x = TypeCoordinateBase.parserMetaNC.parse(parser);
-			final Coordinate y = TypeCoordinateBase.parserMetaNC.parse(parser);
-			final Coordinate z = TypeCoordinateBase.parserMetaNC.parse(parser);
+			final Coordinate x = TypeCoordinate.shiftXNC.parse(parser);
+			final Coordinate y = TypeCoordinate.shiftYNC.parse(parser);
+			final Coordinate z = TypeCoordinate.shiftZNC.parse(parser);
 			
-			return TypeIDs.Coordinates.wrap(new meta(x, y, z));
+			return TypeIDs.Shift.wrap(CoordinatesShift.create(x, y, z));
 		}
 	}
 	
-	public static abstract class Shift
+	public static final CommandArg<Shift> trivialShift = new PrimitiveParameter<Shift>(new Shift()
 	{
+		@Override
 		public boolean xRelative()
 		{
-			return false;
+			return true;
 		}
 		
+		@Override
 		public boolean yRelative()
 		{
-			return false;
+			return true;
 		}
 		
+		@Override
 		public boolean zRelative()
 		{
-			return false;
+			return true;
 		}
 		
-		private static final Vec3 zeroVec = new Vec3(0, 0, 0);
+		private final Vec3 zeroVec = new Vec3(0, 0, 0);
 		
+		@Override
 		public Vec3 getShiftValues()
 		{
-			return zeroVec;
+			return this.zeroVec;
 		}
 		
-		public abstract Vec3 addBase(final Vec3 base) throws CommandException;
-	}
-	
-	public static Shift getShift(final CommandArg<Vec3> arg, final ICommandSender sender) throws CommandException
-	{
-		if (arg == null)
-			return new Shift()
-			{
-				@Override
-				public boolean xRelative()
-				{
-					return true;
-				}
-				
-				@Override
-				public boolean yRelative()
-				{
-					return true;
-				}
-				
-				@Override
-				public boolean zRelative()
-				{
-					return true;
-				}
-				
-				@Override
-				public Vec3 addBase(final Vec3 base) throws CommandException
-				{
-					return base;
-				}
-				
-			};
-		
-		final Vec3 shift = arg.eval(sender);
-		if (arg instanceof meta)
+		@Override
+		public Vec3 addBase(final Vec3 base)
 		{
-			final meta argMeta = (meta) arg;
-			return new Shift()
-			{
-				@Override
-				public boolean xRelative()
-				{
-					return argMeta.x.isRelative();
-				}
-				
-				@Override
-				public boolean yRelative()
-				{
-					return argMeta.y.isRelative();
-				}
-				
-				@Override
-				public boolean zRelative()
-				{
-					return argMeta.z.isRelative();
-				}
-				
-				@Override
-				public Vec3 getShiftValues()
-				{
-					return shift;
-				}
-				
-				@Override
-				public Vec3 addBase(final Vec3 base) throws CommandException
-				{
-					return argMeta.addBase(shift, base);
-				}
-			};
+			return base;
 		}
-		else
-			return new Shift()
-			{
-				@Override
-				public Vec3 getShiftValues()
-				{
-					return shift;
-				}
-				
-				@Override
-				public Vec3 addBase(final Vec3 base) throws CommandException
-				{
-					return shift;
-				}
-			};
+		
+	});
+	
+	public static interface Shift
+	{
+		public boolean xRelative();
+		
+		public boolean yRelative();
+		
+		public boolean zRelative();
+		
+		public Vec3 getShiftValues();
+		
+		public Vec3 addBase(final Vec3 base) throws CommandException;
 	}
 }

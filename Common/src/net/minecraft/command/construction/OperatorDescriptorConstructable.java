@@ -21,7 +21,7 @@ public class OperatorDescriptorConstructable extends OperatorDescriptor
 	}
 	
 	@Override
-	public ArgWrapper<?> construct(final List<ArgWrapper<?>> operands) throws SyntaxErrorException
+	public ArgWrapper<?> construct(final ListOperands operands) throws SyntaxErrorException
 	{
 		return this.constructable.construct(operands);
 	}

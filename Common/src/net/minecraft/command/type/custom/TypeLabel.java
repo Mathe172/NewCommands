@@ -3,9 +3,9 @@ package net.minecraft.command.type.custom;
 import java.util.Set;
 
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.ProviderCompleter;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -35,7 +35,7 @@ public class TypeLabel<T> extends CustomCompletable<T>
 	@Override
 	public T iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
-		return TypeUntypedLabel.parseLabel(parser).convertTo(this.target);
+		return TypeUntypedLabel.parseLabel(parser).convertTo(parser, this.target);
 	}
 	
 	@Override

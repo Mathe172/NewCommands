@@ -5,11 +5,13 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.TypedWrapper;
+import net.minecraft.command.arg.TypedWrapper.Getter;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.collections.Types;
 import net.minecraft.command.construction.SelectorConstructable;
+import net.minecraft.command.descriptors.SelectorDescriptorDefault.DefaultParserData;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
+import net.minecraft.command.type.custom.nbt.TypeNBTArg;
 import net.minecraft.command.type.management.TypeID;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTBase;
@@ -24,12 +26,12 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 	public static final SelectorConstructable constructable = new SelectorConstructable()
 	{
 		@Override
-		public ArgWrapper<NBTBase> construct(final ParserData parserData) throws SyntaxErrorException
+		public ArgWrapper<NBTBase> construct(final DefaultParserData parserData) throws SyntaxErrorException
 		{
-			final ArgWrapper<?> nbt = getRequiredParam(0, parserData);
-			final CommandArg<String> path = getParam(TypeIDs.String, 1, parserData);
+			final TypedWrapper<?> nbt = getRequiredParam(0, parserData);
+			final Getter<String> path = getParam(TypeIDs.String, 1, parserData);
 			
-			final TypeID<?> type = nbt.type;
+			final TypeID<?> type = nbt.type();
 			
 			if (type == TypeIDs.Entity)
 				return TypeIDs.NBTBase.wrap(new EntityNBT(path, nbt.get(TypeIDs.Entity)));
@@ -44,19 +46,19 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 		}
 	};
 	
-	private final CommandArg<String> path;
+	private final Getter<String> path;
 	
-	public SelectorNBT(final CommandArg<String> path)
+	public SelectorNBT(final Getter<String> path)
 	{
 		this.path = path;
 	}
 	
-	public NBTBase lookup(final ICommandSender sender, NBTBase tag) throws CommandException
+	public NBTBase lookup(NBTBase tag) throws CommandException
 	{
 		if (this.path == null)
 			return tag;
 		
-		final String path = this.path.eval(sender);
+		final String path = this.path.get();
 		
 		final String[] parts = path.split("\\.");
 		
@@ -88,12 +90,12 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 	
 	public static class EntityNBT extends SelectorNBT
 	{
-		private final CommandArg<Entity> entity;
+		private final Getter<Entity> entity;
 		
-		public EntityNBT(final CommandArg<String> path, final CommandArg<Entity> entity)
+		public EntityNBT(final Getter<String> path, final Getter<Entity> getter)
 		{
 			super(path);
-			this.entity = entity;
+			this.entity = getter;
 		}
 		
 		@Override
@@ -101,19 +103,19 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 		{
 			final NBTTagCompound tag = new NBTTagCompound();
 			
-			final Entity e = this.entity.eval(sender);
+			final Entity e = this.entity.get();
 			if (!e.writeMountToNBT(tag))
 				e.writeToNBT(tag);
 			
-			return this.lookup(sender, tag);
+			return this.lookup(tag);
 		}
 	}
 	
 	public static class CompoundNBT extends SelectorNBT
 	{
-		private final CommandArg<NBTBase> tag;
+		private final Getter<NBTBase> tag;
 		
-		public CompoundNBT(final CommandArg<String> path, final CommandArg<NBTBase> tag)
+		public CompoundNBT(final Getter<String> path, final Getter<NBTBase> tag)
 		{
 			super(path);
 			this.tag = tag;
@@ -122,15 +124,15 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 		@Override
 		public NBTBase eval(final ICommandSender sender) throws CommandException
 		{
-			return this.lookup(sender, this.tag.eval(sender));
+			return this.lookup(this.tag.get());
 		}
 	}
 	
 	public static class BlockNBT extends SelectorNBT
 	{
-		private final CommandArg<Vec3> coord;
+		private final Getter<Vec3> coord;
 		
-		public BlockNBT(final CommandArg<String> path, final CommandArg<Vec3> coord)
+		public BlockNBT(final Getter<String> path, final Getter<Vec3> coord)
 		{
 			super(path);
 			this.coord = coord;
@@ -139,7 +141,7 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 		@Override
 		public NBTBase eval(final ICommandSender sender) throws CommandException
 		{
-			final BlockPos pos = new BlockPos(this.coord.eval(sender));
+			final BlockPos pos = new BlockPos(this.coord.get());
 			
 			final TileEntity te = sender.getEntityWorld().getTileEntity(pos);
 			
@@ -150,15 +152,15 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 			
 			te.writeToNBT(tag);
 			
-			return this.lookup(sender, tag);
+			return this.lookup(tag);
 		}
 	}
 	
 	public static class StringNBT extends SelectorNBT
 	{
-		private final CommandArg<String> nbtString;
+		private final Getter<String> nbtString;
 		
-		public StringNBT(final CommandArg<String> path, final CommandArg<String> nbtString)
+		public StringNBT(final Getter<String> path, final Getter<String> nbtString)
 		{
 			super(path);
 			this.nbtString = nbtString;
@@ -171,14 +173,14 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 			
 			try
 			{
-				final Parser parser = new Parser(this.nbtString.eval(sender));
-				nbt = parser.parseInit(Types.IPNBT);
+				final Parser parser = new Parser(this.nbtString.get());
+				nbt = TypeNBTArg.parserDefault.parse(parser).arg();
 			} catch (final Throwable t)
 			{
-				throw (CommandException) (new CommandException("Unable to parse   NBT-Tag").initCause(t));
+				throw new CommandException("Unable to parse NBT-Tag", t);
 			}
 			
-			return this.lookup(sender, nbt.eval(sender));
+			return this.lookup(nbt.eval(sender));
 		}
 	}
 }

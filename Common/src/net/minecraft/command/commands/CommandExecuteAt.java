@@ -4,16 +4,16 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates.Shift;
 import net.minecraft.entity.Entity;
@@ -31,71 +31,65 @@ public class CommandExecuteAt extends CommandArg<Integer>
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandExecuteAt construct(final ParserData data) throws SyntaxErrorException
+		public CommandExecuteAt construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new CommandExecuteAt(
-				getParam(TypeIDs.ICmdSenderList, data),
-				getParam(TypeIDs.Coordinates, data),
-				getParam(TypeIDs.Integer, data));
+				data.get(TypeIDs.ICmdSenderList),
+				data.get(TypeIDs.Shift),
+				data.get(TypeIDs.Integer));
 		}
 	};
 	
 	public static final CommandConstructable constructableDetect = new CommandConstructable()
 	{
 		@Override
-		public Detect construct(final ParserData data) throws SyntaxErrorException
+		public Detect construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new CommandExecuteAt.Detect(
-				getParam(TypeIDs.ICmdSenderList, data),
-				getParam(TypeIDs.Coordinates, data),
-				getParam(TypeIDs.Coordinates, data),
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.Integer, data),
-				getParam(TypeIDs.NBTCompound, data),
-				getParam(TypeIDs.Integer, data));
+				data.get(TypeIDs.ICmdSenderList),
+				data.get(TypeIDs.Shift),
+				data.get(TypeIDs.Shift),
+				data.get(TypeIDs.BlockID),
+				data.get(TypeIDs.Integer),
+				data.get(TypeIDs.NBTCompound),
+				data.get(TypeIDs.Integer));
 		}
 	};
 	
 	private final CommandArg<List<ICommandSender>> targets;
-	private final CommandArg<Vec3> position;
+	private final CommandArg<Shift> position;
 	private final CommandArg<Integer> command;
 	
-	public CommandExecuteAt(final CommandArg<List<ICommandSender>> targets, final CommandArg<Vec3> position, final CommandArg<Integer> command)
+	public CommandExecuteAt(final CommandArg<List<ICommandSender>> targets, final CommandArg<Shift> position, final CommandArg<Integer> command)
 	{
 		this.targets = targets;
-		this.position = position;
+		this.position = position == null ? TypeCoordinates.trivialShift : position;
 		this.command = command;
 	}
 	
 	@Override
 	public Integer eval(final ICommandSender sender) throws CommandException
 	{
-		int successCount = 0;
 		final List<ICommandSender> targets = this.targets.eval(sender);
+		final Shift shift = this.position.eval(sender);
 		
-		final Shift shift = TypeCoordinates.getShift(this.position, sender);
+		this.evalArgs(sender);
 		
+		this.checkArgs();
+		
+		int successCount = 0;
 		for (final ICommandSender target : targets)
 		{
 			final Vec3 targetPos = target.getPositionVector();
 			final ICommandSender wrapped = this.wrapTarget(target, sender, shift.addBase(targetPos));
 			
-			try
-			{
-				if (this.check(sender, wrapped))
-					successCount += CommandHandler.executeCommand(wrapped, this.command); // Can also be changed to '+1 if successfull'
-					
-			} catch (final Throwable t)
-			{
-				throw new CommandException("commands.execute.failed", "", target.getName());
-			}
+			if (this.check(sender, wrapped))
+				successCount += CommandHandler.executeCommand(wrapped, this.command); // Can also be changed to '+1 if successfull'
 		}
 		
 		if (successCount < 1)
-		{
 			throw new CommandException("commands.execute.allInvocationsFailed", ""); // The command string is dead... (for the moment)
-		}
-		
+			
 		sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, targets.size());
 		return successCount;
 		
@@ -176,14 +170,28 @@ public class CommandExecuteAt extends CommandArg<Integer>
 		return true;
 	}
 	
+	@SuppressWarnings("unused")
+	protected void evalArgs(final ICommandSender sender) throws CommandException
+	{
+	}
+	
+	protected void checkArgs() throws CommandException
+	{
+	}
+	
 	private static class Detect extends CommandExecuteAt
 	{
-		private final CommandArg<Vec3> blockPosition;
-		private final CommandArg<String> blockID;
+		private final CommandArg<Shift> blockPosition;
+		private final CommandArg<Block> blockID;
 		private final CommandArg<Integer> metadata;
 		private final CommandArg<NBTTagCompound> nbt;
 		
-		public Detect(final CommandArg<List<ICommandSender>> targets, final CommandArg<Vec3> position, final CommandArg<Vec3> blockPosition, final CommandArg<String> blockID, final CommandArg<Integer> metadata, final CommandArg<NBTTagCompound> nbt, final CommandArg<Integer> command)
+		private Shift eBlockPosition;
+		private Block eBlockID;
+		private int eMetadata;
+		private NBTTagCompound eNBT;
+		
+		public Detect(final CommandArg<List<ICommandSender>> targets, final CommandArg<Shift> position, final CommandArg<Shift> blockPosition, final CommandArg<Block> blockID, final CommandArg<Integer> metadata, final CommandArg<NBTTagCompound> nbt, final CommandArg<Integer> command)
 		{
 			super(targets, position, command);
 			this.blockPosition = blockPosition;
@@ -195,45 +203,61 @@ public class CommandExecuteAt extends CommandArg<Integer>
 		@Override
 		protected boolean check(final ICommandSender sender, final ICommandSender target)
 		{
-			return CommandHandler.executeCommand(sender, new CommandArg<Integer>()
+			final World world = target.getEntityWorld();
+			BlockPos blockPos = null;
+			try
 			{
-				@Override
-				public Integer eval(final ICommandSender sender) throws CommandException
+				blockPos = new BlockPos(this.eBlockPosition.addBase(target.getPositionVector()));
+			} catch (final CommandException e)
+			{
+				CommandUtilities.errorMessage(sender, "commands.execute.failed", "detect", target.getName());
+			}
+			
+			final IBlockState blockState = world.getBlockState(blockPos);
+			
+			boolean valid = blockState.getBlock() == Detect.this.eBlockID;
+			
+			if (valid && Detect.this.metadata != null)
+				valid = blockState.getBlock().getMetaFromState(blockState) == Detect.this.eMetadata;
+			
+			if (valid && Detect.this.eNBT != null)
+			{
+				final TileEntity te = world.getTileEntity(blockPos);
+				
+				if (te != null)
 				{
-					final World world = target.getEntityWorld();
-					final BlockPos blockPos = new BlockPos(Detect.this.blockPosition.eval(target));
+					final NBTTagCompound tag = new NBTTagCompound();
+					te.writeToNBT(tag);
 					
-					final Block block = CommandBase.getBlockByText(Detect.this.blockID.eval(target));
-					
-					final IBlockState blockState = world.getBlockState(blockPos);
-					
-					boolean valid = blockState.getBlock() == block;
-					
-					if (valid && Detect.this.metadata != null)
-						valid = blockState.getBlock().getMetaFromState(blockState) == CommandBase.parseInt(Detect.this.metadata.eval(target), -1, 15);
-					
-					if (valid && Detect.this.nbt != null)
-					{
-						final TileEntity te = world.getTileEntity(blockPos);
-						
-						if (te != null)
-						{
-							final NBTTagCompound tag = new NBTTagCompound();
-							te.writeToNBT(tag);
-							
-							valid = NBTBase.compareTags(Detect.this.nbt.eval(target), tag, true);
-						}
-						else
-							valid = false;
-					}
-					
-					if (valid)
-						return 1;
-					
-					throw new CommandException("commands.execute.failed", "detect", target.getName());
+					valid = NBTBase.compareTags(Detect.this.eNBT, tag, true);
 				}
-			}) != 0;
+				else
+					valid = false;
+			}
+			
+			if (!valid)
+				CommandUtilities.errorMessage(sender, "commands.execute.failed", "detect", target.getName());
+			
+			return valid;
+		}
+		
+		@Override
+		protected void evalArgs(final ICommandSender sender) throws CommandException
+		{
+			this.eBlockPosition = this.blockPosition.eval(sender);
+			this.eBlockID = this.blockID.eval(sender);
+			
+			if (this.metadata != null)
+				this.eMetadata = this.metadata.eval(sender);
+			
+			this.eNBT = CommandArg.eval(this.nbt, sender);
+		}
+		
+		@Override
+		protected void checkArgs() throws CommandException
+		{
+			if (this.metadata != null)
+				CommandUtilities.checkInt(this.eMetadata, 0, 15);
 		}
 	}
-	
 }

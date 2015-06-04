@@ -1,8 +1,8 @@
 package net.minecraft.command.type.management;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,18 +14,18 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.collections.Relations;
 import net.minecraft.command.completion.ITabCompletion;
+import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.management.relations.Relation.Attribute;
 
 public abstract class Convertable<T, W, E extends CommandException>
 {
 	private static final Map<String, Convertable<?, ?, ?>> convertables = new HashMap<>();
 	
-	private final Map<Convertable<?, ?, ?>, Converter<?, T, ? extends E>> convertableFrom = new HashMap<>();
-	protected final Set<Convertable<?, ?, ?>> convertableTo = new HashSet<>();
+	private final Map<Convertable<?, ?, ?>, Converter<?, T, ?>> convertableFrom = new HashMap<>();
+	protected final Map<Convertable<?, ?, ? extends E>, Converter<T, ?, ? extends E>> convertableTo = new HashMap<>();
 	
 	private final List<Attribute> attributes = new ArrayList<>();
 	
-	/** Converters from these convertables (to this convertable) may be overridden */
 	private final Map<Convertable<?, ?, ?>, Integer> dist = new HashMap<>();
 	
 	public final String name;
@@ -41,88 +41,27 @@ public abstract class Convertable<T, W, E extends CommandException>
 			throw new IllegalArgumentException("Convertable with name '" + this.name + "' already registered");
 	}
 	
-	/**
-	 * Calling this method for 'random' types is not advised. Only call if the type is intended to have this functionality since it retroactively changes the behavior of this type and the behavior of future types
-	 */
-	/*
-	 * public <R> void addDefaultConverter(final Convertable<R, ?> fallbackTo, final Converter<T, R> fallbackToConverter) { this.addConverter(fallbackTo, fallbackToConverter); this.registerFallbackTo(fallbackTo); }
-	 */
-	
-	private final void setDist(final Convertable<?, ?, ?> source, final int dist)
+	public Set<? extends Convertable<?, ?, ?>> convertableTo()
 	{
-		if (dist == 0)
-			this.dist.remove(source);
-		else
-			this.dist.put(source, dist);
+		return Collections.unmodifiableSet(this.convertableTo.keySet());
 	}
 	
-	public final int getDist(final Convertable<?, ?, ?> source)
+	private final void setDist(final Convertable<?, ?, ?> target, final int dist)
 	{
-		final Integer dist = this.dist.get(source);
+		if (dist == 0)
+			this.dist.remove(target);
+		else
+			this.dist.put(target, dist);
+	}
+	
+	public final int getDist(final Convertable<?, ?, ?> target)
+	{
+		final Integer dist = this.dist.get(target);
 		
 		return dist == null ? 0 : dist;
 	}
 	
-	/*
-	 * private final <R> void registerFallbackTo(final Convertable<R, ?> fallbackTo) { this.fallbacksTo.add(fallbackTo);
-	 * 
-	 * for (final Entry<Convertable<?, ?>, Converter<?, T>> sourceData : this.convertableFrom.entrySet()) this.addAsFallbackToSource(sourceData.getKey(), fallbackTo, sourceData.getValue()); }
-	 */
-	
-	/** NEVER EVER call this. Only for use in {@link #registerFallbackTo(Convertable)} */
-	/*
-	 * @SuppressWarnings("unchecked") private final <R, F> void addAsFallbackToSource(final Convertable<R, ?> source, final Convertable<F, ?> fallbackTo, final Converter<?, T> converter) { this.addChainedConverter(source, fallbackTo, (Converter<R, T>) converter, this.getDist(source)); }
-	 */
-	
-	private final <F> void addConverterFrom(final Convertable<F, ?, ?> source, Converter<F, T, ? extends E> converter, final int dist)
-	{
-		if (this == source)
-		{
-			if (dist == 0)
-				throw new IllegalArgumentException("Cannot register identity converter (for convertable '" + this.name + "')");
-			
-			return;
-		}
-		
-		if (this.convertableFrom.containsKey(source))
-		{
-			final int oldFallbackLevel = this.getDist(source);
-			
-			if (oldFallbackLevel < dist)
-				return;
-			
-			if (oldFallbackLevel == dist)
-			{
-				if (dist == 0)
-					throw new IllegalArgumentException("Converter from '" + source.name + "' to '" + this.name + "' already registered");
-				
-				converter = createFailingConverter(source, this, dist);
-			}
-		}
-		else
-		{
-			source.convertableTo.add(this);
-			
-			source.adjustCompletions(this);
-		}
-		
-		this.setDist(source, dist);
-		
-		this.convertableFrom.put(source, converter);
-		
-		for (final Attribute attTarget : this.attributes)
-		{
-			for (final Attribute attSource : source.attributes)
-				attTarget.apply(source, this, converter, dist, attSource);
-			
-			attTarget.apply(source, this, converter, dist, Relations.idAttribute);
-		}
-		
-		for (final Attribute attSource : source.attributes)
-			Relations.idAttribute.apply(source, this, converter, dist, attSource);
-	}
-	
-	private static final <F, R, E extends CommandException> Converter<F, R, E> createFailingConverter(final Convertable<F, ?, ?> source, final Convertable<R, ?, E> target, final int dist)
+	private static final <F, R, E extends CommandException> Converter<F, R, E> createFailingConverter(final Convertable<F, ?, E> source, final Convertable<R, ?, ?> target, final int dist)
 	{
 		return new Converter<F, R, E>()
 		{
@@ -144,27 +83,83 @@ public abstract class Convertable<T, W, E extends CommandException>
 		this.dist.clear();
 	}
 	
-	public final <R, U extends CommandException> void addConverter(final Convertable<R, ?, U> target, final Converter<T, R, ? extends U> converter)
+	public final <R> void addConverter(final Convertable<R, ?, ? extends E> target, final Converter<T, R, ? extends E> converter)
 	{
-		target.addConverterFrom(this, converter, 0);
+		this.addConverter(target, converter, 0);
 	}
 	
-	public final <R, U extends CommandException> void addConverter(final Convertable<R, ?, U> target, final Converter<T, R, ? extends U> converter, final int dist)
+	public final <R> void addConverter(final Convertable<R, ?, ? extends E> target, Converter<T, R, ? extends E> converter, final int dist)
 	{
-		target.addConverterFrom(this, converter, dist);
+		if (this == target)
+		{
+			if (dist == 0)
+				throw new IllegalArgumentException("Cannot register identity converter (for convertable '" + this.name + "')");
+			
+			return;
+		}
+		
+		if (this.convertableTo.containsKey(target))
+		{
+			final int oldFallbackLevel = this.getDist(target);
+			
+			if (oldFallbackLevel < dist)
+				return;
+			
+			if (oldFallbackLevel == dist)
+			{
+				if (dist == 0)
+					throw new IllegalArgumentException("Converter from '" + this.name + "' to '" + target.name + "' already registered");
+				
+				converter = createFailingConverter(this, target, dist);
+			}
+		}
+		else
+			this.adjustCompletions(target);
+		
+		this.setDist(target, dist);
+		
+		this.convertableTo.put(target, converter);
+		
+		target.convertableFrom.put(this, converter);
+		
+		for (final Attribute attSource : this.attributes)
+		{
+			for (final Attribute attTarget : target.attributes)
+				attSource.apply(this, target, converter, dist, attTarget);
+			
+			attSource.apply(this, target, converter, dist, Relations.idAttribute);
+		}
+		
+		for (final Attribute attTarget : target.attributes)
+			Relations.idAttribute.apply(this, target, converter, dist, attTarget);
 	}
 	
 	// Checked...
 	@SuppressWarnings("unchecked")
-	public final <R, U extends CommandException> R convertTo(final T toConvert, final Convertable<R, ?, U> target) throws U, SyntaxErrorException
+	public final <R> R convertTo(final T toConvert, final Convertable<R, ?, ?> target) throws E, SyntaxErrorException
 	{
 		if (this == target)
 			return (R) toConvert;
 		
-		final Converter<T, R, ? extends U> converter = this.getConverter(target);
+		final Converter<T, R, ? extends E> converter = this.getConverter(target);
 		
 		if (converter == null)
 			throw new SyntaxErrorException("Cannot convert " + this.name + " to " + target.name + ".");
+		
+		return converter.convert(toConvert);
+	}
+	
+	// Checked...
+	@SuppressWarnings("unchecked")
+	public final <R> R convertTo(final Parser parser, final T toConvert, final Convertable<R, ?, ?> target) throws E, SyntaxErrorException
+	{
+		if (this == target)
+			return (R) toConvert;
+		
+		final Converter<T, R, ? extends E> converter = this.getConverter(target);
+		
+		if (converter == null)
+			throw parser.SEE("Cannot convert " + this.name + " to " + target.name + ".", false);
 		
 		return converter.convert(toConvert);
 	}
@@ -174,21 +169,21 @@ public abstract class Convertable<T, W, E extends CommandException>
 		return this == source || this.convertableFrom.containsKey(source);
 	}
 	
-	public abstract W convertFrom(ArgWrapper<?> toConvert) throws E, SyntaxErrorException;
+	public abstract W convertFrom(Parser parser, ArgWrapper<?> toConvert) throws SyntaxErrorException;
 	
 	// Checked...
 	@SuppressWarnings("unchecked")
-	public final <R, U extends CommandException> Converter<T, R, ? extends U> getConverter(final Convertable<R, ?, U> target)
+	public final <R> Converter<T, R, ? extends E> getConverter(final Convertable<R, ?, ?> target)
 	{
-		return (Converter<T, R, ? extends U>) target.convertableFrom.get(this);
+		return (Converter<T, R, ? extends E>) this.convertableTo.get(target);
 	}
 	
-	public static final Convertable<?, ?, ?> get(final String name)
+	public static Convertable<?, ?, ?> get(final String name)
 	{
 		return convertables.get(name);
 	}
 	
-	public static final void clearAll()
+	public static void clearAll()
 	{
 		for (final Convertable<?, ?, ?> convertable : convertables.values())
 			convertable.clear();
@@ -199,36 +194,40 @@ public abstract class Convertable<T, W, E extends CommandException>
 	public final void addAttribute(final Attribute attribute)
 	{
 		this.attributes.add(attribute);
-		attribute.init(this);
+		this.initAtt(attribute);
 	}
 	
 	public final void initAtt(final Attribute attribute)
 	{
-		for (final Entry<Convertable<?, ?, ?>, Converter<?, T, ? extends E>> data : this.convertableFrom.entrySet())
-			this.initAttSource(data.getKey(), data.getValue(), this.getDist(data.getKey()), attribute);
+		for (final Entry<Convertable<?, ?, ?>, Converter<?, T, ?>> data : this.convertableFrom.entrySet())
+			this.initAttSource(data.getKey(), data.getValue(), attribute);
 		
-		for (final Convertable<?, ?, ?> target : this.convertableTo)
-			this.initAttTarget(target, attribute);
+		for (final Entry<Convertable<?, ?, ? extends E>, Converter<T, ?, ? extends E>> data : this.convertableTo.entrySet())
+			this.initAttTarget(data.getKey(), data.getValue(), attribute);
 	}
 	
 	// Checked...
 	@SuppressWarnings("unchecked")
-	private final <F> void initAttSource(final Convertable<F, ?, ?> source, final Converter<?, T, ? extends E> converter, final int dist, final Attribute attTarget)
+	private final <R, U extends CommandException> void initAttSource(final Convertable<R, ?, U> source, final Converter<?, T, ?> converterTmp, final Attribute attTarget)
 	{
-		final Converter<F, T, ? extends E> newConverter = (Converter<F, T, ? extends E>) converter;
+		final Converter<R, T, ? extends U> converter = (Converter<R, T, ? extends U>) converterTmp;
 		
 		for (final Attribute attSource : source.attributes)
-			attTarget.apply(source, this, newConverter, dist, attSource);
+			attSource.apply(source, (Convertable<T, ?, ? extends U>) this, converter, attTarget);
 		
-		attTarget.apply(source, this, newConverter, dist, Relations.idAttribute);
+		Relations.idAttribute.apply(source, (Convertable<T, ?, ? extends U>) this, converter, attTarget);
 	}
 	
-	private final void initAttTarget(final Convertable<?, ?, ?> target, final Attribute attSource)
+	// Checked...
+	@SuppressWarnings("unchecked")
+	private final <R> void initAttTarget(final Convertable<R, ?, ? extends E> target, final Converter<T, ?, ? extends E> converterTmp, final Attribute attSource)
 	{
-		for (final Attribute attTarget : target.attributes)
-			attTarget.apply(this, target, attSource);
+		final Converter<T, R, ? extends E> converter = (Converter<T, R, ? extends E>) converterTmp;
 		
-		Relations.idAttribute.apply(this, target, attSource);
+		for (final Attribute attTarget : target.attributes)
+			attSource.apply(this, target, converter, attTarget);
+		
+		attSource.apply(this, target, converter, Relations.idAttribute);
 	}
 	
 	@SuppressWarnings("unused")

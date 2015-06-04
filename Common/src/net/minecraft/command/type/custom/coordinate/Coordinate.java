@@ -10,21 +10,75 @@ public abstract class Coordinate extends CommandArg<Double>
 {
 	public static final CConvertableUnwrapped<CoordValue> typeCoord = new CConvertableUnwrapped<>("CoordValue");
 	
-	public static class CoordValue extends CommandArg<Double>
+	public static abstract class CoordValue extends CommandArg<Double>
 	{
-		private final CommandArg<Double> param;
 		public final boolean hasDecimal;
 		
-		public CoordValue(final CommandArg<Double> param, final boolean hasDecimal)
+		public CoordValue(final boolean hasDecimal)
 		{
-			this.param = param;
 			this.hasDecimal = hasDecimal;
 		}
 		
-		@Override
-		public Double eval(final ICommandSender sender) throws CommandException
+		public abstract boolean isConstant();
+		
+		public abstract Double getConstant();
+		
+		public static class Dynamic extends CoordValue
 		{
-			return this.param.eval(sender);
+			private final CommandArg<Double> param;
+			
+			public Dynamic(final CommandArg<Double> param, final boolean hasDecimal)
+			{
+				super(hasDecimal);
+				this.param = param;
+			}
+			
+			@Override
+			public boolean isConstant()
+			{
+				return false;
+			}
+			
+			@Override
+			public Double eval(final ICommandSender sender) throws CommandException
+			{
+				return this.param.eval(sender);
+			}
+			
+			@Override
+			public Double getConstant()
+			{
+				return null;
+			}
+		}
+		
+		public static class Constant extends CoordValue
+		{
+			private final Double value;
+			
+			public Constant(final Double value, final boolean hasDecimal)
+			{
+				super(hasDecimal);
+				this.value = value;
+			}
+			
+			@Override
+			public boolean isConstant()
+			{
+				return true;
+			}
+			
+			@Override
+			public Double eval(final ICommandSender sender) throws CommandException
+			{
+				return this.value;
+			}
+			
+			@Override
+			public Double getConstant()
+			{
+				return this.value;
+			}
 		}
 	}
 	

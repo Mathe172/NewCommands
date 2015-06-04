@@ -1,20 +1,21 @@
 package net.minecraft.command.selectors.entity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import net.minecraft.command.IPermission;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.TypedWrapper.Getter;
 import net.minecraft.command.collections.TypeIDs;
+import net.minecraft.command.collections.Types;
 import net.minecraft.command.completion.DataRequest;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
@@ -22,6 +23,7 @@ import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.command.descriptors.SelectorDescriptor;
+import net.minecraft.command.descriptors.SelectorDescriptorDefault.DefaultParserData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
@@ -32,7 +34,6 @@ import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.custom.ParserDouble;
 import net.minecraft.command.type.custom.ParserInt;
 import net.minecraft.command.type.custom.TypeNullable;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
 import net.minecraft.command.type.custom.nbt.TypeNBTArg;
@@ -45,35 +46,45 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserData>
 {
-	public static class ExParserData extends ParserData
+	public static class ExParserData extends DefaultParserData
 	{
 		public InvertableArg name = null;
 		public InvertableArg team = null;
 		public InvertableArg type = null;
 		
-		public Map<String, MutablePair<CommandArg<Integer>, CommandArg<Integer>>> primitiveScores = new HashMap<>();
+		public Map<String, MutablePair<Getter<Integer>, Getter<Integer>>> primitiveScores = new HashMap<>();
 		public boolean nullScoreAllowed = true;
+		
+		public ExParserData(final Parser parser)
+		{
+			super(parser);
+		}
 	}
 	
 	private static final List<IDataType<?>> unnamedTypes = new ArrayList<>(4);
-	private static final Map<String, IDataType<?>> namedTypes = new HashMap<>(20);
-	private static final Set<ITabCompletion> keyCompletions = new HashSet<>(20);
+	private static final Map<String, IDataType<?>> namedTypes = new HashMap<>(21);
+	private static final Set<ITabCompletion> keyCompletions = new HashSet<>(18);
+	
+	private static final ITabCompletion nameCompletion = new TabCompletion("name=", "name=", "name");
+	private static final ITabCompletion teamCompletion = new TabCompletion("team=", "team=", "team");
+	private static final ITabCompletion typeCompletion = new TabCompletion("type=", "type=", "type");
 	
 	static
 	{
-		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.parserxNC));
-		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.parseryNC));
-		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.parserzNC));
+		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.typeXNC));
+		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.typeYNC));
+		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.typeZNC));
 		unnamedTypes.add(ParserInt.parser);
 		
-		namedTypes.put("x", TypeCoordinate.parserxNC);
-		namedTypes.put("y", TypeCoordinate.parseryNC);
-		namedTypes.put("z", TypeCoordinate.parserzNC);
+		namedTypes.put("x", TypeCoordinate.typeXNC);
+		namedTypes.put("y", TypeCoordinate.typeYNC);
+		namedTypes.put("z", TypeCoordinate.typeZNC);
 		namedTypes.put("r", ParserInt.parser);
 		namedTypes.put("rm", ParserInt.parser);
 		namedTypes.put("dx", ParserDouble.parser);
 		namedTypes.put("dy", ParserDouble.parser);
 		namedTypes.put("dz", ParserDouble.parser);
+		namedTypes.put("dxyz", Types.generalType(TypeIDs.Coordinates));
 		namedTypes.put("c", ParserInt.parser);
 		namedTypes.put("m", ParserInt.parser);
 		namedTypes.put("l", ParserInt.parser);
@@ -92,16 +103,13 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 			keyCompletions.add(new TabCompletion(s, s, key));
 		}
 		
-		keyCompletions.add(new TabCompletion("name=", "name=", "name"));
-		keyCompletions.add(new TabCompletion("team=", "team=", "team"));
-		keyCompletions.add(new TabCompletion("type=", "type=", "type"));
 	}
 	
 	private final SelectorType selType;
 	
 	public SelectorDescriptorEntity(final SelectorType selType)
 	{
-		super(new HashSet<TypeID<?>>(Arrays.asList(TypeIDs.EntityList)), IPermission.unrestricted);
+		super(Collections.<TypeID<?>> singleton(TypeIDs.EntityList), IPermission.unrestricted);
 		
 		this.selType = selType;
 	}
@@ -112,6 +120,13 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 		for (final ITabCompletion tc : keyCompletions)
 			if (!data.namedParams.containsKey(tc.name.toLowerCase()))
 				TabCompletionData.addToSet(tcDataSet, startIndex, cData, tc);
+		
+		if (data.name == null)
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, nameCompletion);
+		if (data.team == null)
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, teamCompletion);
+		if (data.type == null)
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, typeCompletion);
 		
 		tcDataSet.add(new DataRequest()
 		{
@@ -133,12 +148,27 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 			{
 				for (final String tc : this.tcSet)
 				{
-					final Pair<CommandArg<Integer>, CommandArg<Integer>> score = data.primitiveScores.get(tc);
+					final Pair<Getter<Integer>, Getter<Integer>> score = data.primitiveScores.get(tc);
 					
 					if (score == null || score.getLeft() == null)
-						TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion("score_" + tc + "_min"));
+						TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion("score_" + tc + "_min")
+						{
+							@Override
+							public double weightOffset(final Matcher m, final CompletionData cData)
+							{
+								return -1.0;
+							};
+						});
+					
 					if (score == null || score.getRight() == null)
-						TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion("score_" + tc));
+						TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion("score_" + tc)
+						{
+							@Override
+							public double weightOffset(final Matcher m, final CompletionData cData)
+							{
+								return -1.0;
+							};
+						});
 				}
 			}
 		});
@@ -157,7 +187,7 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 		
 		if (valueType != null)
 		{
-			data.namedParams.put(key, valueType.parse(parser));
+			data.namedParams.put(key, valueType.parse(parser).addToProcess(data.toProcess));
 			return;
 		}
 		
@@ -172,24 +202,24 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 		switch (key)
 		{
 		case "name":
-			data.name = FilterList.name.parse(parser);
+			data.name = FilterList.name.parse(parser, data);
 			return;
 		case "team":
-			data.team = FilterList.team.parse(parser);
+			data.team = FilterList.team.parse(parser, data);
 			return;
 		case "type":
-			data.type = FilterList.type.parse(parser);
+			data.type = FilterList.type.parse(parser, data);
 			return;
 		}
 		
-		throw parser.SEE("Unknown parameter key '" + key + "' encountered around index ");
+		throw parser.SEE("Unknown parameter key '" + key + "' encountered ");
 	}
 	
 	private final void parseScore(final Parser parser, final String name, final boolean min, final ExParserData data) throws SyntaxErrorException, CompletionException
 	{
-		final CommandArg<Integer> value = ParserInt.parser.parse(parser).arg;
+		final Getter<Integer> value = ParserInt.parser.parse(parser).addToProcess(data.toProcess).get();
 		
-		final MutablePair<CommandArg<Integer>, CommandArg<Integer>> scoreData = data.primitiveScores.get(name);
+		final MutablePair<Getter<Integer>, Getter<Integer>> scoreData = data.primitiveScores.get(name);
 		
 		if (scoreData == null)
 		{
@@ -207,18 +237,18 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 	public void parse(final Parser parser, final ExParserData data) throws SyntaxErrorException, CompletionException
 	{
 		if (unnamedTypes.size() <= data.unnamedParams.size())
-			throw ParsingUtilities.SEE("Too many unnamed parameters encountered while parsing selector (around index " + parser.getIndex() + ")");
+			throw data.parser.SEE("Too many unnamed parameters encountered while parsing selector (", ")");
 		
 		final IDataType<?> valueType = unnamedTypes.get(data.unnamedParams.size());
 		
 		final ArgWrapper<?> value = valueType.parse(parser);
 		
-		data.unnamedParams.add(value);
+		data.unnamedParams.add(value.addToProcess(data.toProcess));
 	}
 	
 	@Override
-	public ExParserData newParserData()
+	public ExParserData newParserData(final Parser parser)
 	{
-		return new ExParserData();
+		return new ExParserData(parser);
 	}
 }

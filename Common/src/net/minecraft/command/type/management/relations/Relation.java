@@ -25,34 +25,24 @@ public class Relation
 	
 	public abstract class Attribute
 	{
-		public final <F, T, E extends CommandException> void apply(final Convertable<F, ?, ?> source, final Convertable<T, ?, E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource)
+		public final <F, T, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Convertable<T, ?, ? extends E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attTarget)
 		{
-			final Provider provider = Relation.this.providers.get(attSource.relation());
+			final Provider provider = Relation.this.providers.get(attTarget.relation());
 			
 			if (provider == null)
 				return;
 			
-			provider.apply(source, target, converter, dist, attSource, this);
+			provider.apply(source, target, converter, dist, this, attTarget);
 		}
 		
-		public <T> void init(final Convertable<T, ?, ?> target)
+		public final <F, T, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Convertable<T, ?, ? extends E> target, final Converter<F, T, ? extends E> converter, final Attribute attTarget)
 		{
-			target.initAtt(this);
-		}
-		
-		public <F, T, E extends CommandException> void apply(final Convertable<F, ?, ?> source, final Convertable<T, ?, E> target, final Attribute attSource)
-		{
-			final Provider provider = Relation.this.providers.get(attSource.relation());
+			final Provider provider = Relation.this.providers.get(attTarget.relation());
 			
 			if (provider == null)
 				return;
 			
-			final Converter<F, T, ? extends E> converter = source.getConverter(target);
-			
-			if (converter == null)
-				return;
-			
-			provider.apply(source, target, converter, target.getDist(source), attSource, this);
+			provider.apply(source, target, converter, source.getDist(target), this, attTarget);
 		}
 		
 		private final Relation relation()
@@ -63,7 +53,7 @@ public class Relation
 	
 	public static abstract class Provider
 	{
-		public abstract <F, T, E extends CommandException> void apply(Convertable<F, ?, ?> source, Convertable<T, ?, E> target, Converter<F, T, ? extends E> converter, int dist, Attribute attSource, Attribute attTarget);
+		public abstract <F, T, E extends CommandException> void apply(Convertable<F, ?, E> source, Convertable<T, ?, ? extends E> target, Converter<F, T, ? extends E> converter, int dist, Attribute attSource, Attribute attTarget);
 	}
 	
 	public static final Relation get(final String name)
@@ -74,7 +64,7 @@ public class Relation
 	public final void addProvider(final Relation rel, final Provider provider)
 	{
 		if (this.providers.put(rel, provider) != null)
-			throw new IllegalArgumentException("Relation-Provider from '" + rel.name + "' to '" + this.name + "' already registered");
+			throw new IllegalArgumentException("Relation-Provider from '" + this.name + "' to '" + rel.name + "' already registered");
 	}
 	
 	public void clear()

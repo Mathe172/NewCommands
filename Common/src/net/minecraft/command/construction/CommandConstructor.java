@@ -5,8 +5,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.construction.ICommandConstructor.CPU;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
+import net.minecraft.command.type.IExParse;
+import net.minecraft.command.type.base.ExCustomParse;
 
 public class CommandConstructor implements CPU
 {
@@ -35,7 +41,7 @@ public class CommandConstructor implements CPU
 	}
 	
 	@Override
-	public final CommandConstructor then(final IDataType<?> arg)
+	public final CommandConstructor then(final IExParse<Void, ? super CParserData> arg)
 	{
 		CommandProtoDescriptor newEnd = null;
 		
@@ -67,6 +73,26 @@ public class CommandConstructor implements CPU
 	}
 	
 	@Override
+	public final CommandConstructor then(final IDataType<?> arg)
+	{
+		return this.then(wrap(arg));
+	}
+	
+	private static final IExParse<Void, ? super CParserData> wrap(final IDataType<?> arg)
+	{
+		return new ExCustomParse<Void, CParserData>()
+		{
+			@Override
+			public Void parse(final Parser parser, final CParserData parserData) throws SyntaxErrorException, CompletionException
+			{
+				parserData.add(arg.parse(parser));
+				
+				return null;
+			}
+		};
+	}
+	
+	@Override
 	public final CommandConstructor sub(final ICommandConstructor... subCommands)
 	{
 		for (final CommandProtoDescriptor end : this.ends)
@@ -88,11 +114,17 @@ public class CommandConstructor implements CPU
 	 * Single optional argument. If {@code arg} is missing while parsing, the command is finished (the whole subcommand-tree is dependent on {@code arg})
 	 */
 	@Override
-	public final CommandConstructor optional(final IDataType<?> arg)
+	public final CommandConstructor optional(final IExParse<Void, ? super CParserData> arg)
 	{
 		this.optional(arg, new CommandProtoDescriptor.NoConstructable(null, ""));
 		
 		return this;
+	}
+	
+	@Override
+	public final CommandConstructor optional(final IDataType<?> arg)
+	{
+		return this.optional(wrap(arg));
 	}
 	
 	/**
@@ -102,14 +134,20 @@ public class CommandConstructor implements CPU
 	 *            Used to construct the command that is terminated exactly after {@code arg}
 	 */
 	@Override
-	public final CommandConstructor optional(final IDataType<?> arg, final CommandConstructable constructable)
+	public final CommandConstructor optional(final IExParse<Void, ? super CParserData> arg, final CommandConstructable constructable)
 	{
 		this.optional(arg, new CommandProtoDescriptor.Constructable(constructable, null, ""));
 		
 		return this;
 	}
 	
-	private final void optional(final IDataType<?> arg, final CommandProtoDescriptor descriptor)
+	@Override
+	public final CommandConstructor optional(final IDataType<?> arg, final CommandConstructable constructable)
+	{
+		return this.optional(wrap(arg), constructable);
+	}
+	
+	private final void optional(final IExParse<Void, ? super CParserData> arg, final CommandProtoDescriptor descriptor)
 	{
 		descriptor.args.add(arg);
 		

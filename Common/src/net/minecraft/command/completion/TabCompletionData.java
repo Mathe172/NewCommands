@@ -28,13 +28,13 @@ public class TabCompletionData
 			tcDataSet.add(tcData);
 	}
 	
-	public static final void addToSet(final TCDSet tcDataSet, final int startIndex, final CompletionData cData, final Set<ITabCompletion> tcSet)
+	public static final void addToSet(final TCDSet tcDataSet, final int startIndex, final CompletionData cData, final Set<? extends ITabCompletion> tcSet)
 	{
 		for (final ITabCompletion tc : tcSet)
 			addToSet(tcDataSet, startIndex, cData, tc);
 	}
 	
-	public static final void addToSet(final Set<Weighted> tcDataSet, final int startIndex, final CompletionData cData, final Set<ITabCompletion> tcSet)
+	public static final void addToSet(final Set<Weighted> tcDataSet, final int startIndex, final CompletionData cData, final Set<? extends ITabCompletion> tcSet)
 	{
 		for (final ITabCompletion tc : tcSet)
 			addToSet(tcDataSet, startIndex, cData, tc);

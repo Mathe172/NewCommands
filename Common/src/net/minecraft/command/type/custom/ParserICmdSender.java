@@ -1,5 +1,6 @@
 package net.minecraft.command.type.custom;
 
+import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.type.CDataType;
@@ -14,7 +15,7 @@ public final class ParserICmdSender
 	}
 	
 	public static final SConverter<Entity, ICommandSender> EntityToICmdSender = Converter.<Entity, ICommandSender> primitiveConverter();
-	private static final Converter<String, ICommandSender, ?> UUIDToICmdSender = ParserEntity.UUIDToEntity.chain(EntityToICmdSender);
+	private static final Converter<String, ICommandSender, CommandException> UUIDToICmdSender = ParserEntity.UUIDToEntity.chain(EntityToICmdSender);
 	
 	public static final CDataType<ICommandSender> parser = new ParserName.CustomType<>("UUID", TypeIDs.ICmdSender, UUIDToICmdSender);
 }

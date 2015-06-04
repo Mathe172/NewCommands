@@ -37,7 +37,7 @@ public class PermissionWrapper<T> extends CommandArg<T>
 	
 	public static <T> ArgWrapper<T> wrap(final ArgWrapper<T> toWrap, final IPermission permission)
 	{
-		return toWrap.type.wrap(new PermissionWrapper<>(toWrap.arg, permission));
+		return toWrap.type.wrap(new PermissionWrapper<>(toWrap.arg(), permission));
 	}
 	
 	public static class Command extends PermissionWrapper<Integer>

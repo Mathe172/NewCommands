@@ -1,6 +1,6 @@
 package net.minecraft.command.type.custom.nbt;
 
-import java.util.Map.Entry;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 
 import net.minecraft.command.CommandException;
@@ -21,6 +21,8 @@ import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound.CompoundData;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 public class TypeNBTArg extends CTypeCompletable<NBTTagCompound>
 {
@@ -46,7 +48,7 @@ public class TypeNBTArg extends CTypeCompletable<NBTTagCompound>
 		final Matcher m = parser.getMatcher(ParserNBTTag.specialMatcher);
 		
 		if (!parser.findInc(m) || !"{".equals(m.group(1)))
-			throw parser.SEE("Expected '{' around index ");
+			throw parser.SEE("Expected '{' ");
 		
 		parser.terminateCompletion();
 		
@@ -57,6 +59,9 @@ public class TypeNBTArg extends CTypeCompletable<NBTTagCompound>
 		if (data.data.isEmpty())
 			return TypeIDs.NBTCompound.wrap(new NBTTagCompound(data.primitiveData));
 		
+		final ArrayList<Pair<String, CommandArg<NBTBase>>> dynamicData = data.data;
+		dynamicData.trimToSize();
+		
 		return TypeIDs.NBTCompound.wrap(new CommandArg<NBTTagCompound>()
 		{
 			final NBTTagCompound compound = new NBTTagCompound(data.primitiveData);
@@ -64,8 +69,8 @@ public class TypeNBTArg extends CTypeCompletable<NBTTagCompound>
 			@Override
 			public NBTTagCompound eval(final ICommandSender sender) throws CommandException
 			{
-				for (final Entry<String, CommandArg<NBTBase>> tag : data.data.entrySet())
-					data.primitiveData.put(tag.getKey(), tag.getValue().eval(sender));
+				for (final Pair<String, CommandArg<NBTBase>> tag : dynamicData)
+					this.compound.setTag(tag.getKey(), tag.getValue().eval(sender));
 				
 				return this.compound;
 			}

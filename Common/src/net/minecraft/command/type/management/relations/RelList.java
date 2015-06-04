@@ -12,7 +12,7 @@ public class RelList extends Relation
 		super("List");
 	}
 	
-	public final <T, E extends CommandException> void registerPair(final Convertable<T, ?, E> base, final Convertable<List<T>, ?, ? super E> rel)
+	public final <T, E extends CommandException> void registerPair(final Convertable<T, ?, E> base, final Convertable<List<T>, ?, E> rel)
 	{
 		base.addAttribute(new Att<>(rel));
 	}

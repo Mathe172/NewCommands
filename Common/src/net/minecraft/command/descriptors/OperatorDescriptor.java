@@ -10,6 +10,7 @@ import java.util.Set;
 import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion.Escaped;
@@ -72,11 +73,11 @@ public abstract class OperatorDescriptor
 		this.operands = Arrays.asList(operands);
 	}
 	
-	public abstract ArgWrapper<?> construct(List<ArgWrapper<?>> operands) throws SyntaxErrorException;
+	public abstract ArgWrapper<?> construct(ListOperands operands) throws SyntaxErrorException;
 	
 	public final ArgWrapper<?> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		final List<ArgWrapper<?>> operands = new ArrayList<>(this.operands.size());
+		final ListOperands operands = this.operands.isEmpty() ? null : new ListOperands(this.operands.size());
 		
 		for (final IDataType<?> operand : this.operands)
 			operands.add(operand.parse(parser, context));
@@ -92,9 +93,41 @@ public abstract class OperatorDescriptor
 		}
 		
 		@Override
-		public ArgWrapper<?> construct(final List<ArgWrapper<?>> operands)
+		public ArgWrapper<?> construct(final ListOperands operands)
 		{
-			return operands.get(0);
+			return operands.get();
+		}
+	}
+	
+	public static class ListOperands
+	{
+		private final List<ArgWrapper<?>> operands;
+		
+		public ListOperands()
+		{
+			this.operands = new ArrayList<>();
+		}
+		
+		public ListOperands(final int initialSize)
+		{
+			this.operands = new ArrayList<>(initialSize);
+		}
+		
+		public ArgWrapper<?> get()
+		{
+			return this.operands.get(this.index++);
+		}
+		
+		public void add(final ArgWrapper<?> operand)
+		{
+			this.operands.add(operand);
+		}
+		
+		private int index = 0;
+		
+		public <T> CommandArg<T> get(final TypeID<T> type)
+		{
+			return this.operands.get(this.index++).get(type);
 		}
 	}
 }

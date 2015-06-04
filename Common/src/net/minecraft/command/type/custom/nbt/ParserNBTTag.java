@@ -3,9 +3,10 @@ package net.minecraft.command.type.custom.nbt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.minecraft.command.MatcherRegistry;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.ExCustomParse;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;
@@ -21,11 +22,8 @@ import net.minecraft.nbt.NBTTagString;
 public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 {
 	public final static MatcherRegistry specialMatcher = new MatcherRegistry("\\G\\s*+([\"\\[{]|\\\\[@\\$])");
-	
-	public final static MatcherRegistry baseMatcher = new MatcherRegistry("\\G[^\\[,}\\]]*+(?:(\\[)|(?=,|}|\\]))");
-	public final static MatcherRegistry stackedMatcher = new MatcherRegistry("\\G[^\\[\\]]*+(\\[|\\])");
-	
-	public final static MatcherRegistry numberMatcher = new MatcherRegistry(Pattern.compile("\\G\\s*+(?>(([+-]?+)(?=\\.?+\\d)(\\d*+)([bsl]|(\\.\\d*+)?+([df]?+))|true|false))(?=\\s*+[,\\]}])", Pattern.CASE_INSENSITIVE));
+	public final static MatcherRegistry baseMatcher = new MatcherRegistry("\\G[^\\[,}\\]]*+(?:(\\[)|(?=[,}\\]]))");
+	public final static MatcherRegistry numberMatcher = new MatcherRegistry(Pattern.compile("\\G\\s*+(?>(([+-]?+)(?=\\.?+\\d)(\\d*+)([bsil]|(\\.\\d*+)?+([df]?+))|true|false))(?=\\s*+[,\\]}])", Pattern.CASE_INSENSITIVE));
 	
 	private final Tag descriptor;
 	
@@ -47,10 +45,10 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 				ParserNBTQString.parse(parser, parserData);
 				return null;
 			case "\\@":
-				parserData.put(ParserNBTSelector.parser.parse(parser));
+				parserData.add(ParserNBTSelector.parser.parse(parser));
 				return null;
 			case "\\$":
-				parserData.put(ParserNBTLabel.parser.parse(parser));
+				parserData.add(ParserNBTLabel.parser.parse(parser));
 				return null;
 			case "[":
 				this.descriptor.getListParser().parse(parser, parserData);
@@ -80,23 +78,21 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 			
 			final String id = nm.group(4);
 			
-			if ("".equals(id))
+			final char idc = id.isEmpty() ? 0 : Character.toLowerCase(id.charAt(0));
+			
+			switch (idc)
 			{
+			case 0:
+			case 'i':
 				parserData.put(new NBTTagInt(Integer.parseInt(number)));
 				return null;
-			}
-			if ("b".equalsIgnoreCase(id))
-			{
+			case 'b':
 				parserData.put(new NBTTagByte(Byte.parseByte(number)));
 				return null;
-			}
-			if ("s".equalsIgnoreCase(id))
-			{
+			case 's':
 				parserData.put(new NBTTagShort(Short.parseShort(number)));
 				return null;
-			}
-			if ("l".equalsIgnoreCase(id))
-			{
+			case 'l':
 				parserData.put(new NBTTagLong(Long.parseLong(number)));
 				return null;
 			}
@@ -116,40 +112,13 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 			return null;
 		}
 		
-		parserData.put(parseString(parser));
+		parserData.put(new NBTTagString(parseString(parser)));
+		
 		return null;
 	}
 	
-	private static final NBTTagString parseString(final Parser parser) throws SyntaxErrorException
+	private static final String parseString(final Parser parser) throws SyntaxErrorException
 	{
-		final int startIndex = parser.getIndex();
-		int level = 0;
-		
-		final Matcher bm = parser.getMatcher(baseMatcher);
-		final Matcher sm = parser.getMatcher(stackedMatcher);
-		
-		while (true)
-		{
-			if (level == 0)
-			{
-				if (!parser.findInc(bm))
-					throw parser.SEE("Missing ']', '}' or ',' around index ");
-				
-				if (bm.group(1) == null)
-					return new NBTTagString(parser.toParse.substring(startIndex, parser.getIndex()).trim());
-				
-				level = 1;
-			}
-			else
-			{
-				if (!parser.findInc(sm))
-					throw parser.SEE("Missing ']' around index ");
-				
-				if ("[".equals(sm.group(1)))
-					++level;
-				else
-					--level;
-			}
-		}
+		return ParsingUtilities.parseLazyString(parser, baseMatcher);
 	}
 }

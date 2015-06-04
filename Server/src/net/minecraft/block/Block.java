@@ -166,6 +166,8 @@ public class Block
 	private String unlocalizedName;
 	private static final String __OBFID = "CL_00000199";
 	
+	private String name = "";
+	
 	public static int getIdFromBlock(final Block blockIn)
 	{
 		return blockRegistry.getIDForObject(blockIn);
@@ -1003,6 +1005,11 @@ public class Block
 		return "tile." + this.unlocalizedName;
 	}
 	
+	public String getName()
+	{
+		return this.name;
+	}
+	
 	/**
 	 * Called on both Client and Server when World#addBlockEvent is called
 	 */
@@ -1387,6 +1394,7 @@ public class Block
 	{
 		blockRegistry.register(id, textualID, block_);
 		Completers.blockCompleter.registerResource(textualID);
+		block_.name = textualID.getResourcePath();
 	}
 	
 	private static void registerBlock(final int id, final String textualID, final Block block_)

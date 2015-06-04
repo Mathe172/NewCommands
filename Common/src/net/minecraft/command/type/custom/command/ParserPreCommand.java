@@ -1,16 +1,16 @@
 package net.minecraft.command.type.custom.command;
 
+import java.util.List;
 import java.util.regex.Matcher;
 
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.Processable;
 import net.minecraft.command.parser.CompletionException;
-import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IParse;
-import net.minecraft.command.type.base.CustomParse;
 import net.minecraft.command.type.custom.TypeUntypedSelector;
 
 public final class ParserPreCommand
@@ -19,14 +19,14 @@ public final class ParserPreCommand
 	{
 	}
 	
-	public static final CommandArg<Integer> parse(final Parser parser, final boolean standalone) throws SyntaxErrorException, CompletionException
+	public static final CommandArg<Integer> parse(final Parser parser, final List<Processable> toProcess, final List<Boolean> ignoreErrors, final boolean standalone) throws SyntaxErrorException, CompletionException
 	{
 		final Matcher oParenthMatcher = parser.getMatcher(ParsingUtilities.oParenthMatcher);
 		
 		if (parser.findInc(oParenthMatcher))
 		{
 			// state is correct after this call ('inParenths-block' in ParserCommands.parse)
-			final CommandArg<Integer> ret = parser.parseInit(ParserCommands.parserInParenths);
+			final CommandArg<Integer> ret = ParserCommands.parse(parser, true);
 			
 			// If this is not the topmost instance of the command-parsing routine called, endingMatcher must be in a valid state
 			if (!standalone)
@@ -35,7 +35,7 @@ public final class ParserPreCommand
 				
 				// Ensure that the endingMatcher is in the required state (whitespaces processed + match found)
 				if (!parser.find(endingMatcher))
-					throw parser.SEE("Expected ')' or end of string around index ");
+					throw parser.SEE("Expected ')' or end of string ");
 				
 				parser.incIndex(endingMatcher.group(1).length());
 			}
@@ -48,31 +48,13 @@ public final class ParserPreCommand
 		
 		while (parser.findInc(idMatcher) && !"/".equals(idMatcher.group(1)))
 		{
-			selectorParser.parse(parser);
+			toProcess.add(selectorParser.parse(parser).arg());
+			ignoreErrors.add(false);
 			if (!parser.checkSpace())
-				throw parser.SEE("Missing space around index ");
+				throw parser.SEE("Missing space ");
 		}
 		
 		// CommandsParser REQUIRES that endingMatcher is in the following state: whitespaces processed + found match (ensured by CommandParser)
 		return ParserCommand.parser.parse(parser);
 	}
-	
-	/** NEVER call this parser unless you know what you're doing! (see comments in code) */
-	public static final IParse<CommandArg<Integer>> parserInternal = new CustomParse<CommandArg<Integer>>()
-	{
-		@Override
-		public CommandArg<Integer> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
-		{
-			return ParserPreCommand.parse(parser, false);
-		}
-	};
-	
-	public static final IParse<CommandArg<Integer>> parser = new CustomParse<CommandArg<Integer>>()
-	{
-		@Override
-		public CommandArg<Integer> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
-		{
-			return ParserPreCommand.parse(parser, true);
-		}
-	};
 }

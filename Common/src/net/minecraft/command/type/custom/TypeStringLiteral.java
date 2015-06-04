@@ -2,8 +2,8 @@ package net.minecraft.command.type.custom;
 
 import java.util.Collection;
 
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.completion.ProviderCompleter;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.type.base.CompoundType;
 
 public class TypeStringLiteral extends CompoundType<String>

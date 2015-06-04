@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
@@ -20,6 +19,7 @@ import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CTypeCompletable;
 import net.minecraft.command.type.IDataType;
@@ -43,7 +43,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 	{
 		if (!parser.findInc(parser.getMatcher(ParsingUtilities.oParenthMatcher)))
 		{
-			final CommandArg<T> item = this.dataType.parse(parser).arg;
+			final CommandArg<T> item = this.dataType.parse(parser).arg();
 			return this.type.wrap(new CommandArg<List<T>>()
 			{
 				@Override
@@ -61,10 +61,10 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 		
 		while (true)
 		{
-			items.add(this.dataType.parse(parser).arg);
+			items.add(this.dataType.parse(parser).arg());
 			
 			if (!parser.findInc(m))
-				throw parser.SEE("Expected ',' or ')' around index ");
+				throw parser.SEE("Expected ',' or ')' ");
 			
 			if (")".equals(m.group(1)))
 				return this.type.wrap(new CommandArg<List<T>>()

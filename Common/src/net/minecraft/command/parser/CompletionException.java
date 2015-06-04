@@ -1,6 +1,12 @@
 package net.minecraft.command.parser;
 
+@SuppressWarnings("serial")
 public class CompletionException extends Exception
 {
-	private static final long serialVersionUID = 1L;
+	public static final CompletionException ex = new CompletionException();
+	
+	private CompletionException()
+	{
+		super("", null, false, false);
+	}
 }

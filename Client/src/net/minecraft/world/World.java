@@ -359,7 +359,7 @@ public abstract class World implements IBlockAccess
 		{
 			final Chunk var4 = this.getChunkFromBlockCoords(pos);
 			final Block var5 = newState.getBlock();
-			final IBlockState var6 = var4.setBlockState(pos, newState);
+			final IBlockState var6 = var4.setBlockState(pos, newState, flags >> 3);
 			
 			if (var6 == null)
 			{

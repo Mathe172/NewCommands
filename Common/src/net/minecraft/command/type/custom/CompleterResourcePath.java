@@ -6,12 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import net.minecraft.command.MatcherRegistry;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion.Escaped;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.util.ResourceLocation;
@@ -23,7 +24,6 @@ public class CompleterResourcePath implements IComplete
 	private final Set<ITabCompletion> entryCompletions;
 	
 	public static final MatcherRegistry pathMatcher = new MatcherRegistry("\\G[\\w]*+[.:]");
-	public static final MatcherRegistry whitespaceMatcher = new MatcherRegistry("\\G\\s*+");
 	
 	public CompleterResourcePath(final Set<ITabCompletion> completions)
 	{
@@ -63,7 +63,7 @@ public class CompleterResourcePath implements IComplete
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
 	{
-		final Matcher whitespaceMatcher = parser.getMatcher(CompleterResourcePath.whitespaceMatcher);
+		final Matcher whitespaceMatcher = parser.getMatcher(ParsingUtilities.whitespaceMatcher);
 		whitespaceMatcher.find(startIndex);
 		
 		final Matcher pathMatcher = parser.getMatcher(CompleterResourcePath.pathMatcher);
@@ -106,7 +106,7 @@ public class CompleterResourcePath implements IComplete
 		while (m.find(index))
 		{
 			final String domainName = m.group();
-			CompleterResourcePath resourcePathNew = resourcePath.subResources.get(domainName);
+			CompleterResourcePath resourcePathNew = resourcePath.subResources.get(domainName.toLowerCase());
 			
 			if (resourcePathNew == null)
 			{

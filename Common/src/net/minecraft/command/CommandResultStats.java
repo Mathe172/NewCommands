@@ -285,7 +285,7 @@ public class CommandResultStats
 		
 		public static Target create(final String targetString, final Target fallback)
 		{
-			return targetString == fallback.targetString ? fallback : new Target(targetString);
+			return fallback != null && targetString == fallback.targetString ? fallback : new Target(targetString);
 		}
 		
 		public final String get()

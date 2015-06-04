@@ -1,12 +1,13 @@
 package net.minecraft.command.construction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.command.IPermission;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.management.TypeID;
@@ -21,7 +22,7 @@ public class SelectorConstructor
 	
 	public SelectorConstructor(final IPermission permission, final TypeID<?>... resultTypes)
 	{
-		this.resultTypes = ParsingUtilities.toSet(resultTypes);
+		this.resultTypes = new HashSet<>(Arrays.asList(resultTypes));
 		this.permission = permission;
 	}
 	

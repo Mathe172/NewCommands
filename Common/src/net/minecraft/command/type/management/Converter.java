@@ -1,6 +1,8 @@
 package net.minecraft.command.type.management;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.command.arg.CommandArg;
 
 public abstract class Converter<F, T, E extends CommandException>
 {
@@ -44,12 +46,12 @@ public abstract class Converter<F, T, E extends CommandException>
 	
 	public static class Chained<F, T, E extends CommandException>
 	{
-		private final Convertable<F, ?, ?> baseType;
-		private final Convertable<T, ?, E> type;
+		private final Convertable<F, ?, E> baseType;
+		private final Convertable<T, ?, ? extends E> type;
 		
 		private final Converter<F, T, ? extends E> converter;
 		
-		public Chained(final Convertable<F, ?, ?> baseType, final Convertable<T, ?, E> type, final Converter<F, T, ? extends E> converter)
+		public Chained(final Convertable<F, ?, E> baseType, final Convertable<T, ?, ? extends E> type, final Converter<F, T, ? extends E> converter)
 		{
 			this.baseType = baseType;
 			this.type = type;
@@ -57,7 +59,7 @@ public abstract class Converter<F, T, E extends CommandException>
 			this.converter = converter;
 		}
 		
-		public Chained(final Convertable<F, ?, ?> from, final Convertable<T, ?, E> to)
+		public Chained(final Convertable<F, ?, E> from, final Convertable<T, ?, ? extends E> to)
 		{
 			final Converter<F, T, ? extends E> converter = from.getConverter(to);
 			
@@ -70,7 +72,7 @@ public abstract class Converter<F, T, E extends CommandException>
 			this.converter = converter;
 		}
 		
-		public static <F, T, FT, E extends CommandException> Chained<F, FT, E> chain(final Chained<F, T, ? extends E> base, final Convertable<FT, ?, E> newType)
+		public static <F, T, FT, E extends CommandException> Chained<F, FT, E> chain(final Chained<F, T, E> base, final Convertable<FT, ?, ? extends E> newType)
 		{
 			final Converter<T, FT, ? extends E> toChain = base.type.getConverter(newType);
 			
@@ -80,7 +82,7 @@ public abstract class Converter<F, T, E extends CommandException>
 			return new Chained<F, FT, E>(base.baseType, newType, Converter.<F, T, FT, E> chain(base.converter, toChain));
 		}
 		
-		public <FT> Chained<F, FT, E> chain(final Convertable<FT, ?, E> newType)
+		public <FT> Chained<F, FT, E> chain(final Convertable<FT, ?, ? extends E> newType)
 		{
 			final Converter<T, FT, ? extends E> toChain = this.type.getConverter(newType);
 			
@@ -96,4 +98,15 @@ public abstract class Converter<F, T, E extends CommandException>
 		}
 	}
 	
+	public CommandArg<T> transform(final CommandArg<F> toTransform)
+	{
+		return new CommandArg<T>()
+		{
+			@Override
+			public T eval(final ICommandSender sender) throws CommandException
+			{
+				return Converter.this.convert(toTransform.eval(sender));
+			}
+		};
+	}
 }

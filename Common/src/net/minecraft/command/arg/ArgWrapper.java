@@ -1,35 +1,37 @@
 package net.minecraft.command.arg;
 
+import java.util.List;
+
 import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.arg.CachedArg.Initialized;
+import net.minecraft.command.arg.ExArgWrapper.GetterWrapper;
+import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.management.Convertable;
 import net.minecraft.command.type.management.TypeID;
 
-public class ArgWrapper<R>
+public abstract class ArgWrapper<R> extends AbstractWrapper<R>
 {
-	public final TypeID<R> type;
-	public final CommandArg<R> arg;
-	
-	public ArgWrapper(final TypeID<R> type, final CommandArg<R> arg)
+	public ArgWrapper(final TypeID<R> type)
 	{
-		this.type = type;
-		this.arg = arg;
+		super(type);
 	}
 	
-	public ArgWrapper(final TypeID<R> type, final R arg)
+	public static <R> ArgWrapper<R> create(final TypeID<R> type, final CommandArg<R> arg)
 	{
-		this.type = type;
-		this.arg = new PrimitiveParameter<>(arg);
+		return new ExArgWrapper<>(type, arg);
 	}
+	
+	public abstract CommandArg<R> arg();
 	
 	// This is checked...
 	@SuppressWarnings("unchecked")
 	public <T> CommandArg<T> get(final TypeID<T> type)
 	{
-		if (type != this.type)
-			throw new IllegalArgumentException("Incompatible TypeIDs: " + type.name + " & " + this.type.name);
+		checkTypes(type);
 		
-		return (CommandArg<T>) this.arg;
+		return (CommandArg<T>) this.arg();
 	}
 	
 	public static <T> CommandArg<T> get(final TypeID<T> type, final ArgWrapper<?> wrapper)
@@ -40,18 +42,43 @@ public class ArgWrapper<R>
 		return wrapper.get(type);
 	}
 	
-	public final <T, E extends CommandException> T convertTo(final Convertable<?, T, E> target) throws E, SyntaxErrorException
+	public final <T> T convertTo(final Parser parser, final Convertable<?, T, ?> target) throws SyntaxErrorException
 	{
-		return target.convertFrom(this);
+		return target.convertFrom(parser, this);
 	}
 	
-	public final <T, E extends CommandException> T iConvertTo(final Convertable<T, ?, E> target) throws E, SyntaxErrorException
+	public final <T> T iConvertTo(final Parser parser, final Convertable<T, ?, ?> target) throws SyntaxErrorException
 	{
-		return this.type.convertTo(this.arg, target);
+		return this.type.convertTo(parser, this.arg(), target);
 	}
 	
-	public ArgWrapper<R> cachedWrapper()
+	public final <T> T iConvertTo(final Convertable<T, ?, ?> target) throws SyntaxErrorException
 	{
-		return this.type.wrap(this.arg.cached());
+		return this.type.convertTo(this.arg(), target);
+	}
+	
+	public final ArgWrapper<R> linkSetter(final Setter<R> setter)
+	{
+		return this.type.wrap(new CommandArg<R>()
+		{
+			CommandArg<R> arg = arg();
+			
+			@Override
+			public R eval(final ICommandSender sender) throws CommandException
+			{
+				final R value = this.arg.eval(sender);
+				setter.set(value);
+				return value;
+			}
+		});
+	}
+	
+	public TypedWrapper<R> addToProcess(final List<Processable> toProcess)
+	{
+		final Initialized<R> ret = new Initialized<>(arg());
+		
+		toProcess.add(ret);
+		
+		return new GetterWrapper<R>(this.type, ret);
 	}
 }

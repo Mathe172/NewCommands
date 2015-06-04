@@ -4,21 +4,20 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats.Type;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.EntityNotFoundException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
-import net.minecraft.command.type.custom.coordinate.TypeCoordinate.Shift;
-import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinate.SingleShift;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinates.Shift;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -31,21 +30,21 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandArg<Integer> construct(final ParserData data) throws SyntaxErrorException
+		public CommandArg<Integer> construct(final CParserData data) throws SyntaxErrorException
 		{
-			final CommandArg<List<Entity>> sourceEntities = getParam(TypeIDs.EntityList, data);
+			final CommandArg<List<Entity>> sourceEntities = data.get(TypeIDs.EntityList);
 			
 			final ArgWrapper<?> arg2 = data.get();
 			
-			final CommandArg<Double> yaw = getParam(TypeIDs.Double, data);
-			final CommandArg<Double> pitch = getParam(TypeIDs.Double, data);
+			final CommandArg<SingleShift> yaw = data.get(TypeIDs.SingleShift);
+			final CommandArg<SingleShift> pitch = data.get(TypeIDs.SingleShift);
 			
 			if (arg2 == null)
 			{
 				if (sourceEntities == null)
-					throw new WrongUsageException("commands.tp.usage");
+					throw data.parser.WUE("commands.tp.usage");
 				
-				return new EntityTarget(null, yaw, pitch, new CommandArg<Entity>()
+				return new EntityTarget(null, yaw, pitch, new CommandArg<ICommandSender>()
 				{
 					@Override
 					public Entity eval(final ICommandSender sender) throws CommandException
@@ -60,22 +59,22 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 				});
 			}
 			
-			if (arg2.type == TypeIDs.Entity)
-				return new EntityTarget(sourceEntities, yaw, pitch, arg2.get(TypeIDs.Entity));
+			if (arg2.type == TypeIDs.ICmdSender)
+				return new EntityTarget(sourceEntities, yaw, pitch, arg2.get(TypeIDs.ICmdSender));
 			
-			return new CoordinatesTarget(sourceEntities, yaw, pitch, arg2.get(TypeIDs.Coordinates));
+			return new CoordinatesTarget(sourceEntities, yaw, pitch, arg2.get(TypeIDs.Shift));
 		}
 	};
 	
 	private final CommandArg<List<Entity>> sources;
-	protected final CommandArg<Double> yaw;
-	protected final CommandArg<Double> pitch;
+	protected final CommandArg<SingleShift> yaw;
+	protected final CommandArg<SingleShift> pitch;
 	
-	public CommandTeleport(final CommandArg<List<Entity>> sources, final CommandArg<Double> yaw, final CommandArg<Double> pitch)
+	public CommandTeleport(final CommandArg<List<Entity>> sources, final CommandArg<SingleShift> yaw, final CommandArg<SingleShift> pitch)
 	{
 		this.sources = sources;
-		this.yaw = yaw;
-		this.pitch = pitch;
+		this.yaw = yaw == null ? TypeCoordinate.trivialShift : yaw;
+		this.pitch = pitch == null ? TypeCoordinate.trivialShift : pitch;
 	}
 	
 	protected List<Entity> getSources(final ICommandSender sender) throws CommandException
@@ -99,9 +98,9 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 	
 	private static class CoordinatesTarget extends CommandTeleport
 	{
-		private final CommandArg<Vec3> targetPos;
+		private final CommandArg<Shift> targetPos;
 		
-		public CoordinatesTarget(final CommandArg<List<Entity>> sources, final CommandArg<Double> yaw, final CommandArg<Double> pitch, final CommandArg<Vec3> targetPos)
+		public CoordinatesTarget(final CommandArg<List<Entity>> sources, final CommandArg<SingleShift> yaw, final CommandArg<SingleShift> pitch, final CommandArg<Shift> targetPos)
 		{
 			super(sources, yaw, pitch);
 			this.targetPos = targetPos;
@@ -110,12 +109,12 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 		@Override
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
-			final TypeCoordinates.Shift targetShift = TypeCoordinates.getShift(this.targetPos, sender);
+			final Shift targetShift = this.targetPos.eval(sender);
 			
 			final Vec3 targetShiftVal = targetShift.getShiftValues();
 			
-			final Shift yawShift = TypeCoordinate.getShift(this.yaw, sender); // TODO: 180°?
-			final Shift pitchShift = TypeCoordinate.getShift(this.pitch, sender);
+			final SingleShift yawShift = this.yaw.eval(sender);
+			final SingleShift pitchShift = this.pitch.eval(sender);
 			
 			final float yawShiftVal = (float) yawShift.getShiftValue();
 			final float pitchShiftVal = (float) pitchShift.getShiftValue();
@@ -131,22 +130,22 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 			if (targetShift.zRelative())
 				relativeData.add(S08PacketPlayerPosLook.EnumFlags.Z);
 			
-			if (yawShift.relative())
+			if (pitchShift.relative())
 				relativeData.add(S08PacketPlayerPosLook.EnumFlags.X_ROT);
 			
-			if (pitchShift.relative())
+			if (yawShift.relative())
 				relativeData.add(S08PacketPlayerPosLook.EnumFlags.Y_ROT);
 			
 			int successCount = 0;
 			
-			for (final Entity entity : getSources(sender))
+			for (final Entity entity : this.getSources(sender))
 			{
 				if (entity.worldObj == null)
 					continue;
 				
 				final Vec3 targetPos = targetShift.addBase(entity.getPositionVector());
 				
-				float yaw = (float) MathHelper.wrapAngleTo180_double(yawShift.addBase(entity.rotationYaw)); // TODO: Check
+				float yaw = (float) MathHelper.wrapAngleTo180_double(yawShift.addBase(entity.rotationYaw));
 				float pitch = (float) MathHelper.wrapAngleTo180_double(pitchShift.addBase(entity.rotationPitch));
 				
 				if (pitch > 90.0F || pitch < -90.0F)
@@ -165,7 +164,7 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 				entity.setRotationYawHead(yaw);
 				
 				++successCount;
-				CommandBase.notifyOperators(sender, "commands.tp.success.coordinates", entity.getName(), targetPos.xCoord, targetPos.yCoord, targetPos.zCoord);
+				CommandUtilities.notifyOperators(sender, "commands.tp.success.coordinates", entity.getName(), targetPos.xCoord, targetPos.yCoord, targetPos.zCoord);
 			}
 			return successCount;
 		}
@@ -173,32 +172,32 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 	
 	private static class EntityTarget extends CommandTeleport
 	{
-		private final CommandArg<Entity> targetEntity;
+		private final CommandArg<ICommandSender> target;
 		
-		public EntityTarget(final CommandArg<List<Entity>> sources, final CommandArg<Double> yaw, final CommandArg<Double> pitch, final CommandArg<Entity> targetEntity)
+		public EntityTarget(final CommandArg<List<Entity>> sources, final CommandArg<SingleShift> yaw, final CommandArg<SingleShift> pitch, final CommandArg<ICommandSender> commandArg)
 		{
 			super(sources, yaw, pitch);
-			this.targetEntity = targetEntity;
+			this.target = commandArg;
 		}
 		
 		@Override
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
-			final Entity targetEntity = this.targetEntity.eval(sender);
-			final Shift yawShift = TypeCoordinate.getShift(this.yaw, sender);
-			final Shift pitchShift = TypeCoordinate.getShift(this.pitch, sender);
+			final ICommandSender target = this.target.eval(sender);
+			final SingleShift yawShift = this.yaw.eval(sender);
+			final SingleShift pitchShift = this.pitch.eval(sender);
 			
 			int successCount = 0;
 			
-			for (final Entity entity : getSources(sender))
+			for (final Entity entity : this.getSources(sender))
 			{
-				if (targetEntity.worldObj != entity.worldObj)
-					CommandBase.errorMessage(sender, "commands.tp.notSameDimension");
+				if (target.getEntityWorld() != entity.worldObj)
+					CommandUtilities.errorMessage(sender, "commands.tp.notSameDimension");
 				else
 				{
 					entity.mountEntity(null);
 					
-					float yaw = (float) MathHelper.wrapAngleTo180_double(yawShift.addBase(entity.rotationYaw)); // TODO: Check
+					float yaw = (float) MathHelper.wrapAngleTo180_double(yawShift.addBase(entity.rotationYaw));
 					float pitch = (float) MathHelper.wrapAngleTo180_double(pitchShift.addBase(entity.rotationPitch));
 					
 					if (pitch > 90.0F || pitch < -90.0F)
@@ -207,15 +206,17 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 						yaw = MathHelper.wrapAngleTo180_float(yaw + 180.0F);
 					}
 					
+					final Vec3 targetPos = target.getPositionVector();
+					
 					if (entity instanceof EntityPlayerMP)
-						((EntityPlayerMP) entity).playerNetServerHandler.setPlayerLocation(targetEntity.posX, targetEntity.posY, targetEntity.posZ, yaw, pitch);
+						((EntityPlayerMP) entity).playerNetServerHandler.setPlayerLocation(targetPos.xCoord, targetPos.yCoord, targetPos.zCoord, yaw, pitch);
 					else
-						entity.setLocationAndAngles(targetEntity.posX, targetEntity.posY, targetEntity.posZ, yaw, pitch);
+						entity.setLocationAndAngles(targetPos.xCoord, targetPos.yCoord, targetPos.zCoord, yaw, pitch);
 					
 					entity.setRotationYawHead(yaw);
 					
 					++successCount;
-					CommandBase.notifyOperators(sender, "commands.tp.success", entity.getName(), targetEntity.getName());
+					CommandUtilities.notifyOperators(sender, "commands.tp.success", entity.getName(), target.getName());
 				}
 			}
 			

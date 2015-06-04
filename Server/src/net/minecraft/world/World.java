@@ -349,40 +349,37 @@ public abstract class World implements IBlockAccess
 		{
 			final Chunk var4 = this.getChunkFromBlockCoords(pos);
 			final Block var5 = newState.getBlock();
-			final IBlockState var6 = var4.setBlockState(pos, newState);
+			final IBlockState var6 = var4.setBlockState(pos, newState, flags >> 3);
 			
 			if (var6 == null)
 			{
 				return false;
 			}
-			else
+			final Block var7 = var6.getBlock();
+			
+			if (var5.getLightOpacity() != var7.getLightOpacity() || var5.getLightValue() != var7.getLightValue())
 			{
-				final Block var7 = var6.getBlock();
-				
-				if (var5.getLightOpacity() != var7.getLightOpacity() || var5.getLightValue() != var7.getLightValue())
-				{
-					this.theProfiler.startSection("checkLight");
-					this.checkLight(pos);
-					this.theProfiler.endSection();
-				}
-				
-				if ((flags & 2) != 0 && (!this.isRemote || (flags & 4) == 0) && var4.isPopulated())
-				{
-					this.markBlockForUpdate(pos);
-				}
-				
-				if (!this.isRemote && (flags & 1) != 0)
-				{
-					this.func_175722_b(pos, var6.getBlock());
-					
-					if (var5.hasComparatorInputOverride())
-					{
-						this.updateComparatorOutputLevel(pos, var5);
-					}
-				}
-				
-				return true;
+				this.theProfiler.startSection("checkLight");
+				this.checkLight(pos);
+				this.theProfiler.endSection();
 			}
+			
+			if ((flags & 2) != 0 && (!this.isRemote || (flags & 4) == 0) && var4.isPopulated())
+			{
+				this.markBlockForUpdate(pos);
+			}
+			
+			if (!this.isRemote && (flags & 1) != 0)
+			{
+				this.func_175722_b(pos, var6.getBlock());
+				
+				if (var5.hasComparatorInputOverride())
+				{
+					this.updateComparatorOutputLevel(pos, var5);
+				}
+			}
+			
+			return true;
 		}
 	}
 	

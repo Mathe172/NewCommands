@@ -2,13 +2,13 @@ package net.minecraft.command.type.custom.nbt;
 
 import java.util.regex.Matcher;
 
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.ExCustomCompletable;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Compound;
@@ -31,7 +31,7 @@ public class NBTPair extends ExCustomCompletable<Void, CompoundData>
 		final Matcher m = parser.getMatcher(nbtKeyMatcher);
 		
 		if (!parser.findInc(m))
-			throw parser.SEE("Missing tag name around index ");
+			throw parser.SEE("Missing tag name ");
 		
 		parser.terminateCompletion();
 		

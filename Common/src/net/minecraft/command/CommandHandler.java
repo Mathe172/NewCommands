@@ -19,10 +19,10 @@ public class CommandHandler
 			return command.eval(sender);
 		} catch (final CommandException e)
 		{
-			CommandBase.errorMessage(sender, e.getMessage(), e.getErrorOjbects());
+			CommandUtilities.errorMessage(sender, e.getMessage(), e.getErrorOjbects());
 		} catch (final Throwable t)
 		{
-			CommandBase.errorMessage(sender, "commands.generic.exception");
+			CommandUtilities.errorMessage(sender, "commands.generic.exception");
 			logger.error("Couldn\'t process command: \'" + command + "\'", t);
 		}
 		return 0;
@@ -40,7 +40,7 @@ public class CommandHandler
 			return executeCommand(sender, Parser.parseCommand(command, startIndex));
 		} catch (final SyntaxErrorException e)
 		{
-			CommandBase.errorMessage(sender, e.getMessage(), e.getErrorOjbects());
+			CommandUtilities.errorMessage(sender, e.getMessage(), e.getErrorOjbects());
 		}
 		return 0;
 	}

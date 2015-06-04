@@ -16,6 +16,7 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
@@ -710,6 +711,11 @@ public class Chunk
 	
 	public IBlockState setBlockState(final BlockPos p_177436_1_, final IBlockState p_177436_2_)
 	{
+		return this.setBlockState(p_177436_1_, p_177436_2_, 0);
+	}
+	
+	public IBlockState setBlockState(final BlockPos p_177436_1_, final IBlockState p_177436_2_, final int flags)
+	{
 		final int var3 = p_177436_1_.getX() & 15;
 		final int var4 = p_177436_1_.getY();
 		final int var5 = p_177436_1_.getZ() & 15;
@@ -723,112 +729,129 @@ public class Chunk
 		final int var7 = this.heightMap[var6];
 		final IBlockState var8 = this.getBlockState(p_177436_1_);
 		
+		final Block var9 = p_177436_2_.getBlock();
+		final Block var10 = var8.getBlock();
+		
+		if (var10.hasTileEntity())
+		{
+			if (var9 == var10)
+			{
+				if ((flags & 1) != 0 && var9 instanceof ITileEntityProvider)
+				{
+					final TileEntity te = ((ITileEntityProvider) var9).createNewTileEntity(this.worldObj, var9.getMetaFromState(p_177436_2_));
+					this.worldObj.setTileEntity(p_177436_1_, te);
+					
+					te.markDirty();
+				}
+			}
+			else if ((flags & 2) != 0)
+			{
+				final TileEntity te = this.worldObj.getTileEntity(p_177436_1_);
+				
+				if (te instanceof IInventory)
+					((IInventory) te).clearInventory();
+			}
+		}
+		
 		if (var8 == p_177436_2_)
 		{
 			return null;
 		}
-		else
+		
+		ExtendedBlockStorage var11 = this.storageArrays[var4 >> 4];
+		boolean var12 = false;
+		
+		if (var11 == null)
 		{
-			final Block var9 = p_177436_2_.getBlock();
-			final Block var10 = var8.getBlock();
-			ExtendedBlockStorage var11 = this.storageArrays[var4 >> 4];
-			boolean var12 = false;
-			
-			if (var11 == null)
-			{
-				if (var9 == Blocks.air)
-				{
-					return null;
-				}
-				
-				var11 = this.storageArrays[var4 >> 4] = new ExtendedBlockStorage(var4 >> 4 << 4, !this.worldObj.provider.getHasNoSky());
-				var12 = var4 >= var7;
-			}
-			
-			var11.set(var3, var4 & 15, var5, p_177436_2_);
-			
-			if (var10 != var9)
-			{
-				if (!this.worldObj.isRemote)
-				{
-					var10.breakBlock(this.worldObj, p_177436_1_, var8);
-				}
-				else if (var10 instanceof ITileEntityProvider)
-				{
-					this.worldObj.removeTileEntity(p_177436_1_);
-				}
-			}
-			
-			if (var11.getBlockByExtId(var3, var4 & 15, var5) != var9)
+			if (var9 == Blocks.air)
 			{
 				return null;
 			}
-			else
+			
+			var11 = this.storageArrays[var4 >> 4] = new ExtendedBlockStorage(var4 >> 4 << 4, !this.worldObj.provider.getHasNoSky());
+			var12 = var4 >= var7;
+		}
+		
+		var11.set(var3, var4 & 15, var5, p_177436_2_);
+		
+		if (var10 != var9)
+		{
+			if (!this.worldObj.isRemote)
 			{
-				if (var12)
-				{
-					this.generateSkylightMap();
-				}
-				else
-				{
-					final int var13 = var9.getLightOpacity();
-					final int var14 = var10.getLightOpacity();
-					
-					if (var13 > 0)
-					{
-						if (var4 >= var7)
-						{
-							this.relightBlock(var3, var4 + 1, var5);
-						}
-					}
-					else if (var4 == var7 - 1)
-					{
-						this.relightBlock(var3, var4, var5);
-					}
-					
-					if (var13 != var14 && (var13 < var14 || this.getLightFor(EnumSkyBlock.SKY, p_177436_1_) > 0 || this.getLightFor(EnumSkyBlock.BLOCK, p_177436_1_) > 0))
-					{
-						this.propagateSkylightOcclusion(var3, var5);
-					}
-				}
-				
-				TileEntity var15;
-				
-				if (var10 instanceof ITileEntityProvider)
-				{
-					var15 = this.func_177424_a(p_177436_1_, Chunk.EnumCreateEntityType.CHECK);
-					
-					if (var15 != null)
-					{
-						var15.updateContainingBlockInfo();
-					}
-				}
-				
-				if (!this.worldObj.isRemote && var10 != var9)
-				{
-					var9.onBlockAdded(this.worldObj, p_177436_1_, p_177436_2_);
-				}
-				
-				if (var9 instanceof ITileEntityProvider)
-				{
-					var15 = this.func_177424_a(p_177436_1_, Chunk.EnumCreateEntityType.CHECK);
-					
-					if (var15 == null)
-					{
-						var15 = ((ITileEntityProvider) var9).createNewTileEntity(this.worldObj, var9.getMetaFromState(p_177436_2_));
-						this.worldObj.setTileEntity(p_177436_1_, var15);
-					}
-					
-					if (var15 != null)
-					{
-						var15.updateContainingBlockInfo();
-					}
-				}
-				
-				this.isModified = true;
-				return var8;
+				var10.breakBlock(this.worldObj, p_177436_1_, var8);
+			}
+			else if (var10 instanceof ITileEntityProvider)
+			{
+				this.worldObj.removeTileEntity(p_177436_1_);
 			}
 		}
+		
+		if (var11.getBlockByExtId(var3, var4 & 15, var5) != var9)
+		{
+			return null;
+		}
+		if (var12)
+		{
+			this.generateSkylightMap();
+		}
+		else
+		{
+			final int var13 = var9.getLightOpacity();
+			final int var14 = var10.getLightOpacity();
+			
+			if (var13 > 0)
+			{
+				if (var4 >= var7)
+				{
+					this.relightBlock(var3, var4 + 1, var5);
+				}
+			}
+			else if (var4 == var7 - 1)
+			{
+				this.relightBlock(var3, var4, var5);
+			}
+			
+			if (var13 != var14 && (var13 < var14 || this.getLightFor(EnumSkyBlock.SKY, p_177436_1_) > 0 || this.getLightFor(EnumSkyBlock.BLOCK, p_177436_1_) > 0))
+			{
+				this.propagateSkylightOcclusion(var3, var5);
+			}
+		}
+		
+		TileEntity var15;
+		
+		if (var10 instanceof ITileEntityProvider)
+		{
+			var15 = this.func_177424_a(p_177436_1_, Chunk.EnumCreateEntityType.CHECK);
+			
+			if (var15 != null)
+			{
+				var15.updateContainingBlockInfo();
+			}
+		}
+		
+		if (!this.worldObj.isRemote && var10 != var9)
+		{
+			var9.onBlockAdded(this.worldObj, p_177436_1_, p_177436_2_);
+		}
+		
+		if (var9 instanceof ITileEntityProvider)
+		{
+			var15 = this.func_177424_a(p_177436_1_, Chunk.EnumCreateEntityType.CHECK);
+			
+			if (var15 == null)
+			{
+				var15 = ((ITileEntityProvider) var9).createNewTileEntity(this.worldObj, var9.getMetaFromState(p_177436_2_));
+				this.worldObj.setTileEntity(p_177436_1_, var15);
+			}
+			
+			if (var15 != null)
+			{
+				var15.updateContainingBlockInfo();
+			}
+		}
+		
+		this.isModified = true;
+		return var8;
 	}
 	
 	public int getLightFor(final EnumSkyBlock p_177413_1_, final BlockPos p_177413_2_)
@@ -905,7 +928,7 @@ public class Chunk
 		
 		if (var2 != this.xPosition || var3 != this.zPosition)
 		{
-			logger.warn("Wrong location! (" + var2 + ", " + var3 + ") should be (" + this.xPosition + ", " + this.zPosition + "), " + entityIn,  entityIn );
+			logger.warn("Wrong location! (" + var2 + ", " + var3 + ") should be (" + this.xPosition + ", " + this.zPosition + "), " + entityIn, entityIn);
 			entityIn.setDead();
 		}
 		
@@ -1507,7 +1530,8 @@ public class Chunk
 	}
 	
 	/**
-	 * Called once-per-chunk-per-tick, and advances the round-robin relight check index by up to 8 blocks at a time. In a worst-case scenario, can potentially take up to 25.6 seconds, calculated via (4096/8)/20, to re-check all blocks in a chunk, which may explain lagging light updates on initial world generation.
+	 * Called once-per-chunk-per-tick, and advances the round-robin relight check index by up to 8 blocks at a time. In a worst-case scenario, can potentially take up to 25.6 seconds, calculated via (4096/8)/20, to re-check all blocks in a chunk, which may explain lagging light updates on initial
+	 * world generation.
 	 */
 	public void enqueueRelightChecks()
 	{

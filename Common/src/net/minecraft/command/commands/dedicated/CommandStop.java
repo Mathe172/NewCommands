@@ -1,6 +1,6 @@
 package net.minecraft.command.commands.dedicated;
 
-import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.arg.CommandArg;
@@ -21,7 +21,7 @@ public final class CommandStop extends CommandArg<Integer>
 	public Integer eval(final ICommandSender sender) throws CommandException
 	{
 		if (MinecraftServer.getServer().worldServers != null)
-			CommandBase.notifyOperators(sender, "commands.stop.start");
+			CommandUtilities.notifyOperators(sender, "commands.stop.start");
 		
 		MinecraftServer.getServer().initiateShutdown();
 		return 0;

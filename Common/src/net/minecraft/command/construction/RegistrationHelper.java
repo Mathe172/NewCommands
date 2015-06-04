@@ -1,12 +1,15 @@
 package net.minecraft.command.construction;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import net.minecraft.command.IPermission;
-import net.minecraft.command.ParsingUtilities;
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.command.completion.ITabCompletion;
+import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.construction.ICommandConstructor.C;
 import net.minecraft.command.construction.ICommandConstructor.CP;
 import net.minecraft.command.construction.ICommandConstructor.CPU;
@@ -15,10 +18,15 @@ import net.minecraft.command.construction.ICommandConstructor.P;
 import net.minecraft.command.construction.ICommandConstructor.PU;
 import net.minecraft.command.construction.ICommandConstructor.U;
 import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 import net.minecraft.command.descriptors.CommandDescriptor.WUEProvider;
 import net.minecraft.command.descriptors.OperatorDescriptor;
+import net.minecraft.command.descriptors.OperatorDescriptor.ListOperands;
 import net.minecraft.command.descriptors.SelectorDescriptor;
+import net.minecraft.command.descriptors.SelectorDescriptorNoContent;
+import net.minecraft.command.descriptors.SelectorDescriptorNoContent.PrimitiveConstructable;
+import net.minecraft.command.descriptors.SelectorDescriptorSingleArg;
+import net.minecraft.command.descriptors.SelectorDescriptorSingleArg.SingleArgConstructable;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.management.TypeID;
 
@@ -26,6 +34,21 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class RegistrationHelper
 {
+	public static final SelectorDescriptor<?> selector(final IPermission permission, final PrimitiveConstructable constructable, final TypeID<?>... resultTypes)
+	{
+		return new SelectorDescriptorNoContent(new HashSet<>(Arrays.asList(resultTypes)), permission, constructable);
+	}
+	
+	public static final SelectorDescriptor<?> selector(final String key, final IDataType<?> arg, final SingleArgConstructable constructable, final IPermission permission, final TypeID<?>... resultTypes)
+	{
+		return new SelectorDescriptorSingleArg(new HashSet<>(Arrays.asList(resultTypes)), permission, key, arg, constructable);
+	}
+	
+	public static final SelectorDescriptor<?> selector(final IDataType<?> arg, final SingleArgConstructable constructable, final IPermission permission, final TypeID<?>... resultTypes)
+	{
+		return new SelectorDescriptorSingleArg(new HashSet<>(Arrays.asList(resultTypes)), permission, arg, constructable);
+	}
+	
 	public static final SelectorConstructor selector(final IPermission permission, final TypeID<?>... resultTypes)
 	{
 		return new SelectorConstructor(permission, resultTypes);
@@ -51,6 +74,29 @@ public class RegistrationHelper
 		return new OperatorConstructor(permission, resultTypes);
 	}
 	
+	public static final OperatorDescriptor constant(final ArgWrapper<?> constant, final Set<TypeID<?>> resultType)
+	{
+		return operator(IPermission.unrestricted, resultType)
+			.construct(new OperatorConstructable()
+			{
+				@Override
+				public ArgWrapper<?> construct(final ListOperands operands) throws SyntaxErrorException
+				{
+					return constant;
+				}
+			});
+	}
+	
+	public static final OperatorDescriptor constant(final ArgWrapper<?> constant, final TypeID<?> resultType)
+	{
+		return constant(constant, Collections.<TypeID<?>> singleton(resultType));
+	}
+	
+	public static final <T> OperatorDescriptor constant(final T constant, final TypeID<T> resultType)
+	{
+		return constant(new PrimitiveParameter<>(constant).wrap(resultType), Collections.<TypeID<?>> singleton(resultType));
+	}
+	
 	public static final OperatorDescriptor primitiveOperator(final IPermission permission, final IDataType<?> operand, final Set<TypeID<?>> resultTypes)
 	{
 		return new OperatorDescriptor.Primitive(resultTypes, permission, operand);
@@ -58,17 +104,15 @@ public class RegistrationHelper
 	
 	public static final OperatorDescriptor primitiveOperator(final IPermission permission, final IDataType<?> operand, final TypeID<?>... resultTypes)
 	{
-		return new OperatorDescriptor.Primitive(ParsingUtilities.toSet(resultTypes), permission, operand);
+		return new OperatorDescriptor.Primitive(new HashSet<>(Arrays.asList(resultTypes)), permission, operand);
 	}
 	
-	public static final void register(final String name, final OperatorDescriptor descriptor)
+	public static final void register(final String name, final OperatorDescriptor descriptor, final String... aliases) // TODO:..
 	{
 		OperatorDescriptor.register(name, descriptor);
-	}
-	
-	public static final void register(final String name, final ITabCompletion completion, final OperatorDescriptor descriptor)
-	{
-		OperatorDescriptor.register(name, completion, descriptor);
+		
+		for (final String alias : aliases)
+			OperatorDescriptor.register(alias, descriptor);
 	}
 	
 	public static final WUEProvider usage(final String usage, final Object... args)
@@ -76,9 +120,9 @@ public class RegistrationHelper
 		return new WUEProvider()
 		{
 			@Override
-			public WrongUsageException create(final ParserData data)
+			public WrongUsageException create(final CParserData data)
 			{
-				return new WrongUsageException(usage, args);
+				return data.parser.WUE(usage, args);
 			}
 		};
 	}
@@ -91,9 +135,9 @@ public class RegistrationHelper
 		return new WUEProvider()
 		{
 			@Override
-			public WrongUsageException create(final ParserData data)
+			public WrongUsageException create(final CParserData data)
 			{
-				return new WrongUsageException(usage, ArrayUtils.addAll(new Object[] { data.path.get(data.size() - 1) }, args));
+				return data.parser.WUE(usage, ArrayUtils.addAll(new Object[] { data.path.get(data.size() - 1) }, args));
 			}
 		};
 	}

@@ -13,12 +13,15 @@ import static net.minecraft.command.ParsingUtilities.oParenthMatcher;
 import static net.minecraft.command.ParsingUtilities.quoteMatcher;
 import static net.minecraft.command.ParsingUtilities.spaceMatcher;
 import static net.minecraft.command.ParsingUtilities.stringMatcher;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.commands.CommandScoreboard;
 import net.minecraft.command.selectors.entity.FilterList;
 import net.minecraft.command.type.custom.CompleterResourcePath;
 import net.minecraft.command.type.custom.ParserDouble;
 import net.minecraft.command.type.custom.ParserInt;
+import net.minecraft.command.type.custom.ParserLazyString;
 import net.minecraft.command.type.custom.ParserUUID;
+import net.minecraft.command.type.custom.TypeLabelDeclaration;
 import net.minecraft.command.type.custom.TypeList;
 import net.minecraft.command.type.custom.TypeSayString;
 import net.minecraft.command.type.custom.TypeUntypedOperator;
@@ -48,6 +51,7 @@ public final class Matchers
 		stringMatcher.init();
 		escapedMatcher.init();
 		quoteMatcher.init();
+		ParserLazyString.lazyStringMatcher.init();
 		FilterList.inverterMatcher.init();
 		ParserDouble.doubleMatcher.init();
 		TypeList.listDelimMatcher.init();
@@ -60,12 +64,14 @@ public final class Matchers
 		NBTUtilities.numberIDMatcher.init();
 		ParserNBTTag.specialMatcher.init();
 		ParserNBTTag.baseMatcher.init();
-		ParserNBTTag.stackedMatcher.init();
+		ParsingUtilities.baseMatcher.init();
+		ParsingUtilities.stackedMatcher.init();
 		ParserNBTTag.numberMatcher.init();
 		ParserUUID.sharpMatcher.init();
 		ParserUUID.wildcardMatcher.init();
 		CommandScoreboard.operationMatcher.init();
-		CompleterResourcePath.whitespaceMatcher.init();
+		ParsingUtilities.whitespaceMatcher.init();
 		CompleterResourcePath.pathMatcher.init();
+		TypeLabelDeclaration.labelMatcher.init();
 	}
 }

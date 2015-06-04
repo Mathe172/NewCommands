@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.ChatComponentList;
@@ -13,6 +12,7 @@ import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.CTypeParse;
@@ -52,9 +52,9 @@ public final class TypeSayString extends CTypeParse<IChatComponent>
 				CommandArg<IChatComponent> ret;
 				
 				if ("@".equals(m.group(1)))
-					ret = selectorParser.parseSnapshot(parser).arg;
+					ret = selectorParser.parseSnapshot(parser).arg();
 				else
-					ret = labelParser.parseSnapshot(parser).arg;
+					ret = labelParser.parseSnapshot(parser).arg();
 				
 				parts.add(new PrimitiveParameter<IChatComponent>(new ChatComponentText(parser.toParse.substring(startIndex, index - 1))));
 				

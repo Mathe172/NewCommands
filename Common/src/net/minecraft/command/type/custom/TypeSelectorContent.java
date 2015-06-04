@@ -1,20 +1,18 @@
 package net.minecraft.command.type.custom;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.arg.Processable;
+import net.minecraft.command.arg.LabelWrapper;
+import net.minecraft.command.arg.Setter;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
+import net.minecraft.command.descriptors.SParserData;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -22,37 +20,27 @@ import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.TypeCompletable;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 
-public class TypeSelectorContent<D extends ParserData> extends TypeCompletable<ArgWrapper<?>>
+public class TypeSelectorContent<D extends SParserData> extends TypeCompletable<ArgWrapper<?>>
 {
-	public static class ParserData
-	{
-		public final Map<String, ArgWrapper<?>> namedParams = new HashMap<>();
-		public final List<ArgWrapper<?>> unnamedParams = new ArrayList<>();
-		public String label = null;
-	}
-	
 	private final SelectorDescriptor<D> descriptor;
-	private final D emptyData;
 	
 	public TypeSelectorContent(final SelectorDescriptor<D> descriptor)
 	{
 		this.descriptor = descriptor;
-		this.emptyData = descriptor.newParserData();
 	}
 	
 	@Override
 	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
+		final D parserData = this.descriptor.newParserData(parser);
+		
 		if (parser.endReached() || parser.toParse.charAt(parser.getIndex()) != '[')
-			return this.descriptor.construct(this.emptyData);
+			return this.descriptor.construct(parserData);
 		
 		parser.incIndex(1);
 		
 		parser.terminateCompletion();
-		
-		final D parserData = this.descriptor.newParserData();
 		
 		final IExParse<Void, D> kvPair = this.descriptor.getKVPair();
 		
@@ -63,28 +51,40 @@ public class TypeSelectorContent<D extends ParserData> extends TypeCompletable<A
 			kvPair.parse(parser, parserData);
 			
 			if (!parser.findInc(m))
-				throw parser.SEE("No delimiter found while parsing selector around index ");
+				throw parser.SEE("No delimiter found while parsing selector ");
 			
 			if ("]".equals(m.group(1)))
 			{
 				final ArgWrapper<?> ret = this.descriptor.construct(parserData);
 				
 				if (parserData.label == null)
-					return ret;
+					return parserData.finalize(ret);
 				
-				final ArgWrapper<?> cached = ret.cachedWrapper();
-				
-				parser.addToProcess((Processable) cached.arg);
-				parser.addIgnoreErrors(false);
-				
-				parser.addLabel(parserData.label, cached);
-				
-				return cached;
+				return parserData.finalize(procLabelModifier(parser, parserData, ret));
 			}
 			
 			if ("}".equals(m.group(1)))
-				throw parser.SEE("Unexpected '}' around index ");
+				throw parser.SEE("Unexpected '}' ");
 		}
+	}
+	
+	private <T> ArgWrapper<T> procLabelModifier(final Parser parser, final D parserData, final ArgWrapper<T> ret) throws SyntaxErrorException
+	{
+		if (parserData.labelModifier == 0)
+		{
+			final LabelWrapper<?> label = new LabelWrapper<>(
+				parserData.labelType == null
+					? ret.type
+					: parserData.labelType, parserData.label);
+			
+			parser.addLabel(parserData.label, label);
+			
+			return ret.linkSetter(label.getLabelSetter(parser, ret.type, true));
+		}
+		
+		final Setter<T> setter = parser.getLabelSetter(parserData.label, ret.type, parserData.labelModifier == '^');
+		
+		return ret.linkSetter(setter);
 	}
 	
 	public static final ITabCompletion bracketCompletion = new TabCompletion(Pattern.compile("\\A\\[?+\\z"), "[]", "[]")

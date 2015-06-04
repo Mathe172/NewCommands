@@ -11,6 +11,7 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.OperatorConstructable;
+import net.minecraft.command.descriptors.OperatorDescriptor.ListOperands;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,12 +22,12 @@ public class OperatorItems extends CommandArg<NBTBase>
 	public static final OperatorConstructable constructable = new OperatorConstructable()
 	{
 		@Override
-		public ArgWrapper<?> construct(final List<ArgWrapper<?>> operands) throws SyntaxErrorException
+		public ArgWrapper<?> construct(final ListOperands operands) throws SyntaxErrorException
 		{
 			return TypeIDs.NBTBase.wrap(
 				new OperatorItems(
-					operands.get(0).get(TypeIDs.NBTBase),
-					operands.get(1).get(TypeIDs.IntList)));
+					operands.get(TypeIDs.NBTBase),
+					operands.get(TypeIDs.IntList)));
 		}
 	};
 	

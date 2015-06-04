@@ -6,19 +6,17 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.construction.SelectorConstructable;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
+import net.minecraft.command.descriptors.SelectorDescriptorSingleArg.ParserDataSingleArg;
+import net.minecraft.command.descriptors.SelectorDescriptorSingleArg.SingleArgConstructable;
 
 public class SelectorTiming extends CommandArg<Integer>
 {
-	public static final SelectorConstructable constructable = new SelectorConstructable()
+	public static final SingleArgConstructable constructable = new SingleArgConstructable()
 	{
 		@Override
-		public ArgWrapper<Integer> construct(final ParserData parserData) throws SyntaxErrorException
+		public ArgWrapper<Integer> construct(final ParserDataSingleArg parserData) throws SyntaxErrorException
 		{
-			return TypeIDs.Integer.wrap(
-				new SelectorTiming(
-					getRequiredParam(TypeIDs.Integer, 0, "cmd", parserData)));
+			return TypeIDs.Integer.wrap(new SelectorTiming(parserData.getRequiredArg(TypeIDs.Integer)));
 		}
 		
 	};

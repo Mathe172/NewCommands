@@ -1,10 +1,10 @@
 package net.minecraft.command.type.management.relations;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.type.management.Convertable;
 import net.minecraft.command.type.management.Converter;
+import net.minecraft.command.type.management.SConverter;
 
 public class RelCommandArg extends Relation
 {
@@ -13,35 +13,29 @@ public class RelCommandArg extends Relation
 		super("CommandArg");
 	}
 	
-	public final <T> void registerPair(final Convertable<T, ?, ?> base, final Convertable<CommandArg<T>, ?, ?> rel)
+	public final <T> void registerPair(final Convertable<T, ?, ?> base, final Convertable<CommandArg<T>, ?, SyntaxErrorException> rel)
 	{
 		base.addAttribute(new Att<>(rel));
 	}
 	
-	public class Att<T, E extends CommandException> extends Attribute
+	public class Att<T> extends Attribute
 	{
-		public final Convertable<CommandArg<T>, ?, E> rel;
+		public final Convertable<CommandArg<T>, ?, SyntaxErrorException> rel;
 		
-		private Att(final Convertable<CommandArg<T>, ?, E> rel)
+		private Att(final Convertable<CommandArg<T>, ?, SyntaxErrorException> rel)
 		{
 			this.rel = rel;
 		}
 		
-		public final <F> void apply(final Convertable<CommandArg<F>, ?, ?> source, final Converter<F, T, ?> converter, final int dist)
+		// Checked...
+		public final <U> void apply(final Convertable<CommandArg<U>, ?, SyntaxErrorException> target, final Converter<T, U, ?> converter, final int dist)
 		{
-			source.addConverter(this.rel, new Converter<CommandArg<F>, CommandArg<T>, E>()
+			this.rel.addConverter(target, new SConverter<CommandArg<T>, CommandArg<U>>()
 			{
 				@Override
-				public CommandArg<T> convert(final CommandArg<F> toConvert)
+				public CommandArg<U> convert(final CommandArg<T> toConvert)
 				{
-					return new CommandArg<T>()
-					{
-						@Override
-						public T eval(final ICommandSender sender) throws CommandException
-						{
-							return converter.convert(toConvert.eval(sender));
-						}
-					};
+					return converter.transform(toConvert);
 				}
 			}, dist);
 		}

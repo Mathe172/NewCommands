@@ -2,7 +2,6 @@ package net.minecraft.command.type.custom;
 
 import java.util.regex.Matcher;
 
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.PermissionWrapper;
@@ -11,6 +10,7 @@ import net.minecraft.command.descriptors.OperatorDescriptor;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.TypeCompletable;
 import net.minecraft.command.type.management.TypeID;

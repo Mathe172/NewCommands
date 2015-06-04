@@ -47,7 +47,7 @@ public abstract class CConvertable<T, W> extends Convertable<T, W, SyntaxErrorEx
 		
 		this.possibleSelectors.put(selector, permission);
 		
-		for (final Convertable<?, ?, ?> convertable : this.convertableTo)
+		for (final Convertable<?, ?, ?> convertable : this.convertableTo.keySet())
 			convertable.addPossibleSelector(selector, permission);
 	}
 	
@@ -57,7 +57,7 @@ public abstract class CConvertable<T, W> extends Convertable<T, W, SyntaxErrorEx
 		
 		this.possibleOperators.put(operator, permission);
 		
-		for (final Convertable<?, ?, ?> convertable : this.convertableTo)
+		for (final Convertable<?, ?, ?> convertable : this.convertableTo.keySet())
 			convertable.addPossibleOperator(operator, permission);
 	}
 	

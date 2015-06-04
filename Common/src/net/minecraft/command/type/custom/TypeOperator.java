@@ -25,7 +25,7 @@ public class TypeOperator<T> extends CustomCompletable<T>
 	{
 		final ArgWrapper<?> toConv = TypeUntypedOperator.parseOperator(parser);
 		
-		return toConv != null ? toConv.convertTo(this.target) : null;
+		return toConv != null ? toConv.convertTo(parser, this.target) : null;
 	}
 	
 	@Override

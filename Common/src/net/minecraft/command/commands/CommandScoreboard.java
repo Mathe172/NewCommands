@@ -9,20 +9,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.CommandResultStats.Type;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.EntityNotFoundException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.base.CompoundType;
 import net.minecraft.command.type.custom.CompleterResourcePath;
@@ -74,178 +74,178 @@ public final class CommandScoreboard
 	public static final CommandConstructable objectivesAdd = new CommandConstructable()
 	{
 		@Override
-		public ObjectivesAdd construct(final ParserData data) throws SyntaxErrorException
+		public ObjectivesAdd construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new ObjectivesAdd(
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.String, data));
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.String));
 		}
 	};
 	
 	public static final CommandConstructable objectivesSetDisplay = new CommandConstructable()
 	{
 		@Override
-		public ObjectivesSetDisplay construct(final ParserData data) throws SyntaxErrorException
+		public ObjectivesSetDisplay construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new ObjectivesSetDisplay(
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.ScoreObjective, data));
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.ScoreObjective));
 		}
 	};
 	
 	public static final CommandConstructable objectivesRemove = new CommandConstructable()
 	{
 		@Override
-		public ObjectivesRemove construct(final ParserData data) throws SyntaxErrorException
+		public ObjectivesRemove construct(final CParserData data) throws SyntaxErrorException
 		{
-			return new ObjectivesRemove(getParam(TypeIDs.ScoreObjective, data));
+			return new ObjectivesRemove(data.get(TypeIDs.ScoreObjective));
 		}
 	};
 	
 	public static final CommandConstructable playersEnable = new CommandConstructable()
 	{
 		@Override
-		public PlayersEnable construct(final ParserData data) throws SyntaxErrorException
+		public PlayersEnable construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new PlayersEnable(
-				getParam(TypeIDs.UUIDList, data),
-				getParam(TypeIDs.ScoreObjective, data));
+				data.get(TypeIDs.UUIDList),
+				data.get(TypeIDs.ScoreObjective));
 		}
 	};
 	
 	public static final CommandConstructable playersSetAddRemove = new CommandConstructable()
 	{
 		@Override
-		public PlayersSetAddRemove construct(final ParserData data) throws SyntaxErrorException
+		public PlayersSetAddRemove construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new PlayersSetAddRemove(
 				data.path.get(1),
-				getParam(TypeIDs.UUIDList, data),
-				getParam(TypeIDs.ScoreObjective, data),
-				getParam(TypeIDs.Integer, data),
-				getParam(TypeIDs.NBTCompound, data));
+				data.get(TypeIDs.UUIDList),
+				data.get(TypeIDs.ScoreObjective),
+				data.get(TypeIDs.Integer),
+				data.get(TypeIDs.NBTCompound));
 		}
 	};
 	
 	public static final CommandConstructable playersOperation = new CommandConstructable()
 	{
 		@Override
-		public PlayersOperation construct(final ParserData data) throws SyntaxErrorException
+		public PlayersOperation construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new PlayersOperation(
-				getParam(TypeIDs.UUIDList, data),
-				getParam(TypeIDs.ScoreObjective, data),
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.UUIDList, data),
-				getParam(TypeIDs.ScoreObjective, data));
+				data.get(TypeIDs.UUIDList),
+				data.get(TypeIDs.ScoreObjective),
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.UUIDList),
+				data.get(TypeIDs.ScoreObjective));
 		}
 	};
 	
 	public static final CommandConstructable playersTest = new CommandConstructable()
 	{
 		@Override
-		public PlayersTest construct(final ParserData data) throws SyntaxErrorException
+		public PlayersTest construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new PlayersTest(
-				getParam(TypeIDs.UUIDList, data),
-				getParam(TypeIDs.ScoreObjective, data),
-				getParam(TypeIDs.Integer, data),
-				getParam(TypeIDs.Integer, data));
+				data.get(TypeIDs.UUIDList),
+				data.get(TypeIDs.ScoreObjective),
+				data.get(TypeIDs.Integer),
+				data.get(TypeIDs.Integer));
 		}
 	};
 	
 	public static final CommandConstructable playersList = new CommandConstructable()
 	{
 		@Override
-		public CommandArg<Integer> construct(final ParserData data) throws SyntaxErrorException
+		public CommandArg<Integer> construct(final CParserData data) throws SyntaxErrorException
 		{
-			return data.isEmpty() ? PlayersList.NoPlayer.command : new PlayersList.Player(getParam(TypeIDs.UUIDList, data));
+			return data.isEmpty() ? PlayersList.NoPlayer.command : new PlayersList.Player(data.get(TypeIDs.UUIDList));
 		}
 	};
 	
 	public static final CommandConstructable playersReset = new CommandConstructable()
 	{
 		@Override
-		public PlayersReset construct(final ParserData data) throws SyntaxErrorException
+		public PlayersReset construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new PlayersReset(
-				getParam(TypeIDs.UUIDList, data),
-				getParam(TypeIDs.ScoreObjective, data));
+				data.get(TypeIDs.UUIDList),
+				data.get(TypeIDs.ScoreObjective));
 		}
 	};
 	
 	public static final CommandConstructable teamsAdd = new CommandConstructable()
 	{
 		@Override
-		public TeamsAdd construct(final ParserData data) throws SyntaxErrorException
+		public TeamsAdd construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new TeamsAdd(
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.String, data));
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.String));
 		}
 	};
 	
 	public static final CommandConstructable teamsJoin = new CommandConstructable()
 	{
 		@Override
-		public TeamsJoin construct(final ParserData data) throws SyntaxErrorException
+		public TeamsJoin construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new TeamsJoin(
-				getParam(TypeIDs.String, data),
-				getParam(TypeIDs.UUIDList, data));
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.UUIDList));
 		}
 	};
 	
 	public static final CommandConstructable teamsLeave = new CommandConstructable()
 	{
 		@Override
-		public TeamsLeave construct(final ParserData data) throws SyntaxErrorException
+		public TeamsLeave construct(final CParserData data) throws SyntaxErrorException
 		{
-			return new TeamsLeave(getParam(TypeIDs.UUIDList, data));
+			return new TeamsLeave(data.get(TypeIDs.UUIDList));
 		}
 	};
 	
 	public static final CommandConstructable teamsEmpty = new CommandConstructable()
 	{
 		@Override
-		public TeamsEmpty construct(final ParserData data) throws SyntaxErrorException
+		public TeamsEmpty construct(final CParserData data) throws SyntaxErrorException
 		{
-			return new TeamsEmpty(getParam(TypeIDs.String, data));
+			return new TeamsEmpty(data.get(TypeIDs.String));
 		}
 	};
 	
 	public static final CommandConstructable teamsList = new CommandConstructable()
 	{
 		@Override
-		public CommandArg<Integer> construct(final ParserData data) throws SyntaxErrorException
+		public CommandArg<Integer> construct(final CParserData data) throws SyntaxErrorException
 		{
-			return data.isEmpty() ? TeamsList.NoTeam.command : new TeamsList.Team(getParam(TypeIDs.String, data));
+			return data.isEmpty() ? TeamsList.NoTeam.command : new TeamsList.Team(data.get(TypeIDs.String));
 		}
 	};
 	
 	public static final CommandConstructable teamsRemove = new CommandConstructable()
 	{
 		@Override
-		public TeamsRemove construct(final ParserData data) throws SyntaxErrorException
+		public TeamsRemove construct(final CParserData data) throws SyntaxErrorException
 		{
-			return new TeamsRemove(getParam(TypeIDs.String, data));
+			return new TeamsRemove(data.get(TypeIDs.String));
 		}
 	};
 	
 	public static final CommandConstructable teamsOption = new CommandConstructable()
 	{
 		@Override
-		public TeamsOption construct(final ParserData data) throws SyntaxErrorException
+		public TeamsOption construct(final CParserData data) throws SyntaxErrorException
 		{
 			return data.size() == 2 ?
 				new TeamsOption.NoValue(
-					getParam(TypeIDs.String, data),
-					data.path.get(2)) :
+					data.get(TypeIDs.String),
+					data.getPath(2)) :
 				new TeamsOption.Value(
-					getParam(TypeIDs.String, data),
-					data.path.get(2),
-					getParam(TypeIDs.String, data));
+					data.get(TypeIDs.String),
+					data.getPath(2),
+					data.get(TypeIDs.String));
 		}
 	};
 	
@@ -264,14 +264,14 @@ public final class CommandScoreboard
 		return toIterate;
 	}
 	
-	private static Collection<String> scoreholderCollection(final CommandArg<List<String>> toIterate, final ICommandSender sender) throws CommandException
+	private static Collection<String> scoreholderCollection(final List<String> toIterate) throws CommandException
 	{
-		return scoreholderCollection(toIterate.eval(sender), false);
+		return scoreholderCollection(toIterate, false);
 	}
 	
-	private static Collection<String> scoreholderCollectionCopy(final CommandArg<List<String>> toIterate, final ICommandSender sender) throws CommandException
+	private static Collection<String> scoreholderCollectionCopy(final List<String> toIterate) throws CommandException
 	{
-		return scoreholderCollection(toIterate.eval(sender), true);
+		return scoreholderCollection(toIterate, true);
 	}
 	
 	private static void assertWriteable(final ScoreObjective objective) throws CommandException
@@ -307,7 +307,7 @@ public final class CommandScoreboard
 			if (objectives.isEmpty())
 				throw new CommandException("commands.scoreboard.objectives.list.empty");
 			
-			CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.objectives.list.count", objectives.size());
+			CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.objectives.list.count", objectives.size());
 			
 			for (final Object item : objectives)
 			{
@@ -341,6 +341,8 @@ public final class CommandScoreboard
 		{
 			final String name = this.name.eval(sender);
 			final String criterionName = this.criterion.eval(sender);
+			final String displayName = CommandArg.eval(this.displayName, sender);
+			
 			final Scoreboard scoreboard = getScoreboard();
 			
 			final IScoreObjectiveCriteria criterion = (IScoreObjectiveCriteria) IScoreObjectiveCriteria.INSTANCES.get(criterionName);
@@ -357,12 +359,10 @@ public final class CommandScoreboard
 			if (name.length() == 0)
 				throw new WrongUsageException("commands.scoreboard.objectives.add.usage");
 			
-			if (this.displayName == null)
+			if (displayName == null)
 				scoreboard.addScoreObjective(name, criterion);
 			else
 			{
-				final String displayName = this.displayName.eval(sender);
-				
 				if (displayName.length() > 32)
 					throw new SyntaxErrorException("commands.scoreboard.objectives.add.displayTooLong", displayName, 32);
 				
@@ -372,7 +372,7 @@ public final class CommandScoreboard
 					scoreboard.addScoreObjective(name, criterion);
 			}
 			
-			CommandBase.notifyOperators(sender, "commands.scoreboard.objectives.add.success", name);
+			CommandUtilities.notifyOperators(sender, "commands.scoreboard.objectives.add.success", name);
 			
 			return 1;
 		}
@@ -392,7 +392,7 @@ public final class CommandScoreboard
 		{
 			final ScoreObjective objective = this.objective.eval(sender);
 			getScoreboard().func_96519_k(objective);
-			CommandBase.notifyOperators(sender, "commands.scoreboard.objectives.remove.success", objective.getName());
+			CommandUtilities.notifyOperators(sender, "commands.scoreboard.objectives.remove.success", objective.getName());
 			
 			return 1;
 		}
@@ -413,19 +413,19 @@ public final class CommandScoreboard
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
 			final String slot = this.slot.eval(sender);
+			final ScoreObjective objective = CommandArg.eval(this.objective, sender);
+			
 			final int slotIndex = Scoreboard.getObjectiveDisplaySlotNumber(slot);
 			
 			if (slotIndex < 0)
 				throw new CommandException("commands.scoreboard.objectives.setdisplay.invalidSlot", slot);
 			
-			final ScoreObjective objective = CommandArg.eval(this.objective, sender);
-			
 			getScoreboard().setObjectiveInDisplaySlot(slotIndex, objective);
 			
 			if (objective == null)
-				CommandBase.notifyOperators(sender, "commands.scoreboard.objectives.setdisplay.successCleared", Scoreboard.getObjectiveDisplaySlot(slotIndex));
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.objectives.setdisplay.successCleared", Scoreboard.getObjectiveDisplaySlot(slotIndex));
 			else
-				CommandBase.notifyOperators(sender, "commands.scoreboard.objectives.setdisplay.successSet", Scoreboard.getObjectiveDisplaySlot(slotIndex), objective.getName());
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.objectives.setdisplay.successSet", Scoreboard.getObjectiveDisplaySlot(slotIndex), objective.getName());
 			
 			return 1;
 		}
@@ -446,7 +446,7 @@ public final class CommandScoreboard
 				if (scoreholders.isEmpty())
 					throw new CommandException("commands.scoreboard.players.list.empty");
 				
-				CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.players.list.count", scoreholders.size());
+				CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.players.list.count", scoreholders.size());
 				sender.addChatMessage(new ChatComponentText(ParsingUtilities.joinNiceString(scoreholders)));
 				
 				return scoreholders.size();
@@ -468,19 +468,19 @@ public final class CommandScoreboard
 				final Scoreboard scoreboard = getScoreboard();
 				int queryResult = 0;
 				
-				for (final String scoreholder : scoreholderCollection(this.scoreholders, sender))
+				for (final String scoreholder : scoreholderCollection(this.scoreholders.eval(sender)))
 				{
 					final Map<ScoreObjective, Score> scores = scoreboard.getScores(scoreholder);
 					
 					if (scores == null || scores.isEmpty())
 					{
-						CommandBase.errorMessage(sender, "commands.scoreboard.players.list.player.empty", scoreholder);
+						CommandUtilities.errorMessage(sender, "commands.scoreboard.players.list.player.empty", scoreholder);
 						continue;
 					}
 					
 					queryResult += scores.size();
 					
-					CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.players.list.player.count", scores.size(), scoreholder);
+					CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.players.list.player.count", scores.size(), scoreholder);
 					
 					for (final Score score : scores.values())
 						sender.addChatMessage(new ChatComponentTranslation("commands.scoreboard.players.list.player.entry", score.getScorePoints(), score.getObjective().getDisplayName(), score.getObjective().getName()));
@@ -519,17 +519,19 @@ public final class CommandScoreboard
 		@Override
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
-			final ScoreObjective objective = this.objective.eval(sender);
+			final Collection<String> scoreholders = scoreholderCollectionCopy(this.scoreholders.eval(sender));
 			
-			assertWriteable(objective);
+			final ScoreObjective objective = this.objective.eval(sender);
 			
 			final int amount = this.amount.eval(sender);
 			
 			final NBTTagCompound nbt = CommandArg.eval(this.nbt, sender);
 			
+			assertWriteable(objective);
+			
 			int affectedEntities = 0;
 			
-			for (final String scoreholder : scoreholderCollectionCopy(this.scoreholders, sender))
+			for (final String scoreholder : scoreholders)
 			{
 				if (nbt != null)
 				{
@@ -537,7 +539,7 @@ public final class CommandScoreboard
 					
 					if (entity == null)
 					{
-						CommandBase.errorMessage(sender, scoreholder + " is not an entity");
+						CommandUtilities.errorMessage(sender, scoreholder + " is not an entity");
 						continue;
 					}
 					
@@ -546,7 +548,7 @@ public final class CommandScoreboard
 					
 					if (!NBTBase.compareTags(nbt, entityNBT, true))
 					{
-						CommandBase.errorMessage(sender, "commands.scoreboard.players.set.tagMismatch", scoreholder);
+						CommandUtilities.errorMessage(sender, "commands.scoreboard.players.set.tagMismatch", scoreholder);
 						continue;
 					}
 				}
@@ -566,7 +568,7 @@ public final class CommandScoreboard
 				}
 				
 				++affectedEntities;
-				CommandBase.notifyOperators(sender, "commands.scoreboard.players.set.success", objective.getName(), scoreholder, score.getScorePoints());
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.players.set.success", objective.getName(), scoreholder, score.getScorePoints());
 			}
 			
 			sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, affectedEntities);
@@ -591,17 +593,18 @@ public final class CommandScoreboard
 		{
 			final Scoreboard scoreboard = getScoreboard();
 			
+			final Collection<String> scoreholders = scoreholderCollectionCopy(this.scoreholders.eval(sender));
+			
 			final ScoreObjective objective = CommandArg.eval(this.objective, sender);
 			
-			final Collection<String> scoreholders = scoreholderCollectionCopy(this.scoreholders, sender);
 			for (final String scoreholder : scoreholders)
 			{
 				scoreboard.func_178822_d(scoreholder, objective);
 				
 				if (objective == null)
-					CommandBase.notifyOperators(sender, "commands.scoreboard.players.reset.success", scoreholder);
+					CommandUtilities.notifyOperators(sender, "commands.scoreboard.players.reset.success", scoreholder);
 				else
-					CommandBase.notifyOperators(sender, "commands.scoreboard.players.resetscore.success", objective.getName(), scoreholder);
+					CommandUtilities.notifyOperators(sender, "commands.scoreboard.players.resetscore.success", objective.getName(), scoreholder);
 			}
 			
 			sender.func_174794_a(Type.AFFECTED_ENTITIES, scoreholders.size());
@@ -624,17 +627,18 @@ public final class CommandScoreboard
 		@Override
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
+			final Collection<String> scoreholders = scoreholderCollectionCopy(this.scoreholders.eval(sender));
+			
 			final ScoreObjective objective = this.objective.eval(sender);
 			
 			if (objective.getCriteria() != IScoreObjectiveCriteria.field_178791_c)
 				throw new CommandException("commands.scoreboard.players.enable.noTrigger", objective.getName());
 			
-			final Collection<String> scoreholders = scoreholderCollectionCopy(this.scoreholders, sender);
 			for (final String scoreholder : scoreholders)
 			{
 				final Score score = getScoreboard().getValueFromObjective(scoreholder, objective);
 				score.func_178815_a(false);
-				CommandBase.notifyOperators(sender, "commands.scoreboard.players.enable.success", objective.getName(), scoreholder);
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.players.enable.success", objective.getName(), scoreholder);
 			}
 			
 			sender.func_174794_a(Type.AFFECTED_ENTITIES, scoreholders.size());
@@ -662,14 +666,16 @@ public final class CommandScoreboard
 		{
 			final Scoreboard scoreboard = getScoreboard();
 			
+			final Collection<String> scoreholders = scoreholderCollection(this.scoreholders.eval(sender));
+			
 			final ScoreObjective objective = this.objective.eval(sender);
 			
-			final Collection<String> scoreholders = scoreholderCollection(this.scoreholders, sender);
+			final int min = this.min.eval(sender);
+			final int max = this.max == null ? Integer.MAX_VALUE : this.max.eval(sender);
+			
+			CommandUtilities.checkInt(max, min);
 			
 			int successCount = 0;
-			
-			final int min = this.min.eval(sender);
-			final int max = this.max == null ? Integer.MAX_VALUE : CommandBase.parseInt(this.max.eval(sender), min);
 			
 			for (final String scoreholder : scoreholders)
 			{
@@ -677,17 +683,17 @@ public final class CommandScoreboard
 				
 				if (score == null)
 				{
-					CommandBase.errorMessage(sender, "commands.scoreboard.players.test.notFound", objective.getName(), scoreholder);
+					CommandUtilities.errorMessage(sender, "commands.scoreboard.players.test.notFound", objective.getName(), scoreholder);
 					continue;
 				}
 				
 				if (score.getScorePoints() >= min && score.getScorePoints() <= max)
 				{
-					CommandBase.notifyOperators(sender, "commands.scoreboard.players.test.success", score.getScorePoints(), min, max);
+					CommandUtilities.notifyOperators(sender, "commands.scoreboard.players.test.success", score.getScorePoints(), min, max);
 					++successCount;
 				}
 				else
-					CommandBase.errorMessage(sender, "commands.scoreboard.players.test.failed", score.getScorePoints(), min, max);
+					CommandUtilities.errorMessage(sender, "commands.scoreboard.players.test.failed", score.getScorePoints(), min, max);
 			}
 			
 			sender.func_174794_a(Type.AFFECTED_ENTITIES, scoreholders.size());
@@ -718,14 +724,16 @@ public final class CommandScoreboard
 		{
 			final Scoreboard scoreboard = getScoreboard();
 			
-			final Collection<String> targetScoreholders = scoreholderCollection(this.targetScoreholders, sender);
+			final Collection<String> targetScoreholders = scoreholderCollection(this.targetScoreholders.eval(sender));
 			final ScoreObjective targetObjective = this.targetObjective.eval(sender);
-			assertWriteable(targetObjective);
 			
 			final String operationName = this.operation.eval(sender);
 			
-			final Collection<String> sourceScoreholders = scoreholderCollectionCopy(this.sourceScoreholders, sender);
+			final Collection<String> sourceScoreholders = scoreholderCollectionCopy(this.sourceScoreholders.eval(sender));
 			final ScoreObjective sourceObjective = this.sourceObjective.eval(sender);
+			
+			assertWriteable(targetObjective);
+			
 			if (operationName.equals("><"))
 				assertWriteable(sourceObjective);
 			
@@ -741,13 +749,13 @@ public final class CommandScoreboard
 				final Score sourceScore = scoreboard.getScore(sourceScoreholder, sourceObjective);
 				
 				if (sourceScore == null)
-					CommandBase.errorMessage(sender, "commands.scoreboard.players.operation.notFound", sourceObjective.getName(), sourceScoreholder);
+					CommandUtilities.errorMessage(sender, "commands.scoreboard.players.operation.notFound", sourceObjective.getName(), sourceScoreholder);
 				else
 					for (final Score targetScore : targetScores)
 					{
 						operation.proc(targetScore, sourceScore);
 						
-						CommandBase.notifyOperators(sender, "commands.scoreboard.players.operation.success");
+						CommandUtilities.notifyOperators(sender, "commands.scoreboard.players.operation.success");
 					}
 			}
 			
@@ -869,7 +877,7 @@ public final class CommandScoreboard
 				if (teams.isEmpty())
 					throw new CommandException("commands.scoreboard.teams.list.empty");
 				
-				CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.teams.list.count", teams.size());
+				CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.teams.list.count", teams.size());
 				
 				for (final Object item : teams)
 				{
@@ -901,7 +909,7 @@ public final class CommandScoreboard
 				if (members.isEmpty())
 					throw new CommandException("commands.scoreboard.teams.list.player.empty", team.getRegisteredName());
 				
-				CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.teams.list.player.count", members.size(), team.getRegisteredName());
+				CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "commands.scoreboard.teams.list.player.count", members.size(), team.getRegisteredName());
 				sender.addChatMessage(new ChatComponentText(ParsingUtilities.joinNiceString(members)));
 				
 				return members.size();
@@ -924,6 +932,9 @@ public final class CommandScoreboard
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
 			final String teamName = this.teamName.eval(sender);
+			
+			final String displayName = CommandArg.eval(this.displayName, sender);
+			
 			final Scoreboard scoreboard = getScoreboard();
 			
 			if (scoreboard.getTeam(teamName) != null)
@@ -935,12 +946,10 @@ public final class CommandScoreboard
 			if (teamName.length() == 0)
 				throw new WrongUsageException("commands.scoreboard.teams.add.usage");
 			
-			if (this.displayName == null)
+			if (displayName == null)
 				scoreboard.createTeam(teamName);
 			else
 			{
-				final String displayName = this.displayName.eval(sender);
-				
 				if (displayName.length() > 32)
 					throw new SyntaxErrorException("commands.scoreboard.teams.add.displayTooLong", displayName, 32);
 				
@@ -950,7 +959,7 @@ public final class CommandScoreboard
 					scoreboard.createTeam(teamName).setTeamName(displayName);
 			}
 			
-			CommandBase.notifyOperators(sender, "commands.scoreboard.teams.add.success", teamName);
+			CommandUtilities.notifyOperators(sender, "commands.scoreboard.teams.add.success", teamName);
 			
 			return 1;
 		}
@@ -971,7 +980,7 @@ public final class CommandScoreboard
 			final ScorePlayerTeam team = getTeam(this.teamName.eval(sender));
 			
 			getScoreboard().removeTeam(team);
-			CommandBase.notifyOperators(sender, "commands.scoreboard.teams.remove.success", team.getRegisteredName());
+			CommandUtilities.notifyOperators(sender, "commands.scoreboard.teams.remove.success", team.getRegisteredName());
 			
 			return 1;
 		}
@@ -999,7 +1008,7 @@ public final class CommandScoreboard
 			for (final Object member : members)
 				getScoreboard().removePlayerFromTeam((String) member, team);
 			
-			CommandBase.notifyOperators(sender, "commands.scoreboard.teams.empty.success", members.size(), team.getRegisteredName());
+			CommandUtilities.notifyOperators(sender, "commands.scoreboard.teams.empty.success", members.size(), team.getRegisteredName());
 			
 			sender.func_174794_a(Type.AFFECTED_ENTITIES, members.size());
 			return members.size();
@@ -1023,15 +1032,16 @@ public final class CommandScoreboard
 			final Scoreboard scoreboard = getScoreboard();
 			final String teamName = this.teamName.eval(sender);
 			
+			final Collection<String> scoreholders =
+				this.scoreholders == null
+					? Collections.singleton(ParsingUtilities.getEntityIdentifier((Entity) sender))
+					: scoreholderCollection(this.scoreholders.eval(sender));
+			
 			final Set<String> newMembers = new HashSet<>();
 			final Set<String> failedMembers = new HashSet<>();
 			
 			if (this.scoreholders == null && !(sender instanceof Entity))
 				throw new EntityNotFoundException();
-			
-			final Collection<String> scoreholders = this.scoreholders == null ?
-				Collections.singleton(ParsingUtilities.getEntityIdentifier((Entity) sender)) :
-				scoreholderCollection(this.scoreholders, sender);
 			
 			for (final String scoreholder : scoreholders)
 			{
@@ -1044,7 +1054,7 @@ public final class CommandScoreboard
 			if (!newMembers.isEmpty())
 			{
 				sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, newMembers.size());
-				CommandBase.notifyOperators(sender, "commands.scoreboard.teams.join.success", newMembers.size(), teamName, ParsingUtilities.joinNiceString(newMembers));
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.teams.join.success", newMembers.size(), teamName, ParsingUtilities.joinNiceString(newMembers));
 			}
 			
 			if (!failedMembers.isEmpty())
@@ -1068,13 +1078,16 @@ public final class CommandScoreboard
 		{
 			final Scoreboard scoreboard = getScoreboard();
 			
+			final Collection<String> scoreholders =
+				this.scoreholders == null
+					? Collections.singleton(ParsingUtilities.getEntityIdentifier((Entity) sender))
+					: scoreholderCollection(this.scoreholders.eval(sender));
+			
 			final Set<String> removedMembers = new HashSet<>();
 			final Set<String> failedMembers = new HashSet<>();
 			
 			if (this.scoreholders == null && !(sender instanceof Entity))
 				throw new EntityNotFoundException();
-			
-			final Collection<String> scoreholders = this.scoreholders == null ? Collections.singleton(ParsingUtilities.getEntityIdentifier((Entity) sender)) : scoreholderCollection(this.scoreholders, sender);
 			
 			for (final String scoreholder : scoreholders)
 			{
@@ -1087,7 +1100,7 @@ public final class CommandScoreboard
 			if (!removedMembers.isEmpty())
 			{
 				sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, removedMembers.size());
-				CommandBase.notifyOperators(sender, "commands.scoreboard.teams.leave.success", removedMembers.size(), ParsingUtilities.joinNiceString(removedMembers));
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.teams.leave.success", removedMembers.size(), ParsingUtilities.joinNiceString(removedMembers));
 			}
 			
 			if (!failedMembers.isEmpty())
@@ -1128,19 +1141,19 @@ public final class CommandScoreboard
 				switch (this.option)
 				{
 				case color:
-					CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "The color of team '" + team.getRegisteredName() + "' is set to '" + team.func_178775_l().getFriendlyName() + "'");
+					CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "The color of team '" + team.getRegisteredName() + "' is set to '" + team.func_178775_l().getFriendlyName() + "'");
 					break;
 				case friendlyFire:
-					CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "friendlyFire for team '" + team.getRegisteredName() + "' is set to '" + (team.getAllowFriendlyFire() ? "true'" : "false'"));
+					CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "friendlyFire for team '" + team.getRegisteredName() + "' is set to '" + (team.getAllowFriendlyFire() ? "true'" : "false'"));
 					break;
 				case seeFriendlyInvisibles:
-					CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "seeFriendlyInvisibles for team '" + team.getRegisteredName() + "' is set to '" + (team.func_98297_h() ? "true'" : "false'"));
+					CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "seeFriendlyInvisibles for team '" + team.getRegisteredName() + "' is set to '" + (team.func_98297_h() ? "true'" : "false'"));
 					break;
 				case nameTagVisibility:
-					CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "nameTagVisibility for team '" + team.getRegisteredName() + "' is set to '" + team.func_178770_i().field_178830_e + "'");
+					CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "nameTagVisibility for team '" + team.getRegisteredName() + "' is set to '" + team.func_178770_i().field_178830_e + "'");
 					break;
 				case deathMessageVisibility:
-					CommandBase.message(sender, EnumChatFormatting.DARK_GREEN, "deathMessageVisibility for team '" + team.getRegisteredName() + "' is set to '" + team.func_178771_j().field_178830_e + "'");
+					CommandUtilities.message(sender, EnumChatFormatting.DARK_GREEN, "deathMessageVisibility for team '" + team.getRegisteredName() + "' is set to '" + team.func_178771_j().field_178830_e + "'");
 				}
 				
 				return 1;
@@ -1203,7 +1216,7 @@ public final class CommandScoreboard
 						team.func_178773_b(visibility);
 				}
 				
-				CommandBase.notifyOperators(sender, "commands.scoreboard.teams.option.success", this.option.toString(), team.getRegisteredName(), value);
+				CommandUtilities.notifyOperators(sender, "commands.scoreboard.teams.option.success", this.option.toString(), team.getRegisteredName(), value);
 				
 				return 1;
 			}

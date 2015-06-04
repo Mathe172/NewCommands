@@ -20,11 +20,17 @@ public class TypeSnapshot<T> extends CTypeParse<T>
 	@Override
 	public ArgWrapper<T> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
+		final boolean suppressEx = parser.suppressEx;
+		parser.suppressEx = true;
+		
 		try
 		{
 			return this.target.parseSnapshot(parser, context);
 		} catch (final SyntaxErrorException ex)
 		{
+		} finally
+		{
+			parser.suppressEx = suppressEx;
 		}
 		
 		return null;

@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.MatcherRegistry;
+import net.minecraft.command.ParsingUtilities.PrimitiveCallback;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
@@ -18,6 +18,7 @@ import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.management.TypeID;
@@ -28,6 +29,7 @@ import net.minecraft.nbt.NBTTagFloat;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.nbt.NBTTagShort;
+import net.minecraft.nbt.NBTTagString;
 
 public final class NBTUtilities
 {
@@ -111,7 +113,7 @@ public final class NBTUtilities
 		}
 	};
 	
-	public static CommandArg<NBTBase> getTagByte(final ArgWrapper<?> toConvert)
+	public static CommandArg<NBTBase> getTagByte(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (primitiveTypes.contains(toConvert.type))
 			return new CommandArg<NBTBase>()
@@ -119,21 +121,23 @@ public final class NBTUtilities
 				@Override
 				public NBTTagByte eval(final ICommandSender sender) throws CommandException
 				{
-					return new NBTTagByte(((Number) toConvert.arg.eval(sender)).byteValue());
+					return new NBTTagByte(((Number) toConvert.arg().eval(sender)).byteValue());
 				}
 			};
 		
 		return new CommandArg<NBTBase>()
 		{
+			private final CommandArg<Byte> arg = toConvert.iConvertTo(parser, TypeIDs.Byte);
+			
 			@Override
 			public NBTTagByte eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagByte(toConvert.iConvertTo(TypeIDs.Byte).eval(sender));
+				return new NBTTagByte(this.arg.eval(sender));
 			}
 		};
 	}
 	
-	public static CommandArg<NBTBase> getTagShort(final ArgWrapper<?> toConvert)
+	public static CommandArg<NBTBase> getTagShort(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (primitiveTypes.contains(toConvert.type))
 			return new CommandArg<NBTBase>()
@@ -141,21 +145,23 @@ public final class NBTUtilities
 				@Override
 				public NBTTagShort eval(final ICommandSender sender) throws CommandException
 				{
-					return new NBTTagShort(((Number) toConvert.arg.eval(sender)).shortValue());
+					return new NBTTagShort(((Number) toConvert.arg().eval(sender)).shortValue());
 				}
 			};
 		
 		return new CommandArg<NBTBase>()
 		{
+			private final CommandArg<Short> arg = toConvert.iConvertTo(parser, TypeIDs.Short);
+			
 			@Override
 			public NBTTagShort eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagShort(toConvert.iConvertTo(TypeIDs.Short).eval(sender));
+				return new NBTTagShort(this.arg.eval(sender));
 			}
 		};
 	}
 	
-	public static CommandArg<NBTBase> getTagInt(final ArgWrapper<?> toConvert)
+	public static CommandArg<NBTBase> getTagInt(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (primitiveTypes.contains(toConvert.type))
 			return new CommandArg<NBTBase>()
@@ -163,21 +169,23 @@ public final class NBTUtilities
 				@Override
 				public NBTTagInt eval(final ICommandSender sender) throws CommandException
 				{
-					return new NBTTagInt(((Number) toConvert.arg.eval(sender)).intValue());
+					return new NBTTagInt(((Number) toConvert.arg().eval(sender)).intValue());
 				}
 			};
 		
 		return new CommandArg<NBTBase>()
 		{
+			private final CommandArg<Integer> arg = toConvert.iConvertTo(parser, TypeIDs.Integer);
+			
 			@Override
 			public NBTTagInt eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagInt(toConvert.iConvertTo(TypeIDs.Integer).eval(sender));
+				return new NBTTagInt(this.arg.eval(sender));
 			}
 		};
 	}
 	
-	public static CommandArg<NBTBase> getTagLong(final ArgWrapper<?> toConvert)
+	public static CommandArg<NBTBase> getTagLong(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (primitiveTypes.contains(toConvert.type))
 			return new CommandArg<NBTBase>()
@@ -185,21 +193,23 @@ public final class NBTUtilities
 				@Override
 				public NBTTagLong eval(final ICommandSender sender) throws CommandException
 				{
-					return new NBTTagLong(((Number) toConvert.arg.eval(sender)).longValue());
+					return new NBTTagLong(((Number) toConvert.arg().eval(sender)).longValue());
 				}
 			};
 		
 		return new CommandArg<NBTBase>()
 		{
+			private final CommandArg<Long> arg = toConvert.iConvertTo(parser, TypeIDs.Long);
+			
 			@Override
 			public NBTTagLong eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagLong(toConvert.iConvertTo(TypeIDs.Long).eval(sender));
+				return new NBTTagLong(this.arg.eval(sender));
 			}
 		};
 	}
 	
-	public static CommandArg<NBTBase> getTagFloat(final ArgWrapper<?> toConvert)
+	public static CommandArg<NBTBase> getTagFloat(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (primitiveTypes.contains(toConvert.type))
 			return new CommandArg<NBTBase>()
@@ -207,21 +217,23 @@ public final class NBTUtilities
 				@Override
 				public NBTTagFloat eval(final ICommandSender sender) throws CommandException
 				{
-					return new NBTTagFloat(((Number) toConvert.arg.eval(sender)).floatValue());
+					return new NBTTagFloat(((Number) toConvert.arg().eval(sender)).floatValue());
 				}
 			};
 		
 		return new CommandArg<NBTBase>()
 		{
+			private final CommandArg<Float> arg = toConvert.iConvertTo(parser, TypeIDs.Float);
+			
 			@Override
 			public NBTTagFloat eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagFloat(toConvert.iConvertTo(TypeIDs.Float).eval(sender));
+				return new NBTTagFloat(this.arg.eval(sender));
 			}
 		};
 	}
 	
-	public static CommandArg<NBTBase> getTagDouble(final ArgWrapper<?> toConvert)
+	public static CommandArg<NBTBase> getTagDouble(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (primitiveTypes.contains(toConvert.type))
 			return new CommandArg<NBTBase>()
@@ -229,25 +241,67 @@ public final class NBTUtilities
 				@Override
 				public NBTTagDouble eval(final ICommandSender sender) throws CommandException
 				{
-					return new NBTTagDouble(((Number) toConvert.arg.eval(sender)).doubleValue());
+					return new NBTTagDouble(((Number) toConvert.arg().eval(sender)).doubleValue());
 				}
 			};
 		
 		return new CommandArg<NBTBase>()
 		{
+			private final CommandArg<Double> arg = toConvert.iConvertTo(parser, TypeIDs.Double);
+			
 			@Override
 			public NBTTagDouble eval(final ICommandSender sender) throws CommandException
 			{
-				return new NBTTagDouble(toConvert.iConvertTo(TypeIDs.Double).eval(sender));
+				return new NBTTagDouble(this.arg.eval(sender));
 			}
 		};
 	}
 	
-	public static abstract class NBTData
+	public static abstract class NBTData implements PrimitiveCallback<String>
 	{
 		public abstract void put(NBTBase data);
 		
-		public abstract void put(CommandArg<NBTBase> data);
+		public abstract void add(CommandArg<NBTBase> data);
+		
+		@Override
+		public CommandArg<String> call(final Parser parser, final String s) throws SyntaxErrorException
+		{
+			final Matcher m = parser.getMatcher(numberIDMatcher);
+			
+			if (parser.findInc(m))
+			{
+				try
+				{
+					switch (m.group(1).charAt(0))
+					{
+					case 'b':
+						put(new NBTTagByte(Byte.parseByte(s)));
+						return null;
+					case 's':
+						put(new NBTTagShort(Short.parseShort(s)));
+						return null;
+					case 'i':
+						put(new NBTTagInt(Integer.parseInt(s)));
+						return null;
+					case 'l':
+						put(new NBTTagLong(Long.parseLong(s)));
+						return null;
+					case 'f':
+						put(new NBTTagFloat(Float.parseFloat(s)));
+						return null;
+					case 'd':
+						put(new NBTTagDouble(Double.parseDouble(s)));
+						return null;
+					}
+				} catch (final NumberFormatException ex)
+				{
+					throw parser.SEE(ex.getMessage());
+				}
+			}
+			
+			this.put(new NBTTagString(s));
+			return null;
+		}
 	}
 	
 	public static CommandArg<NBTBase> procIdentifier(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
@@ -258,20 +312,20 @@ public final class NBTUtilities
 			switch (m.group(1).charAt(0))
 			{
 			case 'b':
-				return getTagByte(toConvert);
+				return getTagByte(parser, toConvert);
 			case 's':
-				return getTagShort(toConvert);
+				return getTagShort(parser, toConvert);
 			case 'i':
-				return getTagInt(toConvert);
+				return getTagInt(parser, toConvert);
 			case 'l':
-				return getTagLong(toConvert);
+				return getTagLong(parser, toConvert);
 			case 'f':
-				return getTagFloat(toConvert);
+				return getTagFloat(parser, toConvert);
 			case 'd':
-				return getTagDouble(toConvert);
+				return getTagDouble(parser, toConvert);
 			}
 		}
 		
-		return toConvert.iConvertTo(TypeIDs.NBTBase);
+		return toConvert.iConvertTo(parser, TypeIDs.NBTBase);
 	}
 }

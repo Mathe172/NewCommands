@@ -120,7 +120,6 @@ public final class NBTDescriptors
 						"UUIDMost")))))
 			.sKey("CanPickUpLoot",
 				"DeathTime",
-				"Equipment",
 				"HealF",
 				"Health",
 				"HurtByTimestamp",

@@ -3,32 +3,44 @@ package net.minecraft.command.collections;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.EntityNotFoundException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.ParsingUtilities;
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.type.custom.ParserBlockID;
+import net.minecraft.command.type.custom.ParserDouble;
 import net.minecraft.command.type.custom.ParserEntity;
 import net.minecraft.command.type.custom.ParserICmdSender;
 import net.minecraft.command.type.custom.ParserInt;
+import net.minecraft.command.type.custom.ParserItemID;
 import net.minecraft.command.type.custom.TypeBoolean;
 import net.minecraft.command.type.custom.TypeScoreObjective;
 import net.minecraft.command.type.custom.coordinate.Coordinate;
 import net.minecraft.command.type.custom.coordinate.Coordinate.CoordValue;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
+import net.minecraft.command.type.custom.coordinate.TypeCoordinates.Shift;
 import net.minecraft.command.type.management.CConverter;
 import net.minecraft.command.type.management.Converter;
 import net.minecraft.command.type.management.SConverter;
 import net.minecraft.command.type.management.TypeID;
 import net.minecraft.command.type.management.TypeID.ExceptionProvider;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.Vec3;
 
@@ -46,6 +58,9 @@ public final class TypeIDs
 	public static final TypeID<Boolean> Boolean = new TypeID<>("Boolean");
 	
 	public static final TypeID<Vec3> Coordinates = new TypeID<>("Coordinates");
+	public static final TypeID<TypeCoordinate.SingleShift> SingleShift = new TypeID<>("RelativeCoordinate");
+	public static final TypeID<TypeCoordinates.Shift> Shift = new TypeID<>("RelativeCoordinates");
+	public static final TypeID<BlockPos> BlockPos = new TypeID<>("BlockPos");
 	
 	public static final TypeID<String> String = new TypeID<>("String");
 	
@@ -59,6 +74,11 @@ public final class TypeIDs
 	
 	public static final TypeID<Entity> Entity = new TypeID<>("Entity");
 	public static final TypeID<String> UUID = new TypeID<>("UUID");
+	
+	public static final TypeID<IBlockState> BlockState = new TypeID<>("BlockState");
+	public static final TypeID<Block> BlockID = new TypeID<>("BlockID");
+	
+	public static final TypeID<Item> ItemID = new TypeID<>("ItemID");
 	
 	public static final TypeID<List<Entity>> EntityList = TypeIDs.Entity.addList(new ExceptionProvider()
 	{
@@ -81,27 +101,33 @@ public final class TypeIDs
 	public static final void init()
 	{
 		Coordinate.typeCoord.init();
-		TypeIDs.Byte.init();
-		TypeIDs.Coordinates.init();
-		TypeIDs.Double.init();
-		TypeIDs.Boolean.init();
-		TypeIDs.Entity.init();
-		TypeIDs.EntityList.init();
-		TypeIDs.Float.init();
-		TypeIDs.IChatComponent.init();
-		TypeIDs.ICmdSender.init();
-		TypeIDs.ICmdSenderList.init();
-		TypeIDs.Integer.init();
-		TypeIDs.IntList.init();
-		TypeIDs.Long.init();
-		TypeIDs.NBTBase.init();
-		TypeIDs.NBTCompound.init();
-		TypeIDs.ScoreObjective.init();
-		TypeIDs.Short.init();
-		TypeIDs.String.init();
-		TypeIDs.StringList.init();
-		TypeIDs.UUID.init();
-		TypeIDs.UUIDList.init();
+		Byte.init();
+		Coordinates.init();
+		BlockPos.init();
+		SingleShift.init();
+		Shift.init();
+		Double.init();
+		Boolean.init();
+		Entity.init();
+		EntityList.init();
+		Float.init();
+		IChatComponent.init();
+		ICmdSender.init();
+		ICmdSenderList.init();
+		Integer.init();
+		IntList.init();
+		Long.init();
+		NBTBase.init();
+		NBTCompound.init();
+		ScoreObjective.init();
+		Short.init();
+		String.init();
+		StringList.init();
+		UUID.init();
+		UUIDList.init();
+		BlockState.init();
+		BlockID.init();
+		ItemID.init();
 		
 		TypeIDs.String.addDefaultConverter(TypeIDs.IChatComponent, new CConverter<String, IChatComponent>()
 		{
@@ -132,22 +158,69 @@ public final class TypeIDs
 		
 		TypeIDs.String.addPrimitiveConverter(TypeIDs.Integer, ParserInt.stringToInt);
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.Double, new CConverter<String, Double>()
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Double, ParserDouble.stringToDouble);
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Boolean, TypeBoolean.stringToBoolean);
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Short, new CConverter<String, Short>()
 		{
 			@Override
-			public Double convert(final String toConvert) throws CommandException
+			public Short convert(final String toConvert) throws CommandException
 			{
 				try
 				{
-					return new Double(toConvert);
-				} catch (final NumberFormatException e)
+					return java.lang.Short.parseShort(toConvert);
+				} catch (final NumberFormatException ex)
 				{
-					throw new NumberInvalidException("Cannot convert " + toConvert + " to double");
+					throw new NumberInvalidException(ex.getMessage());
 				}
 			}
 		});
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.Boolean, TypeBoolean.stringToBoolean);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Long, new CConverter<String, Long>()
+		{
+			@Override
+			public Long convert(final String toConvert) throws CommandException
+			{
+				try
+				{
+					return java.lang.Long.parseLong(toConvert);
+				} catch (final NumberFormatException ex)
+				{
+					throw new NumberInvalidException(ex.getMessage());
+				}
+			}
+		});
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Byte, new CConverter<String, Byte>()
+		{
+			@Override
+			public Byte convert(final String toConvert) throws CommandException
+			{
+				try
+				{
+					return java.lang.Byte.parseByte(toConvert);
+				} catch (final NumberFormatException ex)
+				{
+					throw new NumberInvalidException(ex.getMessage());
+				}
+			}
+		});
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Float, new CConverter<String, Float>()
+		{
+			@Override
+			public Float convert(final String toConvert) throws CommandException
+			{
+				try
+				{
+					return java.lang.Float.parseFloat(toConvert);
+				} catch (final NumberFormatException ex)
+				{
+					throw new NumberInvalidException(ex.getMessage());
+				}
+			}
+		});
 		
 		TypeIDs.Integer.addPrimitiveConverter(TypeIDs.Double, new CConverter<Integer, Double>()
 		{
@@ -289,7 +362,7 @@ public final class TypeIDs
 				if (ret != null)
 					return ret;
 				
-				throw new EntityNotFoundException(toConvert.getName() + " is not an entity");
+				throw new EntityNotFoundException("'" + toConvert.getName() + "' is not an entity");
 			}
 		});
 		
@@ -367,7 +440,7 @@ public final class TypeIDs
 			@Override
 			public CoordValue convert(final CommandArg<Integer> toConvert)
 			{
-				return new CoordValue(new CommandArg<Double>()
+				return new CoordValue.Dynamic(new CommandArg<Double>()
 				{
 					@Override
 					public Double eval(final ICommandSender sender) throws CommandException
@@ -383,8 +456,52 @@ public final class TypeIDs
 			@Override
 			public CoordValue convert(final CommandArg<Double> toConvert)
 			{
-				return new CoordValue(toConvert, true);
+				return new CoordValue.Dynamic(toConvert, true);
 			}
 		});
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.BlockID, ParserBlockID.stringToBlock);
+		
+		TypeIDs.BlockID.addChild(TypeIDs.BlockState, new CConverter<IBlockState, Block>()
+		{
+			@Override
+			public Block convert(final IBlockState toConvert) throws CommandException
+			{
+				return toConvert.getBlock();
+			}
+		});
+		
+		TypeIDs.BlockID.addPrimitiveConverter(TypeIDs.String, Converters.blockToString);
+		
+		TypeIDs.BlockID.addPrimitiveConverter(TypeIDs.IChatComponent, new CConverter<Block, IChatComponent>()
+		{
+			@Override
+			public IChatComponent convert(final Block toConvert) throws CommandException
+			{
+				return new ChatComponentTranslation(toConvert.getLocalizedName());
+			}
+		});
+		
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.ItemID, ParserItemID.stringToItem);
+		
+		TypeIDs.BlockPos.addDefaultConverter(TypeIDs.Coordinates, new SConverter<BlockPos, Vec3>()
+		{
+			@Override
+			public Vec3 convert(final BlockPos toConvert) throws SyntaxErrorException
+			{
+				return new Vec3(toConvert.getX(), toConvert.getY(), toConvert.getZ());
+			}
+		});
+		
+		TypeIDs.Coordinates.addDefaultConverter(TypeIDs.BlockPos, new SConverter<Vec3, BlockPos>()
+		{
+			@Override
+			public BlockPos convert(final Vec3 toConvert) throws SyntaxErrorException
+			{
+				return new BlockPos(toConvert);
+			}
+		});
+		
+		TypeIDs.Coordinates.addDefaultConverter(TypeIDs.Shift, Converter.<Vec3, Shift> primitiveConverter());
 	}
 }

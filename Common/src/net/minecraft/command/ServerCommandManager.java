@@ -13,8 +13,10 @@ import net.minecraft.command.commands.CommandScoreboard;
 import net.minecraft.command.descriptors.CommandDescriptor;
 import net.minecraft.command.descriptors.OperatorDescriptor;
 import net.minecraft.command.descriptors.SelectorDescriptor;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.command.type.management.Convertable;
+import net.minecraft.command.type.management.TypeID;
 import net.minecraft.command.type.management.relations.Relation;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.IScoreObjectiveCriteria;
@@ -35,6 +37,7 @@ public final class ServerCommandManager extends CommandHandler
 	{
 		Relation.clearAll();
 		Convertable.clearAll();
+		TypeID.clearAll();
 		CommandDescriptor.clear();
 		SelectorDescriptor.clear();
 		OperatorDescriptor.clear();

@@ -7,31 +7,31 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.ExCustomCompletable;
 
-public class ParserKeyword extends ExCustomCompletable<CommandDescriptor, ParserData>
+public class ParserKeyword<D extends CParserData> extends ExCustomCompletable<CommandDescriptor<? super D>, D>
 {
-	private final CommandDescriptor descriptor;
+	private final CommandDescriptor<D> descriptor;
 	
-	public ParserKeyword(final CommandDescriptor descriptor)
+	public ParserKeyword(final CommandDescriptor<D> descriptor)
 	{
 		this.descriptor = descriptor;
 	}
 	
 	@Override
-	public CommandDescriptor iParse(final Parser parser, final ParserData data) throws SyntaxErrorException
+	public CommandDescriptor<? super D> iParse(final Parser parser, final D data) throws SyntaxErrorException
 	{
 		// No parser.checkEnd() needed
 		final Matcher m = parser.getMatcher(ParsingUtilities.keyMatcher);
 		
 		if (parser.find(m))
 		{
-			final String keyword = m.group(1);
+			final String keyword = m.group(1).toLowerCase(); // TODO:...
 			
-			final CommandDescriptor ret = this.descriptor.getSubType(keyword);
+			final CommandDescriptor<? super D> ret = this.descriptor.getSubType(keyword);
 			
 			if (ret != null)
 			{
@@ -49,7 +49,7 @@ public class ParserKeyword extends ExCustomCompletable<CommandDescriptor, Parser
 	}
 	
 	@Override
-	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final ParserData data)
+	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final CParserData data)
 	{
 		TabCompletionData.addToSet(tcDataSet, startIndex, cData, this.descriptor.getKeywordCompletions());
 	}

@@ -6,18 +6,18 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 
 public class CommandTry extends CommandArg<Integer>
 {
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandArg<Integer> construct(final ParserData data) throws SyntaxErrorException
+		public CommandArg<Integer> construct(final CParserData data) throws SyntaxErrorException
 		{
 			return new CommandTry(
-				getParam(TypeIDs.Integer, data),
-				getParam(TypeIDs.Integer, data));
+				data.get(TypeIDs.Integer),
+				data.get(TypeIDs.Integer));
 		}
 	};
 	

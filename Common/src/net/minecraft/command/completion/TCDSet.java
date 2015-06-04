@@ -48,6 +48,7 @@ public class TCDSet
 								request.createCompletions(TCDSet.this.primitiveData);
 							
 							handler.sendPacket(new S3APacketTabComplete(TCDSet.this.primitiveData));
+							
 						}
 					});
 				}

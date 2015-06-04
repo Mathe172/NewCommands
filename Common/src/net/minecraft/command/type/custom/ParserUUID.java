@@ -1,7 +1,7 @@
 package net.minecraft.command.type.custom;
 
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.collections.TypeIDs;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.type.CDataType;
 
 public final class ParserUUID

@@ -1,40 +1,34 @@
 package net.minecraft.command.type.custom;
 
-import java.util.regex.Matcher;
-
-import net.minecraft.command.MatcherRegistry;
-import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.parser.CompletionException;
-import net.minecraft.command.parser.Context;
-import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.CTypeParse;
+import net.minecraft.command.parser.MatcherRegistry;
+import net.minecraft.command.type.CDataType;
+import net.minecraft.command.type.management.CConverter;
 
-public final class ParserDouble extends CTypeParse<Double>
+public final class ParserDouble
 {
 	public static final MatcherRegistry doubleMatcher = new MatcherRegistry("\\G\\s*+([+-]?+(?=\\.?+\\d)\\d*+\\.?+\\d*+)");
 	
-	public static final ParserDouble parser = new ParserDouble();
+	public static final CConverter<String, Double> stringToDouble = new CConverter<String, Double>()
+	{
+		@Override
+		public Double convert(final String toConvert) throws CommandException
+		{
+			try
+			{
+				return new Double(toConvert);
+			} catch (final NumberFormatException e)
+			{
+				throw new NumberInvalidException("Cannot convert " + toConvert + " to double");
+			}
+		}
+	};
+	
+	public static final CDataType<Double> parser = new ParserName.CustomType<>(doubleMatcher, "double", TypeIDs.Double, stringToDouble, true);
 	
 	private ParserDouble()
 	{
 	}
-	
-	@Override
-	public ArgWrapper<Double> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
-	{
-		final ArgWrapper<Double> ret = context.generalParse(parser, TypeIDs.Double);
-		
-		if (ret != null)
-			return ret;
-		
-		final Matcher m = parser.getMatcher(doubleMatcher);
-		
-		if (parser.findInc(m))
-			return TypeIDs.Double.wrap(Double.parseDouble(m.group(1)));
-		
-		throw parser.SEE("Unable to parse int around index ");
-	}
-	
 }

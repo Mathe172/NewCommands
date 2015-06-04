@@ -717,7 +717,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, IUpdatePlaye
 	{
 		logger.info(this.playerEntity.getName() + " lost connection: " + reason);
 		this.serverController.refreshStatusNextTick();
-		final ChatComponentTranslation var2 = new ChatComponentTranslation("multiplayer.player.left",  this.playerEntity.getDisplayName() );
+		final ChatComponentTranslation var2 = new ChatComponentTranslation("multiplayer.player.left", this.playerEntity.getDisplayName());
 		var2.getChatStyle().setColor(EnumChatFormatting.YELLOW);
 		this.serverController.getConfigurationManager().sendChatMsg(var2);
 		this.playerEntity.mountEntityAndWakeUp();
@@ -828,7 +828,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, IUpdatePlaye
 			}
 			else
 			{
-				final ChatComponentTranslation var5 = new ChatComponentTranslation("chat.type.text",  this.playerEntity.getDisplayName(), var2 );
+				final ChatComponentTranslation var5 = new ChatComponentTranslation("chat.type.text", this.playerEntity.getDisplayName(), var2);
 				this.serverController.getConfigurationManager().sendChatMsgImpl(var5, false);
 			}
 			
@@ -841,12 +841,15 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, IUpdatePlaye
 		}
 	}
 	
+	public String lastCommand = null;
+	
 	/**
 	 * Handle commands that start with a /
 	 */
 	private void handleSlashCommand(final String command)
 	{
 		CommandHandler.executeCommand(this.playerEntity, command, 1);
+		this.lastCommand = command;
 	}
 	
 	@Override
@@ -1396,7 +1399,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, IUpdatePlaye
 						}
 						
 						var46.func_145756_e();
-						this.playerEntity.addChatMessage(new ChatComponentTranslation("advMode.setCommand.success",  var49 ));
+						this.playerEntity.addChatMessage(new ChatComponentTranslation("advMode.setCommand.success", var49));
 					}
 				} catch (final Exception var33)
 				{

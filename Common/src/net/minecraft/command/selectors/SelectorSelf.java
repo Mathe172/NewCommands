@@ -4,8 +4,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.construction.SelectorConstructable;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
+import net.minecraft.command.descriptors.SelectorDescriptorNoContent.PrimitiveConstructable;
+import net.minecraft.command.descriptors.SelectorDescriptorNoContent.PrimitiveData;
 
 public final class SelectorSelf extends CommandArg<ICommandSender>
 {
@@ -15,10 +15,10 @@ public final class SelectorSelf extends CommandArg<ICommandSender>
 	{
 	}
 	
-	public static final SelectorConstructable constructable = new SelectorConstructable()
+	public static final PrimitiveConstructable constructable = new PrimitiveConstructable()
 	{
 		@Override
-		public ArgWrapper<ICommandSender> construct(final ParserData parserData)
+		public ArgWrapper<ICommandSender> construct(final PrimitiveData parserData)
 		{
 			return TypeIDs.ICmdSender.wrap(selfSelector);
 		}

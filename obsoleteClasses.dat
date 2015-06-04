@@ -1,10 +1,7 @@
 + net/minecraft/command
-CommandException.java
 EntityNotFoundException.java
 IEntitySelector.java
 NumberInvalidException.java
 PlayerNotFoundException.java
-SyntaxErrorException.java
-WrongUsageException.java
 - net/minecraft/server/integrated
 IntegratedServerCommandManager.java

@@ -2,16 +2,17 @@ package net.minecraft.command.commands;
 
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.custom.TypeStringLiteral;
 import net.minecraft.entity.Entity;
@@ -31,14 +32,14 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandGameMode construct(final ParserData data) throws SyntaxErrorException
+		public CommandGameMode construct(final CParserData data) throws SyntaxErrorException
 		{
 			if (data.size() == 1)
-				return new NoPlayer(getParam(TypeIDs.String, data));
-			else
-				return new Player(
-					getParam(TypeIDs.String, data),
-					getParam(TypeIDs.EntityList, data));
+				return new NoPlayer(data.get(TypeIDs.String));
+			
+			return new Player(
+				data.get(TypeIDs.String),
+				data.get(TypeIDs.EntityList));
 		}
 	};
 	
@@ -63,11 +64,11 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 		
 		if (player != sender)
 		{
-			CommandBase.notifyOperators(sender, 1, "commands.gamemode.success.other", player.getName(), message);
+			CommandUtilities.notifyOperators(sender, 1, "commands.gamemode.success.other", player.getName(), message);
 		}
 		else
 		{
-			CommandBase.notifyOperators(sender, 1, "commands.gamemode.success.self", message);
+			CommandUtilities.notifyOperators(sender, 1, "commands.gamemode.success.self", message);
 		}
 	}
 	
@@ -86,9 +87,10 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 		{
 			int successCount = 0;
 			
-			final WorldSettings.GameType gameType = getGameModeFromCommand(this.gamemode.eval(sender));
-			
+			final String gamemode = this.gamemode.eval(sender);
 			final List<Entity> entities = this.players.eval(sender);
+			
+			final WorldSettings.GameType gameType = getGameModeFromCommand(gamemode);
 			
 			for (final Entity entity : entities)
 			{
@@ -123,11 +125,18 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 		}
 	}
 	
+	private static int parseInt(final String input, final int min, final int max) throws NumberInvalidException
+	{
+		final int ret = CommandUtilities.parseInt(input);
+		CommandUtilities.checkInt(ret, min, max);
+		return ret;
+	}
+	
 	/**
 	 * Gets the Game Mode specified in the command.
 	 */
 	protected static WorldSettings.GameType getGameModeFromCommand(final String gamemode) throws CommandException
 	{
-		return !gamemode.equalsIgnoreCase(WorldSettings.GameType.SURVIVAL.getName()) && !gamemode.equalsIgnoreCase("s") ? (!gamemode.equalsIgnoreCase(WorldSettings.GameType.CREATIVE.getName()) && !gamemode.equalsIgnoreCase("c") ? (!gamemode.equalsIgnoreCase(WorldSettings.GameType.ADVENTURE.getName()) && !gamemode.equalsIgnoreCase("a") ? (!gamemode.equalsIgnoreCase(WorldSettings.GameType.SPECTATOR.getName()) && !gamemode.equalsIgnoreCase("sp") ? WorldSettings.getGameTypeById(CommandBase.parseInt(gamemode, 0, WorldSettings.GameType.values().length - 2)) : WorldSettings.GameType.SPECTATOR) : WorldSettings.GameType.ADVENTURE) : WorldSettings.GameType.CREATIVE) : WorldSettings.GameType.SURVIVAL;
+		return !gamemode.equalsIgnoreCase(WorldSettings.GameType.SURVIVAL.getName()) && !gamemode.equalsIgnoreCase("s") ? (!gamemode.equalsIgnoreCase(WorldSettings.GameType.CREATIVE.getName()) && !gamemode.equalsIgnoreCase("c") ? (!gamemode.equalsIgnoreCase(WorldSettings.GameType.ADVENTURE.getName()) && !gamemode.equalsIgnoreCase("a") ? (!gamemode.equalsIgnoreCase(WorldSettings.GameType.SPECTATOR.getName()) && !gamemode.equalsIgnoreCase("sp") ? WorldSettings.getGameTypeById(parseInt(gamemode, 0, WorldSettings.GameType.values().length - 2)) : WorldSettings.GameType.SPECTATOR) : WorldSettings.GameType.ADVENTURE) : WorldSettings.GameType.CREATIVE) : WorldSettings.GameType.SURVIVAL;
 	}
 }

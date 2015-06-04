@@ -1,8 +1,10 @@
 package net.minecraft.command.type.custom.nbt;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import net.minecraft.command.CommandException;
@@ -18,6 +20,9 @@ import net.minecraft.command.type.custom.nbt.NBTUtilities.NBTData;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 public class ParserNBTCompound
 {
 	private final Compound descriptor;
@@ -32,23 +37,26 @@ public class ParserNBTCompound
 		public String name = null;
 		
 		public final Map<String, NBTBase> primitiveData = new HashMap<>();
-		public final Map<String, CommandArg<NBTBase>> data = new HashMap<>();
+		public final Set<String> keySet = new HashSet<>();
+		public final ArrayList<Pair<String, CommandArg<NBTBase>>> data = new ArrayList<>();
 		
 		@Override
 		public void put(final NBTBase data)
 		{
 			this.primitiveData.put(this.name, data);
+			this.keySet.add(this.name);
 		}
 		
 		@Override
-		public void put(final CommandArg<NBTBase> data)
+		public void add(final CommandArg<NBTBase> data)
 		{
-			this.data.put(this.name, data);
+			this.data.add(new ImmutablePair<>(this.name, data));
+			this.keySet.add(this.name);
 		}
 		
 		public boolean containsKey(final String key)
 		{
-			return this.primitiveData.containsKey(key) || this.data.containsKey(key);
+			return this.keySet.contains(key);
 		}
 	}
 	
@@ -63,19 +71,27 @@ public class ParserNBTCompound
 		if (data.data.isEmpty())
 			parserData.put(new NBTTagCompound(data.primitiveData));
 		else
-			parserData.put(new CommandArg<NBTBase>()
+			parserData.add(createNBTCompound(data));
+	}
+	
+	public static final CommandArg<NBTBase> createNBTCompound(final CompoundData data)
+	{
+		final ArrayList<Pair<String, CommandArg<NBTBase>>> dynamicData = data.data;
+		dynamicData.trimToSize();
+		
+		return new CommandArg<NBTBase>()
+		{
+			final NBTTagCompound compound = new NBTTagCompound(data.primitiveData);
+			
+			@Override
+			public NBTTagCompound eval(final ICommandSender sender) throws CommandException
 			{
-				final NBTTagCompound compound = new NBTTagCompound(data.primitiveData);
+				for (final Pair<String, CommandArg<NBTBase>> tag : dynamicData)
+					this.compound.setTag(tag.getKey(), tag.getValue().eval(sender));
 				
-				@Override
-				public NBTTagCompound eval(final ICommandSender sender) throws CommandException
-				{
-					for (final Entry<String, CommandArg<NBTBase>> tag : data.data.entrySet())
-						data.primitiveData.put(tag.getKey(), tag.getValue().eval(sender));
-					
-					return this.compound;
-				}
-			});
+				return this.compound;
+			}
+		};
 	}
 	
 	public void parseItems(final Parser parser, final CompoundData data) throws SyntaxErrorException, CompletionException
@@ -91,19 +107,19 @@ public class ParserNBTCompound
 				if ("}".equals(m.group(1)))
 					return;
 				
-				throw parser.SEE("Unexpected '" + m.group(1) + "' around index ");
+				throw parser.SEE("Unexpected '" + m.group(1) + "' ");
 			}
 			
 			pair.parse(parser, data);
 			
 			if (!parser.findInc(m))
-				throw parser.SEE("No delimiter found while parsing tag compound around index ");
+				throw parser.SEE("No delimiter found while parsing tag compound ");
 			
 			if ("}".equals(m.group(1)))
 				return;
 			
 			if ("]".equals(m.group(1)))
-				throw parser.SEE("Unexpected ']' around index ");
+				throw parser.SEE("Unexpected ']' ");
 		}
 	}
 }

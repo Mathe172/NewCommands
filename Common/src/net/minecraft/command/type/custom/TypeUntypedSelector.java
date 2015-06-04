@@ -32,7 +32,7 @@ public class TypeUntypedSelector extends TypeCompletable<ArgWrapper<?>>
 		final SelectorDescriptor<?> descriptor = SelectorDescriptor.getDescriptor(m.group());
 		
 		if (descriptor == null)
-			throw parser.SEE("Unknown selector type: " + m.group() + " around index ");
+			throw parser.SEE("Unknown selector type '" + m.group() + "' ");
 		
 		parser.incIndex(m);
 		

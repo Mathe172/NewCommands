@@ -14,6 +14,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.TypedWrapper.Getter;
+import net.minecraft.command.arg.TypedWrapper.SimpleGetter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.SelectorConstructable;
 import net.minecraft.command.selectors.entity.FilterList.InvertableArg;
@@ -37,6 +39,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -53,27 +56,28 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	private final boolean isPlayerSelector;
 	
 	private final CommandArg<Vec3> coords;
-	private final CommandArg<Integer> r;
-	private final CommandArg<Integer> rm;
-	private final CommandArg<Double> dx;
-	private final CommandArg<Double> dy;
-	private final CommandArg<Double> dz;
-	private final CommandArg<Integer> c;
-	private final CommandArg<Integer> m;
-	private final CommandArg<Integer> l;
-	private final CommandArg<Integer> lm;
-	private final CommandArg<Double> rx;
-	private final CommandArg<Double> rxm;
-	private final CommandArg<Double> ry;
-	private final CommandArg<Double> rym;
+	private final Getter<Integer> r;
+	private final Getter<Integer> rm;
+	private final Getter<Double> dx;
+	private final Getter<Double> dy;
+	private final Getter<Double> dz;
+	private final Getter<Vec3> dxyz;
+	private final Getter<Integer> c;
+	private final Getter<Integer> m;
+	private final Getter<Integer> l;
+	private final Getter<Integer> lm;
+	private final Getter<Double> rx;
+	private final Getter<Double> rxm;
+	private final Getter<Double> ry;
+	private final Getter<Double> rym;
 	private final InvertableArg name;
 	private final InvertableArg team;
 	private final InvertableArg type;
-	private final CommandArg<Predicate<Map<ScoreObjective, Score>>> scores;
+	private final SimpleGetter<Predicate<Map<ScoreObjective, Score>>> scores;
 	
 	private final boolean nullScoreAllowed;
 	
-	private final CommandArg<NBTTagCompound> nbt;
+	private final Getter<NBTTagCompound> nbt;
 	
 	private final boolean allWorlds;
 	
@@ -86,27 +90,28 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	{
 		this.selType = selType;
 		
-		final CommandArg<Vec3> coords = SelectorConstructable.getParam(TypeIDs.Coordinates, "xyz", parserData);
+		final Getter<Vec3> coords = SelectorConstructable.getParam(TypeIDs.Coordinates, "xyz", parserData);
 		
 		if (coords == null)
 		{
-			final CommandArg<Double> x = SelectorConstructable.getParam(TypeIDs.Double, 0, "x", parserData);
-			final CommandArg<Double> y = SelectorConstructable.getParam(TypeIDs.Double, 1, "y", parserData);
-			final CommandArg<Double> z = SelectorConstructable.getParam(TypeIDs.Double, 2, "z", parserData);
+			final Getter<Double> x = SelectorConstructable.getParam(TypeIDs.Double, 0, "x", parserData);
+			final Getter<Double> y = SelectorConstructable.getParam(TypeIDs.Double, 1, "y", parserData);
+			final Getter<Double> z = SelectorConstructable.getParam(TypeIDs.Double, 2, "z", parserData);
 			
 			this.coords = new Coordinates(
-				x == null ? SingleCoordinate.tildexNC : x,
-				y == null ? SingleCoordinate.tildeyNC : y,
-				z == null ? SingleCoordinate.tildezNC : z);
+				x == null ? SingleCoordinate.tildexNC : x.commandArg(),
+				y == null ? SingleCoordinate.tildeyNC : y.commandArg(),
+				z == null ? SingleCoordinate.tildezNC : z.commandArg());
 		}
 		else
-			this.coords = coords;
+			this.coords = coords.commandArg();
 		
 		this.r = SelectorConstructable.getParam(TypeIDs.Integer, 3, "r", parserData);
 		this.rm = SelectorConstructable.getParam(TypeIDs.Integer, "rm", parserData);
 		this.dx = SelectorConstructable.getParam(TypeIDs.Double, "dx", parserData);
 		this.dy = SelectorConstructable.getParam(TypeIDs.Double, "dy", parserData);
 		this.dz = SelectorConstructable.getParam(TypeIDs.Double, "dz", parserData);
+		this.dxyz = SelectorConstructable.getParam(TypeIDs.Coordinates, "dxyz", parserData);
 		this.c = SelectorConstructable.getParam(TypeIDs.Integer, "c", parserData);
 		this.m = SelectorConstructable.getParam(TypeIDs.Integer, "m", parserData);
 		this.l = SelectorConstructable.getParam(TypeIDs.Integer, "l", parserData);
@@ -121,7 +126,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		
 		this.nbt = SelectorConstructable.getParam(TypeIDs.NBTCompound, "nbt", parserData);
 		
-		final Map<String, MutablePair<CommandArg<Integer>, CommandArg<Integer>>> pScores = parserData.primitiveScores;
+		final Map<String, MutablePair<Getter<Integer>, Getter<Integer>>> pScores = parserData.primitiveScores;
 		
 		this.nullScoreAllowed = parserData.nullScoreAllowed && pScores.isEmpty();
 		
@@ -132,34 +137,34 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		this.allWorlds = !(this.r != null || this.rm != null || this.dx != null || this.dy != null || this.dz != null || this.coords != null);
 	}
 	
-	public CommandArg<Predicate<Map<ScoreObjective, Score>>> procScores(final Map<String, MutablePair<CommandArg<Integer>, CommandArg<Integer>>> pScores)
+	public SimpleGetter<Predicate<Map<ScoreObjective, Score>>> procScores(final Map<String, MutablePair<Getter<Integer>, Getter<Integer>>> pScores)
 	{
-		return new CommandArg<Predicate<Map<ScoreObjective, Score>>>()
+		return new SimpleGetter<Predicate<Map<ScoreObjective, Score>>>()
 		{
 			@Override
-			public Predicate<Map<ScoreObjective, Score>> eval(final ICommandSender sender) throws CommandException
+			public Predicate<Map<ScoreObjective, Score>> get() throws CommandException
 			{
 				final List<Predicate<Map<ScoreObjective, Score>>> predicates = new ArrayList<>(pScores.size());
 				
 				final Scoreboard scoreboard = MinecraftServer.getServer().worldServerForDimension(0).getScoreboard();
 				
-				for (final Entry<String, MutablePair<CommandArg<Integer>, CommandArg<Integer>>> score : pScores.entrySet())
+				for (final Entry<String, MutablePair<Getter<Integer>, Getter<Integer>>> score : pScores.entrySet())
 				{
 					final ScoreObjective objective = scoreboard.getObjective(score.getKey());
 					
 					if (objective == null)
 						throw new CommandException("Objective not found: " + score.getKey());
 					
-					final CommandArg<Integer> minArg = score.getValue().left;
-					final CommandArg<Integer> maxArg = score.getValue().right;
+					final Getter<Integer> minArg = score.getValue().left;
+					final Getter<Integer> maxArg = score.getValue().right;
 					
 					if (minArg != null)
 					{
-						final int min = minArg.eval(sender);
+						final int min = minArg.get();
 						
 						if (maxArg != null)
 						{
-							final int max = maxArg.eval(sender);
+							final int max = maxArg.get();
 							predicates.add(new Predicate<Map<ScoreObjective, Score>>()
 							{
 								@Override
@@ -196,7 +201,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						continue;
 					}
 					
-					final int max = maxArg.eval(sender);
+					final int max = maxArg.get();
 					predicates.add(new Predicate<Map<ScoreObjective, Score>>()
 					{
 						@Override
@@ -231,16 +236,16 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		
 		final Vec3 coords = this.coords.eval(sender);
 		
-		final AxisAlignedBB dBox = this.dPredicate(predList, sender, coords);
-		this.rotPredicate(predList, sender);
-		this.lPredicate(predList, sender);
-		this.mPredicate(predList, sender);
-		final AxisAlignedBB rBox = this.rPredicate(predList, sender, new BlockPos(coords));
-		this.namePredicate(predList, sender);
-		this.teamPredicate(predList, sender);
+		final AxisAlignedBB dBox = this.dPredicate(predList, coords);
+		this.rotPredicate(predList);
+		this.lPredicate(predList);
+		this.mPredicate(predList);
+		final AxisAlignedBB rBox = this.rPredicate(predList, new BlockPos(coords));
+		this.namePredicate(predList);
+		this.teamPredicate(predList);
 		
-		this.scorePredicate(predList2, sender);
-		this.nbtPredicate(predList2, sender);
+		this.scorePredicate(predList2);
+		this.nbtPredicate(predList2);
 		
 		typePredicate = this.typePredicate(sender);
 		
@@ -283,12 +288,12 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 			}
 		}
 		
-		return this.applySelType(sender, matches, coords);
+		return this.applySelType(matches, coords);
 	}
 	
-	private List<Entity> applySelType(final ICommandSender sender, final List<Entity> matches, final Vec3 origin) throws CommandException
+	private List<Entity> applySelType(final List<Entity> matches, final Vec3 origin) throws CommandException
 	{
-		final Integer c = CommandArg.eval(this.c, sender);
+		final Integer c = get(this.c);
 		
 		if (this.selType == SelectorType.r)
 		{
@@ -330,12 +335,12 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		return new AxisAlignedBB(Math.max(box1.minX, box2.minX), Math.max(box1.minY, box2.minY), Math.max(box1.minZ, box2.minZ), Math.min(box1.maxX, box2.maxX), Math.min(box1.maxY, box2.maxY), Math.min(box1.maxZ, box2.maxZ));
 	}
 	
-	private void nbtPredicate(final List<Predicate<Entity>> predList2, final ICommandSender sender) throws CommandException
+	private void nbtPredicate(final List<Predicate<Entity>> predList2) throws CommandException
 	{
 		if (this.nbt == null)
 			return;
 		
-		final NBTTagCompound nbt = this.nbt.eval(sender);
+		final NBTTagCompound nbt = this.nbt.get();
 		
 		predList2.add(new Predicate<Entity>()
 		{
@@ -354,7 +359,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	{
 		if (!EntityList.func_180125_b(type))
 		{
-			final ChatComponentTranslation var3 = new ChatComponentTranslation("commands.generic.entity.invalidType",  type );
+			final ChatComponentTranslation var3 = new ChatComponentTranslation("commands.generic.entity.invalidType", type);
 			var3.getChatStyle().setColor(EnumChatFormatting.RED);
 			sender.addChatMessage(var3);
 			return false;
@@ -363,14 +368,14 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		return true;
 	}
 	
-	private void scorePredicate(final List<Predicate<Entity>> predList2, final ICommandSender sender) throws CommandException
+	private void scorePredicate(final List<Predicate<Entity>> predList2) throws CommandException
 	{
 		if (this.scores == null)
 			return;
 		
 		final Scoreboard scoreboard = MinecraftServer.getServer().worldServerForDimension(0).getScoreboard();
 		
-		final Predicate<Map<ScoreObjective, Score>> predicate = this.scores.eval(sender);
+		final Predicate<Map<ScoreObjective, Score>> predicate = this.scores.get();
 		
 		predList2.add(new Predicate<Entity>()
 		{
@@ -387,13 +392,13 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		});
 	}
 	
-	private void mPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
+	private void mPredicate(final List<Predicate<Entity>> predList) throws CommandException
 	{
 		
 		if (this.m == null)
 			return;
 		
-		final int m = this.m.eval(sender);
+		final int m = this.m.get();
 		
 		predList.add(new Predicate<Entity>()
 		{
@@ -414,7 +419,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		if (this.type == null)
 			return null;
 		
-		final Set<String> types = filterTypes(this.type.arg.eval(sender), sender);
+		final Set<String> types = filterTypes(this.type.arg.get(), sender);
 		
 		final boolean inverted = this.type.inverted;
 		
@@ -471,7 +476,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		return null;
 	}
 	
-	private void teamPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
+	private void teamPredicate(final List<Predicate<Entity>> predList) throws CommandException
 	{
 		if (this.team == null)
 			return;
@@ -495,7 +500,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 			return;
 		}
 		
-		final Set<String> teams = new HashSet<>(this.team.arg.eval(sender));
+		final Set<String> teams = new HashSet<>(this.team.arg.get());
 		
 		predList.add(new Predicate<Entity>()
 		{
@@ -514,12 +519,12 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		});
 	}
 	
-	private void namePredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
+	private void namePredicate(final List<Predicate<Entity>> predList) throws CommandException
 	{
 		if (this.name == null)
 			return;
 		
-		final Set<String> names = new HashSet<>(this.name.arg.eval(sender));
+		final Set<String> names = new HashSet<>(this.name.arg.get());
 		
 		final boolean inverted = this.name.inverted;
 		
@@ -533,10 +538,10 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		});
 	}
 	
-	private void lPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
+	private void lPredicate(final List<Predicate<Entity>> predList) throws CommandException
 	{
-		final Integer l = CommandArg.eval(this.l, sender);
-		final Integer lm = CommandArg.eval(this.lm, sender);
+		final Integer l = get(this.l);
+		final Integer lm = get(this.lm);
 		
 		if (l != null && l >= 0)
 		{
@@ -592,13 +597,13 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		}
 	}
 	
-	private AxisAlignedBB dPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender, final Vec3 origin) throws CommandException
+	private AxisAlignedBB dPredicate(final List<Predicate<Entity>> predList, final Vec3 origin) throws CommandException
 	{
-		final Double dx = CommandArg.eval(this.dx, sender);
-		final Double dy = CommandArg.eval(this.dy, sender);
-		final Double dz = CommandArg.eval(this.dz, sender);
+		final Vec3 dxyz = get(this.dxyz);
 		
-		final AxisAlignedBB box = createBox(origin, dx, dy, dz);
+		final AxisAlignedBB box = this.dxyz == null
+			? createBox(origin, get(this.dx), get(this.dy), get(this.dz))
+			: createBox(origin, dxyz.xCoord, dxyz.yCoord, dxyz.zCoord);
 		
 		predList.add(new Predicate<Entity>()
 		{
@@ -655,10 +660,10 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		return new AxisAlignedBB(xMin, yMin, zMin, xMax, yMax, zMax);
 	}
 	
-	private AxisAlignedBB rPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender, final BlockPos origin) throws CommandException
+	private AxisAlignedBB rPredicate(final List<Predicate<Entity>> predList, final BlockPos origin) throws CommandException
 	{
-		final Integer r = CommandArg.eval(this.r, sender);
-		final Integer rm = CommandArg.eval(this.rm, sender);
+		final Integer r = get(this.r);
+		final Integer rm = get(this.rm);
 		
 		final AxisAlignedBB box = createBox(origin, r);
 		
@@ -715,20 +720,21 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		return box;
 	}
 	
-	private void rotPredicate(final List<Predicate<Entity>> predList, final ICommandSender sender) throws CommandException
+	private void rotPredicate(final List<Predicate<Entity>> predList) throws CommandException
 	{
-		final Double ry = CommandArg.eval(this.ry, sender);
-		final Double rym = CommandArg.eval(this.rym, sender);
-		final Double rx = CommandArg.eval(this.rx, sender);
-		final Double rxm = CommandArg.eval(this.rxm, sender);
+		final Double rx = get(this.rx);
+		final Double rxm = get(this.rxm);
+		
+		final Double ry = get(this.ry);
+		final Double rym = get(this.rym);
 		
 		if (rx != null)
 		{
-			final double fRx = this.correctAngleX(rx);
+			final double fRx = wrapAngleTo90(rx);
 			
 			if (rxm != null)
 			{
-				final double fRxm = this.correctAngleX(rxm);
+				final double fRxm = wrapAngleTo90(rxm);
 				
 				if (fRxm < fRx)
 				{
@@ -737,8 +743,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						@Override
 						public boolean apply(final Entity e)
 						{
-							final double yaw = SelectorEntity.this.correctAngleX(e.rotationPitch);
-							return yaw >= fRxm && yaw <= fRx;
+							final double pitch = e.rotationPitch;
+							return pitch >= fRxm && pitch <= fRx;
 						}
 					});
 				}
@@ -749,8 +755,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						@Override
 						public boolean apply(final Entity e)
 						{
-							final double yaw = SelectorEntity.this.correctAngleX(e.rotationPitch);
-							return yaw >= fRxm || yaw <= fRx;
+							final double pitch = e.rotationPitch;
+							return pitch >= fRxm || pitch <= fRx;
 						}
 					});
 				}
@@ -762,32 +768,32 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 					@Override
 					public boolean apply(final Entity e)
 					{
-						return SelectorEntity.this.correctAngleX(e.rotationPitch) <= fRx;
+						return e.rotationPitch <= fRx;
 					}
 				});
 			}
 		}
 		else if (rxm != null)
 		{
-			final double fRxm = this.correctAngleX(rxm);
+			final double fRxm = wrapAngleTo90(rxm);
 			
 			predList.add(new Predicate<Entity>()
 			{
 				@Override
 				public boolean apply(final Entity e)
 				{
-					return SelectorEntity.this.correctAngleX(e.rotationPitch) >= fRxm;
+					return e.rotationPitch >= fRxm;
 				}
 			});
 		}
 		
 		if (ry != null)
 		{
-			final double fRy = this.correctAngleY(ry);
+			final double fRy = MathHelper.wrapAngleTo180_double(ry);
 			
 			if (rym != null)
 			{
-				final double fRym = this.correctAngleY(rym);
+				final double fRym = MathHelper.wrapAngleTo180_double(rym);
 				
 				if (fRym < fRy)
 				{
@@ -796,7 +802,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						@Override
 						public boolean apply(final Entity e)
 						{
-							final double yaw = SelectorEntity.this.correctAngleY(e.rotationYaw);
+							final double yaw = e.rotationYaw;
 							return yaw >= fRym && yaw <= fRy;
 						}
 					});
@@ -808,7 +814,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						@Override
 						public boolean apply(final Entity e)
 						{
-							final double yaw = SelectorEntity.this.correctAngleY(e.rotationYaw);
+							final double yaw = e.rotationYaw;
 							return yaw >= fRym || yaw <= fRy;
 						}
 					});
@@ -821,38 +827,42 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 					@Override
 					public boolean apply(final Entity e)
 					{
-						return SelectorEntity.this.correctAngleY(e.rotationYaw) <= fRy;
+						return e.rotationYaw <= fRy;
 					}
 				});
 			}
 		}
 		else if (rym != null)
 		{
-			final double fRym = this.correctAngleY(rym);
+			final double fRym = MathHelper.wrapAngleTo180_double(rym);
 			
 			predList.add(new Predicate<Entity>()
 			{
 				@Override
 				public boolean apply(final Entity e)
 				{
-					return SelectorEntity.this.correctAngleY(e.rotationYaw) >= fRym;
+					return e.rotationYaw >= fRym;
 				}
 			});
 		}
+	}
+	
+	private static double wrapAngleTo90(double angle)
+	{
+		angle %= 360.0D;
 		
-	}
-	
-	private double correctAngleY(double angle)
-	{
-		angle %= 360.0;
-		return angle < 0.0 ? angle + 360.0 : angle;
-	}
-	
-	private double correctAngleX(double angle)
-	{
-		angle %= 360.0;
-		if (angle > 180.0)
-			angle -= 360.0;
-		return angle < -180.0 ? angle + 360.0 : angle;
+		if (angle < -270)
+			return 360.0 + angle;
+		
+		if (angle < -90.0)
+			return -180.0 - angle;
+		
+		if (angle > 270.0)
+			return angle - 360.0;
+		
+		if (angle > 90.0)
+			return 180.0 - angle;
+		
+		return angle;
 	}
 }

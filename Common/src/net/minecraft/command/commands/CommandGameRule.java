@@ -1,16 +1,16 @@
 package net.minecraft.command.commands;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.CommandResultStats.Type;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.ParserData;
+import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.custom.TypeStringLiteral;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -45,7 +45,7 @@ public final class CommandGameRule
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{
 		@Override
-		public CommandArg<Integer> construct(final ParserData data) throws SyntaxErrorException
+		public CommandArg<Integer> construct(final CParserData data) throws SyntaxErrorException
 		{
 			switch (data.size())
 			{
@@ -54,12 +54,12 @@ public final class CommandGameRule
 				
 			case 1:
 				return new Rule(
-					getParam(TypeIDs.String, data));
+					data.get(TypeIDs.String));
 				
 			default:
 				return new RuleVal(
-					getParam(TypeIDs.String, data),
-					getParam(TypeIDs.String, data));
+					data.get(TypeIDs.String),
+					data.get(TypeIDs.String));
 			}
 		}
 	};
@@ -91,14 +91,12 @@ public final class CommandGameRule
 		@Override
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
-			final GameRules gamerules = getGameRules();
-			
 			final String rule = this.rule.eval(sender);
 			
+			final GameRules gamerules = getGameRules();
+			
 			if (!gamerules.hasRule(rule))
-			{
 				throw new CommandException("commands.gamerule.norule", rule);
-			}
 			
 			final String val = gamerules.getGameRuleStringValue(rule);
 			
@@ -125,19 +123,18 @@ public final class CommandGameRule
 		@Override
 		public Integer eval(final ICommandSender sender) throws CommandException
 		{
-			final GameRules gamerules = getGameRules();
 			final String rule = this.rule.eval(sender);
 			final String val = this.val.eval(sender);
 			
+			final GameRules gamerules = getGameRules();
+			
 			if (gamerules.areSameType(rule, GameRules.ValueType.BOOLEAN_VALUE) && !ParsingUtilities.isTrue(val) && !ParsingUtilities.isFalse(val))
-			{
 				throw new CommandException("commands.generic.boolean.invalid", val);
-			}
 			
 			gamerules.setOrCreateGameRule(rule, val);
 			func_175773_a(gamerules, rule);
 			
-			CommandBase.notifyOperators(sender, "commands.gamerule.success");
+			CommandUtilities.notifyOperators(sender, "commands.gamerule.success");
 			
 			return 1;
 		}

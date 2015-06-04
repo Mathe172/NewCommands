@@ -11,7 +11,7 @@ public class RelDefault extends Relation
 		super("Default");
 	}
 	
-	public final <T, U, E extends CommandException> void registerPair(final Convertable<T, ?, ? extends E> base, final Convertable<U, ?, E> rel, final Converter<T, U, ? extends E> converter)
+	public final <T, U, E extends CommandException> void registerPair(final Convertable<T, ?, E> base, final Convertable<U, ?, ? extends E> rel, final Converter<T, U, ? extends E> converter)
 	{
 		base.addAttribute(new Att<>(rel, converter));
 		base.addConverter(rel, converter);
@@ -19,18 +19,18 @@ public class RelDefault extends Relation
 	
 	public class Att<T, U, E extends CommandException> extends Attribute
 	{
-		public final Convertable<U, ?, E> rel;
+		public final Convertable<U, ?, ? extends E> rel;
 		public final Converter<T, U, ? extends E> relConverter;
 		
-		private Att(final Convertable<U, ?, E> rel, final Converter<T, U, ? extends E> relConverter)
+		private Att(final Convertable<U, ?, ? extends E> rel, final Converter<T, U, ? extends E> relConverter)
 		{
 			this.rel = rel;
 			this.relConverter = relConverter;
 		}
-		
-		public final <R> void apply(final Convertable<R, ?, ?> source, final Converter<R, T, ? extends E> converter, final int dist)
-		{
-			source.addConverter(this.rel, Converter.chain(converter, this.relConverter), dist + 1);
-		}
+	}
+	
+	public static final <F, T, FT, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Att<T, FT, ? extends E> att, final Converter<F, T, ? extends E> converter, final int dist)
+	{
+		source.addConverter(att.rel, Converter.chain(converter, att.relConverter), dist + 1);
 	}
 }

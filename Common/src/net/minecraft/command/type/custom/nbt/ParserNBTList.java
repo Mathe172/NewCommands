@@ -28,7 +28,7 @@ public class ParserNBTList
 	public static class ListData extends NBTData
 	{
 		public final List<NBTBase> primitiveData = new ArrayList<>();
-		public final List<CommandArg<NBTBase>> data = new ArrayList<>();
+		public final ArrayList<CommandArg<NBTBase>> data = new ArrayList<>();
 		
 		@Override
 		public void put(final NBTBase data)
@@ -40,7 +40,7 @@ public class ParserNBTList
 		}
 		
 		@Override
-		public void put(final CommandArg<NBTBase> data)
+		public void add(final CommandArg<NBTBase> data)
 		{
 			this.data.add(data);
 		}
@@ -66,16 +66,19 @@ public class ParserNBTList
 		}
 		else
 		{
+			final ArrayList<CommandArg<NBTBase>> dynamicData = data.data;
+			dynamicData.trimToSize();
+			
 			if (data.primitiveData.isEmpty())
 			{
-				parserData.put(new CommandArg<NBTBase>()
+				parserData.add(new CommandArg<NBTBase>()
 				{
 					@Override
 					public NBTTagList eval(final ICommandSender sender) throws CommandException
 					{
 						final NBTTagList list = new NBTTagList();
 						
-						for (final CommandArg<NBTBase> item : data.data)
+						for (final CommandArg<NBTBase> item : dynamicData)
 							list.appendTag(item.eval(sender));
 						
 						return list;
@@ -88,7 +91,9 @@ public class ParserNBTList
 				for (final NBTBase item : data.primitiveData)
 					list.appendTag(item);
 				
-				parserData.put(new CommandArg<NBTBase>()
+				final int startIndex = data.primitiveData.size();
+				
+				parserData.add(new CommandArg<NBTBase>()
 				{
 					private boolean firstRun = true;
 					
@@ -99,14 +104,14 @@ public class ParserNBTList
 						{
 							this.firstRun = false;
 							
-							for (final CommandArg<NBTBase> item : data.data)
+							for (final CommandArg<NBTBase> item : dynamicData)
 								list.appendTag(item.eval(sender));
 						}
 						else
 						{
-							int i = data.primitiveData.size();
+							int i = startIndex;
 							
-							for (final CommandArg<NBTBase> item : data.data)
+							for (final CommandArg<NBTBase> item : dynamicData)
 							{
 								list.set(i, item.eval(sender));
 								++i;
@@ -130,20 +135,20 @@ public class ParserNBTList
 			if (parser.findInc(m)) // Because [Item1,Item2,] is valid... (or at least the output of NBTTagList.toString)
 			{
 				if (!"]".equals(m.group(1)))
-					throw parser.SEE("Unexpected '" + m.group(1) + "' around index ");
+					throw parser.SEE("Unexpected '" + m.group(1) + "' ");
 				return;
 			}
 			
 			this.descriptor.getTagDescriptor(i).getTagParser().parse(parser, data);
 			
 			if (!parser.findInc(m))
-				throw parser.SEE("No delimiter found while parsing tag list around index ");
+				throw parser.SEE("No delimiter found while parsing tag list ");
 			
 			if ("]".equals(m.group(1)))
 				return;
 			
 			if ("}".equals(m.group(1)))
-				throw parser.SEE("Unexpected '}' around index ");
+				throw parser.SEE("Unexpected '}' ");
 		}
 	}
 }

@@ -38,15 +38,19 @@ public final class TypeScoreObjective extends CompoundType<ScoreObjective>
 	
 	private static final CDataType<ScoreObjective> parser = new ParserName.CustomType<>("score name", TypeIDs.ScoreObjective, StringToObjective);
 	
-	public static final CDataType<ScoreObjective> type = new TypeScoreObjective(Predicates.<ScoreObjective> alwaysTrue());
-	public static final CDataType<ScoreObjective> typeWriteable = new TypeScoreObjective(new Predicate<ScoreObjective>()
+	private static final IComplete completionsReadOnlyCompletions = getCompleter(new Predicate<ScoreObjective>()
 	{
 		@Override
 		public boolean apply(final ScoreObjective objective)
 		{
 			return !objective.getCriteria().isReadOnly();
 		}
-	});
+	});// TODO:....
+	
+	public static final CDataType<ScoreObjective> type = new TypeScoreObjective(Predicates.<ScoreObjective> alwaysTrue());
+	public static final CDataType<ScoreObjective> typeWriteable = new CompoundType<>(parser, completionsReadOnlyCompletions);
+	
+	public static final CDataType<String> typeWriteableString = new CompoundType<>(new ParserName("score name"), completionsReadOnlyCompletions); // TODO:....
 	
 	public static final CDataType<ScoreObjective> parserTrigger = new TypeScoreObjective(new Predicate<ScoreObjective>()
 	{
@@ -57,9 +61,9 @@ public final class TypeScoreObjective extends CompoundType<ScoreObjective>
 		}
 	});
 	
-	private TypeScoreObjective(final Predicate<ScoreObjective> filter)
+	private static IComplete getCompleter(final Predicate<ScoreObjective> filter)
 	{
-		super(parser, new IComplete()
+		return new IComplete()
 		{
 			@Override
 			public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
@@ -78,6 +82,11 @@ public final class TypeScoreObjective extends CompoundType<ScoreObjective>
 					}
 				});
 			}
-		});
+		};
+	}
+	
+	private TypeScoreObjective(final Predicate<ScoreObjective> filter)
+	{
+		super(parser, getCompleter(filter));
 	}
 }

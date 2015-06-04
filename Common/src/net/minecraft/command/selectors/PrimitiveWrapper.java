@@ -2,17 +2,17 @@ package net.minecraft.command.selectors;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.construction.SelectorConstructable;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
+import net.minecraft.command.descriptors.SelectorDescriptorSingleArg.ParserDataSingleArg;
+import net.minecraft.command.descriptors.SelectorDescriptorSingleArg.SingleArgConstructable;
 
 public class PrimitiveWrapper
 {
-	public static final SelectorConstructable constructable = new SelectorConstructable()
+	public static final SingleArgConstructable constructable = new SingleArgConstructable()
 	{
 		@Override
-		public ArgWrapper<?> construct(final ParserData parserData) throws SyntaxErrorException
+		public ArgWrapper<?> construct(final ParserDataSingleArg parserData) throws SyntaxErrorException
 		{
-			return getRequiredParam(0, parserData);
+			return parserData.getRequiredArg();
 		}
 	};
 }

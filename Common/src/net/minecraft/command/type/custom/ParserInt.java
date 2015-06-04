@@ -3,10 +3,10 @@ package net.minecraft.command.type.custom;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
-import net.minecraft.command.MatcherRegistry;
 import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.collections.Completers;
 import net.minecraft.command.collections.TypeIDs;
+import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.base.CompoundType;
 import net.minecraft.command.type.management.CConverter;

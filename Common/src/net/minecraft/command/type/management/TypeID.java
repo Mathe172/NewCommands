@@ -1,57 +1,86 @@
 package net.minecraft.command.type.management;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.collections.Relations;
+import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.CTypeParse;
 import net.minecraft.command.type.IParse;
+import net.minecraft.command.type.custom.TypeTypeID;
 
 public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 {
+	private static final Map<String, TypeID<?>> typeIDs = new HashMap<>();
+	
 	public final Convertable<T, ?, CommandException> primitive;
+	public final TabCompletion completion;
+	public final IParse<TypeID<?>> typeIDParser;
 	
 	public TypeID(final String name)
 	{
 		super(name);
+		
+		if (ParsingUtilities.spaceMatcher.matcher(name).matches() || !ParsingUtilities.stringMatcher.matcher(name).matches())
+			throw new IllegalArgumentException("Invalid name for TypeID: '" + name + "'");
+		
+		this.typeIDParser = new TypeTypeID(Collections.<TypeID<?>> singleton(this));
+		
 		this.primitive = new ConvertableUnwrapped<>(name + ".primitive");
+		this.completion = new TabCompletion.Escaped(name);
 	}
 	
 	@Override
 	public void init()
 	{
+		typeIDs.put(this.name, this);
 		this.primitive.init();
 		super.init();
 		Relations.commandArg.registerPair(this.primitive, this);
 	}
 	
+	public static TypeID<?> get(final String name)
+	{
+		return typeIDs.get(name);
+	}
+	
+	public static void clearAll()
+	{
+		typeIDs.clear();
+	}
+	
 	// checked...
 	@SuppressWarnings("unchecked")
 	@Override
-	public ArgWrapper<T> convertFrom(final ArgWrapper<?> toConvert) throws SyntaxErrorException
+	public ArgWrapper<T> convertFrom(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
 		if (toConvert.type == this)
 			return (ArgWrapper<T>) toConvert;
 		
-		return this.wrap(toConvert.iConvertTo(this));
+		return this.wrap(toConvert.iConvertTo(parser, this));
 	}
 	
 	public ArgWrapper<T> wrap(final CommandArg<T> toWrap)
 	{
-		return new ArgWrapper<>(this, toWrap);
+		return toWrap.wrap(this);
 	}
 	
 	public ArgWrapper<T> wrap(final T toWrap)
 	{
-		return new ArgWrapper<>(this, toWrap);
+		return new PrimitiveParameter<>(toWrap).wrap(this);
 	}
 	
 	public CDataType<T> wrap(final IParse<? extends CommandArg<T>> toWrap)
@@ -119,12 +148,12 @@ public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 	
 	public final TypeID<List<T>> addList(final ExceptionProvider provider)
 	{
-		return addList(provider, this.name + ".list");
+		return this.addList(provider, this.name + ".list");
 	}
 	
 	public final TypeID<List<T>> addList(final String listName)
 	{
-		return this.addList(listToItemProvider(), listName);
+		return this.addList(this.listToItemProvider(), listName);
 	}
 	
 	public final TypeID<List<T>> addList()
@@ -147,5 +176,11 @@ public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 	public final <R> void addDefaultConverter(final TypeID<R> target, final Converter<T, R, ?> converter)
 	{
 		Relations.relDefault.registerPair(this.primitive, target.primitive, converter);
+	}
+	
+	public final <R> void addChild(final TypeID<R> child, final Converter<R, T, ?> converter)
+	{
+		child.addDefaultConverter(this, converter);
+		Relations.relSuper.registerPair(this.primitive, child.primitive, converter);
 	}
 }

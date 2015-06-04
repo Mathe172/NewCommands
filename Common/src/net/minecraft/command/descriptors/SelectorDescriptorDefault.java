@@ -1,27 +1,55 @@
 package net.minecraft.command.descriptors;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.command.IPermission;
-import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.arg.CompoundArg;
+import net.minecraft.command.arg.Processable;
+import net.minecraft.command.arg.TypedWrapper;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
+import net.minecraft.command.descriptors.SelectorDescriptorDefault.DefaultParserData;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 import net.minecraft.command.type.management.TypeID;
 
-public abstract class SelectorDescriptorDefault extends SelectorDescriptor<ParserData>
+public abstract class SelectorDescriptorDefault extends SelectorDescriptor<DefaultParserData>
 {
+	public static class DefaultParserData extends SParserData
+	{
+		public final List<Processable> toProcess = new ArrayList<>();
+		public final Map<String, TypedWrapper<?>> namedParams = new HashMap<>();
+		public final List<TypedWrapper<?>> unnamedParams = new ArrayList<>();
+		
+		public DefaultParserData(final Parser parser)
+		{
+			super(parser);
+		}
+		
+		@Override
+		public ArgWrapper<?> finalize(final ArgWrapper<?> selector)
+		{
+			return CompoundArg.create(this.toProcess, selector);
+		}
+		
+		@Override
+		public boolean requiresKey()
+		{
+			return !this.namedParams.isEmpty();
+		}
+	}
+	
 	private final List<IDataType<?>> unnamedTypes;
 	private final Map<String, IDataType<?>> namedTypes;
 	private final Set<ITabCompletion> keyCompletions;
@@ -41,7 +69,7 @@ public abstract class SelectorDescriptorDefault extends SelectorDescriptor<Parse
 	}
 	
 	@Override
-	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final ParserData data)
+	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final DefaultParserData data)
 	{
 		for (final ITabCompletion tc : this.keyCompletions)
 			if (!data.namedParams.containsKey(tc.name.toLowerCase()))
@@ -49,32 +77,32 @@ public abstract class SelectorDescriptorDefault extends SelectorDescriptor<Parse
 	}
 	
 	@Override
-	public void parse(final Parser parser, final String key, final ParserData data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final String key, final DefaultParserData data) throws SyntaxErrorException, CompletionException
 	{
 		final IDataType<?> valueType = this.namedTypes.get(key);
 		
 		if (valueType == null)
-			throw parser.SEE("Unknown parameter key '" + key + "' encountered around index ");
+			throw parser.SEE("Unknown parameter key '" + key + "' encountered ");
 		
-		data.namedParams.put(key, valueType.parse(parser));
+		data.namedParams.put(key, valueType.parse(parser).addToProcess(data.toProcess));
 	}
 	
 	@Override
-	public void parse(final Parser parser, final ParserData data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final DefaultParserData data) throws SyntaxErrorException, CompletionException
 	{
 		if (this.unnamedTypes.size() <= data.unnamedParams.size())
-			throw ParsingUtilities.SEE("Too many unnamed parameters encountered while parsing selector (around index " + parser.getIndex() + ")");
+			throw parser.SEE("Too many unnamed parameters encountered while parsing selector (", ")");
 		
 		final IDataType<?> valueType = this.unnamedTypes.get(data.unnamedParams.size());
 		
 		final ArgWrapper<?> value = valueType.parse(parser);
 		
-		data.unnamedParams.add(value);
+		data.unnamedParams.add(value.addToProcess(data.toProcess));
 	}
 	
 	@Override
-	public ParserData newParserData()
+	public DefaultParserData newParserData(final Parser parser)
 	{
-		return new ParserData();
+		return new DefaultParserData(parser);
 	}
 }

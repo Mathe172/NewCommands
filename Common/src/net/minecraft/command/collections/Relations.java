@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
+import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.type.management.Convertable;
 import net.minecraft.command.type.management.Converter;
@@ -11,6 +12,7 @@ import net.minecraft.command.type.management.relations.RelCommandArg;
 import net.minecraft.command.type.management.relations.RelDefault;
 import net.minecraft.command.type.management.relations.RelIdentity;
 import net.minecraft.command.type.management.relations.RelList;
+import net.minecraft.command.type.management.relations.RelSuper;
 import net.minecraft.command.type.management.relations.Relation.Attribute;
 import net.minecraft.command.type.management.relations.Relation.Provider;
 
@@ -25,6 +27,8 @@ public final class Relations
 	
 	public static final RelDefault relDefault = new RelDefault();
 	
+	public static final RelSuper relSuper = new RelSuper();
+	
 	private Relations()
 	{
 	}
@@ -36,22 +40,35 @@ public final class Relations
 			// Checked...
 			@SuppressWarnings("unchecked")
 			@Override
-			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, ?> source, final Convertable<T, ?, E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
+			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Convertable<T, ?, ? extends E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
 			{
-				final Convertable<CommandArg<F>, ?, ?> relSource = ((RelCommandArg.Att<F, ?>) attSource).rel;
+				final Convertable<CommandArg<T>, ?, SyntaxErrorException> relTarget = ((RelCommandArg.Att<T>) attTarget).rel;
 				
-				((RelCommandArg.Att<T, ?>) attTarget).apply(relSource, converter, dist);
+				((RelCommandArg.Att<F>) attSource).apply(relTarget, converter, dist);
 			}
 		});
 		
-		relDefault.addProvider(id, new Provider()
+		id.addProvider(relDefault, new Provider()
 		{
 			// Checked...
 			@SuppressWarnings("unchecked")
 			@Override
-			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, ?> source, final Convertable<T, ?, E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
+			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Convertable<T, ?, ? extends E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
 			{
-				((RelDefault.Att<T, ?, E>) attTarget).apply(source, converter, dist);
+				final RelDefault.Att<T, ?, ? extends E> att = (RelDefault.Att<T, ?, ? extends E>) attTarget;
+				RelDefault.apply(source, att, converter, dist);
+			}
+		});
+		
+		relSuper.addProvider(id, new Provider()
+		{
+			// Checked...
+			@SuppressWarnings("unchecked")
+			@Override
+			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Convertable<T, ?, ? extends E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
+			{
+				final RelSuper.Att<?, F, ? super E> att = (RelSuper.Att<?, F, ? super E>) attSource;
+				att.apply(target, converter, dist);
 			}
 		});
 		
@@ -60,10 +77,10 @@ public final class Relations
 			// Checked...
 			@SuppressWarnings("unchecked")
 			@Override
-			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, ?> source, final Convertable<T, ?, E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
+			public <F, T, E extends CommandException> void apply(final Convertable<F, ?, E> source, final Convertable<T, ?, ? extends E> target, final Converter<F, T, ? extends E> converter, final int dist, final Attribute attSource, final Attribute attTarget)
 			{
-				final Convertable<List<F>, ?, ?> relSource = ((RelList.Att<F, ?>) attSource).rel;
-				final Convertable<List<T>, ?, ? super E> relTarget = ((RelList.Att<T, ? super E>) attTarget).rel;
+				final Convertable<List<F>, ?, E> relSource = ((RelList.Att<F, E>) attSource).rel;
+				final Convertable<List<T>, ?, ? extends E> relTarget = ((RelList.Att<T, ? extends E>) attTarget).rel;
 				
 				relSource.addConverter(relTarget, new Converter<List<F>, List<T>, E>()
 				{

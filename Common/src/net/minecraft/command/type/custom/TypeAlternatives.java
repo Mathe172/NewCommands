@@ -1,5 +1,6 @@
 package net.minecraft.command.type.custom;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,59 +9,58 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.CTypeParse;
+import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.TypeParse;
 
-public class TypeAlternatives extends TypeParse<ArgWrapper<?>>
+public class TypeAlternatives<T extends ArgWrapper<?>> extends TypeParse<T>
 {
-	private final List<IDataType<?>> alternatives;
+	private final List<IDataType<? extends T>> alternatives;
 	
-	public TypeAlternatives(final List<IDataType<?>> alternatives)
+	public TypeAlternatives(final List<IDataType<? extends T>> alternatives)
 	{
 		this.alternatives = alternatives;
 	}
 	
-	public TypeAlternatives(final IDataType<?>... alternatives)
+	@SafeVarargs
+	public TypeAlternatives(final IDataType<? extends T>... alternatives)
 	{
 		this.alternatives = Arrays.asList(alternatives);
 	}
 	
 	@Override
-	public ArgWrapper<?> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public T parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
 	{
-		for (final IDataType<?> alternative : this.alternatives)
+		if (parser.debug)
 		{
-			try
+			final List<SyntaxErrorException> suppressed = new ArrayList<>(this.alternatives.size());
+			
+			for (final IDataType<? extends T> alternative : this.alternatives)
 			{
-				return alternative.parseSnapshot(parser, context);
-			} catch (final SyntaxErrorException ex)
-			{
+				try
+				{
+					return alternative.parseSnapshot(parser, context);
+				} catch (final SyntaxErrorException ex)
+				{
+					suppressed.add(ex);
+				}
 			}
+			
+			final SyntaxErrorException ex = parser.SEE("Unable to parse argument ");
+			
+			for (final SyntaxErrorException e : suppressed)
+				if (ex != e)
+					ex.addSuppressed(e);
+			
+			throw ex;
 		}
 		
-		throw parser.SEE("Unable to parse argument around index ");
-	}
-	
-	public static class Typed<T> extends CTypeParse<T>
-	{
-		private final List<IDataType<ArgWrapper<T>>> alternatives;
+		final boolean suppressEx = parser.suppressEx;
+		parser.suppressEx = true;
 		
-		public Typed(final List<IDataType<ArgWrapper<T>>> alternatives)
+		try
 		{
-			this.alternatives = alternatives;
-		}
-		
-		@SafeVarargs
-		public Typed(final IDataType<ArgWrapper<T>>... alternatives)
-		{
-			this.alternatives = Arrays.asList(alternatives);
-		}
-		
-		@Override
-		public ArgWrapper<T> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
-		{
-			for (final IDataType<ArgWrapper<T>> alternative : this.alternatives)
+			for (final IDataType<? extends T> alternative : this.alternatives)
 			{
 				try
 				{
@@ -69,8 +69,25 @@ public class TypeAlternatives extends TypeParse<ArgWrapper<?>>
 				{
 				}
 			}
-			
-			throw parser.SEE("Unable to parse argument around index ");
+		} finally
+		{
+			parser.suppressEx = suppressEx;
+		}
+		
+		throw parser.SEE("Unable to parse argument ");
+	}
+	
+	public static class Typed<T> extends TypeAlternatives<ArgWrapper<T>> implements CDataType<T>
+	{
+		public Typed(final List<IDataType<? extends ArgWrapper<T>>> alternatives)
+		{
+			super(alternatives);
+		}
+		
+		@SafeVarargs
+		public Typed(final IDataType<? extends ArgWrapper<T>>... alternatives)
+		{
+			super(alternatives);
 		}
 	}
 }

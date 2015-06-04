@@ -1,5 +1,6 @@
 package net.minecraft.command.descriptors;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +19,9 @@ import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.IParse;
 import net.minecraft.command.type.custom.KVPair;
 import net.minecraft.command.type.custom.TypeSelectorContent;
-import net.minecraft.command.type.custom.TypeSelectorContent.ParserData;
 import net.minecraft.command.type.management.TypeID;
 
-public abstract class SelectorDescriptor<D extends ParserData>
+public abstract class SelectorDescriptor<D extends SParserData>
 {
 	private final Set<TypeID<?>> resultTypes;
 	private final IPermission permission;
@@ -72,10 +72,15 @@ public abstract class SelectorDescriptor<D extends ParserData>
 		return selectors.get(name);
 	}
 	
+	public final Set<TypeID<?>> getResultTypes()
+	{
+		return Collections.unmodifiableSet(this.resultTypes);
+	}
+	
 	public final <T> ArgWrapper<T> construct(final TypeID<T> target, final D data) throws SyntaxErrorException
 	{
 		// return this.resultType.convertTo(this.construct(unnamedParams, namedParams), target);
-		return this.construct(data).convertTo(target);
+		return this.construct(data).convertTo(data.parser, target);
 	}
 	
 	public abstract ArgWrapper<?> construct(D data) throws SyntaxErrorException;
@@ -94,7 +99,7 @@ public abstract class SelectorDescriptor<D extends ParserData>
 		return PermissionWrapper.wrap(this.contentParser.parse(parser), this.permission);
 	}
 	
-	public abstract D newParserData();
+	public abstract D newParserData(Parser parser);
 	
 	public static void addAlias(final String name, final String... aliases)
 	{
