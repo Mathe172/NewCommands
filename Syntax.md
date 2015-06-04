@@ -92,16 +92,50 @@ A complete list of selectors can be found in the table below. Parameter names in
 </tr>
 <tr>
     <td><code>@b</code></td>
-    <td><code>[cmd=]&lt;command&gt;</code></td>
-    <td>The command to be benchmarked</td>
-    <td>Measures the execution time of a given command and returns the result in microseconds</td>
+    <td><code>&lt;coordinates&gt;</code></td>
+    <td>The position of the block</td>
+    <td>Used to query the block-state at a given position (the state contains type and metadata, but no tile-entities)</td>
 </tr>
 <tr>
     <td><code>@c</code></td>
     <td><code>&lt;operator&gt; ...</code></td>
-    <td>see Operators-section</td>
+    <td>see <a href="#operators">Operators-section</a></td>
     <td>Used to perform calculations. For a complete list of available operators, see <a href="#operators">below</a></td>
 </tr>
 </table>
 
 ##Operators
+Due to technical limitations, the operators use prefix notation (this means that the operator is before its operands: `+ 1 2` instead of `1 + 2`). 
+
+**Important note**: Since operator names can contain anything (except a whitespace), there has to be a whitespace after every operator. This is especially true for the constants defined below (even if they are the last thing in the selector)
+
+There is a wide range of operators available:
+
+|Operator|Description|
+|--------|-----------|
+|`+`,`-`,`*`,`/`| The standard binary addition/... operators|
+|`-0`| The unary sign inversion operator (shorthand for `- 0 ...`)
+|`%`/`mod`| The modulo operator|
+|`<`,`<=`,`>`,`>=`,`!=`,`==`| Comparision operators |
+|`!`/`not`,`&`/`and`,`&&`,`|`/`or`,`||`| Logical operators. The `&&`  and `||` operator are the short-circuit versions of `&` and `|`: They do **not** evaluate the second argument if unnecessary|
+|`sq`,`sqrt`| The square and squareroot operator|
+|`sin`,`cos`,`exp`,`ln`,`^`| The standard analytic functions. `^` is the power operator: `^ 2 3` `=8`|
+|`pi,e_`| The mathematical constants|
+|`+v`,`-v`| Vector addition and subtraction|
+|`*v`,`/v`| Scalar multiplication and division. The scalar is the first argument|
+|`.`| The vector dot-product|
+|`v0`| Normalizes the vector|
+|`abs`| Length of the vector|
+|`cv`| `x` and `z` are centered to the block-center, `y` is floored (`1.35 0.7 2.5`->`1.5 0 2.5`)|
+|`xv`,`yv`,`zv`| Reads the specified component from a vector|
+|`ex`,`ey`,`ez`| The vectors of unitiy|
+|`rxv`,`ryv`| The angles to describe the direction of the vector. The convention is the same as for the entity-selector (see the `rx`,`ry` parameters|
+|`pos`,`x`,`y`,`z`| The position / components of the position of an entity|
+|`rx`,`ry`| The angles describing the facing direction of an entity (like above, see entity-selector)|
+|`fv`| The normalized vector pointing in the direction the entity is facing|
+|`rd`| The entity ridden by another entity|
+|`slot`| The selected slot of a player (from `0` to `8`)|
+|`items`| First operand: NBT-List contaning items. Second operand: An integer-list. This operator returns an NBT-List containing the items specified by the index-list in the correct order (The `slot:`-tag is used to find the items). Can be used to 'convert' the player equipment to entity-equipment|
+|`isAir`| Returns if the given block-state (**not** position) is air|
+|`meta`| Returns the metadata of a given block-state (**not** positon)|
+|`i`,`s`,`e`,`v`| Converts the argument into integer/string/entity/vector|
