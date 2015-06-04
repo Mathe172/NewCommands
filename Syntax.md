@@ -203,3 +203,25 @@ There is a wide range of operators available:
 |`isAir`| Returns if the given block-state (**not** position) is air|
 |`meta`| Returns the metadata of a given block-state (**not** positon)|
 |`i`,`s`,`e`,`v`| Converts the argument into integer/string/entity/vector|
+
+##Labels
+Labels are a way of referencing results from earlier in the command (every selector can be labeled, and some commands provide ways to define labels). To reference a label, use `$<label-name>` anywhere where a selector would be allowed. Like everything else, labels have a type associated to them. Normally, the type is infered by the selector/command where the label is defined. If, for reasons as the ones below, you want to choose a different (but compatible) type, you can do so by specifying the type as `<label-name>:<type>`.
+Normally, a label can only be defined once. To use the same label multiple times, there are two possibilities:
+* Define the label with `*<label-name>`: In this case, label-name is just 'shared', the original place and this one both write their results into the same label (the `*` just signifies that you know that the label is already in use) Note that the type has to be exactly the same for the existing label and this declaration.
+* Define the label with `^<label-name>`: Similar to above. However, it is possible that the value that is to be set to the label is converted appropriately to match the type of the label.
+
+##Strings
+In most places where a string is required, you can place a composite string. The syntax is as follows:
+```
+"...\@<selector>...\$<label>..."
+```
+
+That is, the string is enclosed inside `"`. Inside the quotation marks, some things have to be escaped: (note however, that recursive selectors must not be escaped beyond the first `@`)
+* `"` &#8594; `\"`
+* `@<selector>` &#8594; `\@<selector>`
+* `$<label>` &#8594; `\$<label>`
+
+You may want to insert a label, but omit the whitespace that is required after it, (`$l -text` would be evaluated to `label text` assuming the label `$l` contains `label`; `$l-text` would fail since no label called `l-text` exists) you can do so by using `\!` as 'zero-width' character: `$l\!-text` will be evaluated to `label-text` (again assuming `$l` holds `label`)
+
+##NBT
+The syntax to input NBT is nearly the same as it is in vanilla. For backwards-compatibility reasons, selectors and labels have to be escaped when they should be evaluated: `{CustomName:\$name}` instead of `{CustomName:$name}`. If you want to specify the type of a selector/label, you can do so by using the same literals as for numbers: `b`,`s`,`i`,`l`,`f`,`d`. These literal also work after a string enclosed in quotation marks (so you can 'build' your numbers/values from multiple selectors and labels)
