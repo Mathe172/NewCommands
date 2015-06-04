@@ -1,3 +1,67 @@
+##Commands
+A single command looks like this:
+```
+[<selector1> <selector2> ...] <command> [<argument1> ...]
+```
+The primary purpose of selectors preceding the command is to ensure the result is captured before anything is executed - consequently, they should be labeled for later access (further explanation below)
+
+###Command chaining
+Commands of the form above can be chained and grouped, allowing for multiple commands inside one command block:
+```
+<command 1> [,|;] <command2> ...
+//or even
+(<command1>; <command2>), ((<command3>, <command4>); ...)
+```
+The difference between `,` and `;` is quite simple: While the `,` prevents further execution (of the current scope) when encountering an error, the `;` ignores any errors of the (one) preceeding command
+
+Parentheses are used to group commands: The whole construct can be used anywhere a single command could be. For chaining purposes, the whole group counts as single command (especially for the `,` and `;`)
+
+**Note:** Most commands raise an error if nothing happened (e.g. no block/entity was changed, ...)
+
+###List of commands
+The following commands are completely unchanged (compared to current implementation)
+* `/blockdata`
+* `/deop`
+* `/entitydata`
+* `/gamemode`
+* `/gamerule`
+* `/kill`
+* `/op`
+* `/particle`
+* `/say` (**Note**: Since everything after this command is interpreted as string, this command can't be chained with others)
+* `/scoreboard`
+* `/setblock`
+* `/stats`
+* `/stop`
+* `/tp` (**Note**: `/tp <x> <y> <z>` does not work if `<x>` can be interpreted as entity name (i.e. is a simple integer constant; there is no way to distinguish it from `/tp <target-entity> <rx> <ry>`) use `/tp @s <x> <y> <z>` instead
+
+These commands have changed: (Only changes are listed)
+* `/clone`: optional `fast` flag (first parameter). If this flag is set, most safety mechanisms are deactivated, e.g. redstone may drop,... and block updates can be omitted sometimes. Should only be used for 'stable' structures made out of simple blocks. (As a benefit, it is faster)
+* `/execute`: Position can be omitted (`/execute @e say ...` is allowed), it defaults to `~ ~ ~`. **Note**: If the preamble (selectors before command) is non-empty, parentheses should be used around the command (otherwise, the selectors might be interpreted as postions). Also, the `detect` part optionally accepts NBT-data to filter the block (while metadata can be omitted even with NBT-data, the should be specified when the NBT-data come from a selector)
+* `/fill`: Same `fast`-flag as for `/clone`
+* `/summon`: Optional `label <label-name>` parameter (first parameter): If specified, the resulting entity is available in the label `<label-name>` (see [labels-section](#labels) for more information)
+
+The commands listed below are completely new:
+* `/activate`:<br>
+    **Syntax**: `/activate [<delay>] [<pos1>] [<pos2>]`<br>
+    'Activates' all blocks specified (the positon of the sender, the block at `<pos1>` or the box specifed by `<pos1>` and `<pos2>`) after a delay of `<delay>` (defaulted to `1`) ticks (minimum is one). This 'activation' triggers command-blocks, grows crops, ...
+* `/break`:<br>
+    No arguments. Raises an error to leave `for`-loops and similar constructs
+* `/explain`:<br>
+	**Syntax**: `/explain [all|extended] [<position>]`<br>
+	Gives further information about the errors that occured during parsing a command. If no position is specified, the last command of the player is analyzed (does **not** work on command-blocks or entities), otherwise the command stored in the command-block at position `<position>` is used.
+	Without the `all`/`extended`-flag, only the error causing the command to fail is printed (with all its causes)
+	With the flag specified, every error that occured during parsing is printed (even the ones that did not cause the command to fail), e.g. error caused by different possible interpretation of arguments. On hover, the output shows where the error occured.
+* `/for`:<br>
+    **Syntax**: `/for [safe] <label-name> <start> <end> [step <step>] <command>`<br>
+    Executes the command once for each value of `<label-name>` specified by `<start>`,`<end>` (and optionally `<step>`). Before each execution, the value of the label `<label-name>` is set appropriately (For more information on labels, see the [labels-section](#labels)). If the `safe`-flag is set, execution is cancelled when an error occurs, otherwise ignored (except for the '`/break`-error', this always cancels the loop)
+* `/if`:<br>
+	**Syntax**: `/if <condition> <then-command> [else <else-command>]`<br>
+	Self-explanatory. **Note**: `<then-command>` must be enclosed in parentheses if the else clause is present
+* `/try`:<br>
+	**Syntax**: `/try <command> <command2>`<br>
+	Executes `<command2>` if and only if `<command>` caused an error. **Note**: `<command>` must be enclosed in parentheses
+    
 ##Selectors
 While selectors are currently only used for selecting entities with specific properties, they can now be used to do a lot more: It's basically a way to input something in a different way than the default way: Instead of writing down the name of an entity/player, you can specify them using a selector. Now, you can also use things like the result of a calculation, the score of any player, ... (for a complete list, see below)
 ###Basic syntax
@@ -10,7 +74,7 @@ instead of
 @e[x=<x>,y=<y>,z=<z>,r=<r>]
 ```
 
-For all selectors, there is a parameter that can always be specified: `label=<label-name>`. If specified, the result of the selector is stored in the label with name `label-name`. For more information on labels, see the Labels section.
+For all selectors, there is a parameter that can always be specified: `label=<label-name>`. If specified, the result of the selector is stored in the label with name `label-name`. For more information on labels, see the [labels-section](#labels).
 While selectors can be used almost anywhere, there is one important exception: For most commands, there are keywords that further specify what the command should do (the `scoreboard` command for example has the keywords `players,objectives,...`). For technical reasons, these keywords can't be replaced by selectors.
 
 ###List of selectors
