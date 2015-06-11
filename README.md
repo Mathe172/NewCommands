@@ -96,9 +96,18 @@ The commands listed below are completely new:
 * `/if`:<br>
 	**Syntax**: `/if <condition> <then-command> [else <else-command>]`<br>
 	Self-explanatory. **Note**: `<then-command>` must be enclosed in parentheses if the else clause is present
+* `/move`:<br>
+	**Syntax**: `/move <entities> [<position>]`<br>
+	Forces the entities to move to the specified position, resp. resets this behaviour (without the `<position>`-paramater). **Note**: For performance reasons, the path is rarely reevaluated.
+* `/target`:<br>
+	**Syntax**: `/target <entities> [<target-entity>]`<br>
+	Forces the entities to attack the specified target entity (even themselves), resp. resets this behaviour (without the `<target-entity>`-parameter).
 * `/try`:<br>
 	**Syntax**: `/try <command> <command2>`<br>
 	Executes `<command2>` if and only if `<command>` caused an error. **Note**: `<command>` must be enclosed in parentheses
+* `/useItem`:<br>
+	**Syntax**: `/useItem <entities>`<br>
+	Lets the specified entities perform the swing/attack animation
     
 ##Selectors
 While selectors are currently only used for selecting entities with specific properties, they can now be used to do a lot more: It's basically a way to input something in a different way than the default way: Instead of writing down the name of an entity/player, you can specify them using a selector. Now, you can also use things like the result of a calculation, the score of any player, ... (for a complete list, see below)
@@ -221,7 +230,9 @@ There is a wide range of operators available:
 |`<`,`<=`,`>`,`>=`,`!=`,`==`| Comparision operators |
 |`!`/`not`,`&`/`and`,`&&`,`|`/`or`,`||`| Logical operators. The `&&`  and `||` operator are the short-circuit versions of `&` and `|`: They do **not** evaluate the second argument if unnecessary|
 |`sq`,`sqrt`| The square and squareroot operator|
-|`sin`,`cos`,`exp`,`ln`,`^`| The standard analytic functions. `^` is the power operator: `^ 2 3` `=8`. To stay with the rest of minecraft, `sin` and `cos` use degrees (not radians)|
+|`rnd`| A random number between `0` and `1` (**Note**: Since this is a "constant", a space is always required afterwards)|
+|`rndI`| Returns a random integer between the two boundaries specified (inclusive)|
+|`sin`,`cos`,`exp`,`ln`,`^`/`pow`| The standard analytic functions. `^` is the power operator: `^ 2 3` `=8`. To stay with the rest of minecraft, `sin` and `cos` use degrees (not radians)|
 |`pi`,`e_`| The mathematical constants|
 |`+v`,`-v`| Vector addition and subtraction|
 |`*v`,`/v`| Scalar multiplication and division. The scalar is the first argument|
