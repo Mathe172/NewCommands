@@ -51,7 +51,7 @@ public abstract class SelectorDescriptor<D extends SParserData>
 	
 	public static void registerSelector(final String name, final SelectorDescriptor<?> descriptor)
 	{
-		if (selectors.put(name, descriptor) != null)
+		if (selectors.put(name.toLowerCase(), descriptor) != null)
 			throw new IllegalArgumentException("Selector already registerd: " + name);
 		
 		final ITabCompletion completion = name.length() == 1 ? new TabCompletion.SingleChar(name.charAt(0)) : new TabCompletion(name);
@@ -69,7 +69,7 @@ public abstract class SelectorDescriptor<D extends SParserData>
 	
 	public static final SelectorDescriptor<?> getDescriptor(final String name)
 	{
-		return selectors.get(name);
+		return selectors.get(name.toLowerCase());
 	}
 	
 	public final Set<TypeID<?>> getResultTypes()

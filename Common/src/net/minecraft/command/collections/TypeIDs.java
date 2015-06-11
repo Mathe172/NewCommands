@@ -237,7 +237,7 @@ public final class TypeIDs
 			@Override
 			public Boolean convert(final Integer toConvert) throws CommandException
 			{
-				return toConvert != 0;
+				return toConvert.intValue() != 0;
 			}
 		});
 		

@@ -208,7 +208,7 @@ public abstract class CommandDescriptor<D extends CParserData>
 	
 	public static void registerCommand(final String name, final CommandDescriptor<?> descriptor)
 	{
-		if (commands.put(name, descriptor) != null)
+		if (commands.put(name.toLowerCase(), descriptor) != null)
 			throw new IllegalArgumentException("Command with name '" + name + "' already registered");
 		
 		commandCompletions.put(new TabCompletion(name), descriptor.permission);
@@ -235,7 +235,7 @@ public abstract class CommandDescriptor<D extends CParserData>
 	
 	public static final CommandDescriptor<?> getDescriptor(final String name)
 	{
-		return commands.get(name);
+		return commands.get(name.toLowerCase());
 	}
 	
 	public CommandDescriptor<? super D> getSubType(final Parser parser, final D data) throws SyntaxErrorException, CompletionException

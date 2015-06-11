@@ -202,6 +202,44 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
+		register("floor", operator(IPermission.unrestricted, resTypeInt).then(ParserDouble.parser).construct(
+			new OperatorConstructable()
+			{
+				@Override
+				public ArgWrapper<?> construct(final ListOperands operands)
+				{
+					return TypeIDs.Integer.wrap(new CommandArg<Integer>()
+					{
+						private final CommandArg<Double> arg = operands.get(TypeIDs.Double);
+						
+						@Override
+						public Integer eval(final ICommandSender sender) throws CommandException
+						{
+							return MathHelper.floor_double(this.arg.eval(sender));
+						}
+					});
+				}
+			}));
+		
+		register("ceil", operator(IPermission.unrestricted, resTypeInt).then(ParserDouble.parser).construct(
+			new OperatorConstructable()
+			{
+				@Override
+				public ArgWrapper<?> construct(final ListOperands operands)
+				{
+					return TypeIDs.Integer.wrap(new CommandArg<Integer>()
+					{
+						private final CommandArg<Double> arg = operands.get(TypeIDs.Double);
+						
+						@Override
+						public Integer eval(final ICommandSender sender) throws CommandException
+						{
+							return MathHelper.ceiling_double_int(this.arg.eval(sender));
+						}
+					});
+				}
+			}));
+		
 		register("sin", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).construct(
 			new OperatorConstructable()
 			{
@@ -966,7 +1004,7 @@ public class Operators extends RegistrationHelper
 						}
 					});
 				}
-			}));
+			}), "pow");
 		
 		register("%", operator(IPermission.unrestricted, resTypeDouble)
 			.then(ParserInt.parser)
@@ -1120,6 +1158,39 @@ public class Operators extends RegistrationHelper
 						public Boolean eval(final ICommandSender sender) throws CommandException
 						{
 							return this.arg1.eval(sender).doubleValue() != this.arg2.eval(sender).doubleValue();
+						}
+					});
+				}
+			}));
+		
+		register("rnd", constant(TypeIDs.Double.wrap(new CommandArg<Double>()
+		{
+			@Override
+			public Double eval(final ICommandSender sender) throws CommandException
+			{
+				return Math.random();
+			}
+		}), resTypeDouble));
+		
+		register("rndI", operator(IPermission.unrestricted, resTypeInt)
+			.then(ParserInt.parser)
+			.then(ParserInt.parser)
+			.construct(new OperatorConstructable()
+			{
+				@Override
+				public ArgWrapper<?> construct(final ListOperands operands) throws SyntaxErrorException
+				{
+					return TypeIDs.Integer.wrap(new CommandArg<Integer>()
+					{
+						private final CommandArg<Integer> arg1 = operands.get(TypeIDs.Integer);
+						private final CommandArg<Integer> arg2 = operands.get(TypeIDs.Integer);
+						
+						@Override
+						public Integer eval(final ICommandSender sender) throws CommandException
+						{
+							final int arg1 = this.arg1.eval(sender);
+							final int arg2 = this.arg2.eval(sender);
+							return (int) Math.floor(arg1 + (arg2 - arg1 + 1) * Math.random());
 						}
 					});
 				}

@@ -29,6 +29,34 @@ public class TypeCoordinate
 	public static final IParse<Coordinate> zC = new TypeCoordinate.z(true);
 	public static final IParse<Coordinate> zNC = new TypeCoordinate.z(false);
 	
+	public static final IComplete xCompletion = new IComplete()
+	{
+		@Override
+		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
+		{
+			if (cData.hovered != null)
+				TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion(String.valueOf(cData.hovered.getX())));
+		}
+	};
+	public static final IComplete yCompletion = new IComplete()
+	{
+		@Override
+		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
+		{
+			if (cData.hovered != null)
+				TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion(String.valueOf(cData.hovered.getY())));
+		}
+	};
+	public static final IComplete zCompletion = new IComplete()
+	{
+		@Override
+		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
+		{
+			if (cData.hovered != null)
+				TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion(String.valueOf(cData.hovered.getZ())));
+		}
+	};
+	
 	public static final IParse<Coordinate> shiftXC = new TypeCoordinate.shift(true, TypeCoordinate.xCompletion);
 	public static final IParse<Coordinate> shiftXNC = new TypeCoordinate.shift(false, TypeCoordinate.xCompletion);
 	public static final IParse<Coordinate> shiftYC = new TypeCoordinate.shift(true, TypeCoordinate.yCompletion);
@@ -57,34 +85,6 @@ public class TypeCoordinate
 	private TypeCoordinate()
 	{
 	}
-	
-	public static final IComplete xCompletion = new IComplete()
-	{
-		@Override
-		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
-		{
-			if (cData.hovered != null)
-				TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion(String.valueOf(cData.hovered.getX())));
-		}
-	};
-	public static final IComplete yCompletion = new IComplete()
-	{
-		@Override
-		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
-		{
-			if (cData.hovered != null)
-				TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion(String.valueOf(cData.hovered.getY())));
-		}
-	};
-	public static final IComplete zCompletion = new IComplete()
-	{
-		@Override
-		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
-		{
-			if (cData.hovered != null)
-				TabCompletionData.addToSet(tcDataSet, startIndex, cData, new TabCompletion(String.valueOf(cData.hovered.getZ())));
-		}
-	};
 	
 	public static class x extends TypeCoordinateBase
 	{

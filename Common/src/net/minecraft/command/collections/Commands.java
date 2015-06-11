@@ -14,14 +14,17 @@ import net.minecraft.command.commands.CommandGameMode;
 import net.minecraft.command.commands.CommandGameRule;
 import net.minecraft.command.commands.CommandIf;
 import net.minecraft.command.commands.CommandKill;
+import net.minecraft.command.commands.CommandMove;
 import net.minecraft.command.commands.CommandParticle;
 import net.minecraft.command.commands.CommandSay;
 import net.minecraft.command.commands.CommandScoreboard;
 import net.minecraft.command.commands.CommandSetBlock;
 import net.minecraft.command.commands.CommandStats;
 import net.minecraft.command.commands.CommandSummon;
+import net.minecraft.command.commands.CommandTarget;
 import net.minecraft.command.commands.CommandTeleport;
 import net.minecraft.command.commands.CommandTry;
+import net.minecraft.command.commands.CommandUseItem;
 import net.minecraft.command.commands.dedicated.CommandDeOp;
 import net.minecraft.command.commands.dedicated.CommandOp;
 import net.minecraft.command.commands.dedicated.CommandStop;
@@ -283,6 +286,17 @@ public final class Commands extends RegistrationHelper
 			.optional(ParserInt.parser)
 			.optional(new TypeStringLiteral("force", "normal"))
 			.optional(Types.iCmdSenderList));
+		
+		register(command(CommandMove.constructable, IPermission.level2, usage("commands.move.usage"), "move")
+			.then(Types.entityList)
+			.optional(TypeCoordinates.shiftNC));
+		
+		register(command(CommandTarget.constructable, IPermission.level2, usage("commands.target.usage"), "target")
+			.then(Types.entityList)
+			.optional(Types.entity));
+		
+		register(command(CommandUseItem.constructable, IPermission.level2, usage("commands.useItem.usage"), "useItem")
+			.then(Types.entityList));
 		
 		if (MinecraftServer.getServer().isDedicatedServer())
 		{

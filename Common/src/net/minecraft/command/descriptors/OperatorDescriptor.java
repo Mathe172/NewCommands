@@ -34,7 +34,7 @@ public abstract class OperatorDescriptor
 	
 	public static final OperatorDescriptor getDescriptor(final String name)
 	{
-		return operators.get(name);
+		return operators.get(name.toLowerCase());
 	}
 	
 	public static final void clear()
@@ -45,7 +45,7 @@ public abstract class OperatorDescriptor
 	
 	public static final void register(final String name, final ITabCompletion completion, final OperatorDescriptor descriptor)
 	{
-		if (operators.put(name, descriptor) != null)
+		if (operators.put(name.toLowerCase(), descriptor) != null)
 			throw new IllegalArgumentException("Operator already registerd: " + name);
 		
 		operatorCompletions.put(completion, descriptor.permission);
