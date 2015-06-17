@@ -2,6 +2,9 @@
 ##Description
 The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system.  Although a lot of the commands are still missing, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
 
+###Installation
+If you want to give it a try, just download the [installer-jar](https://github.com/Mathe172/NewCommands/blob/master/NewCommands_Installer_r1.1.jar?raw=true) and launch it. Note that an unmodified 1.8 version of the client/server needs to be installed for this to work. For the client installation, create a new profile and select the latest NewCommands-version under 'Use version'.
+
 ###For end users
 * FULL backwards-compatibility (well almost... some things are interpreted that wouldn't have been before) - the syntax was just extended, not altered
 * Commands in command blocks are asynchronously precompiled to greatly improve the performance of high frequency command block contraptions
@@ -19,8 +22,6 @@ The primary intention of this Minecraft modification was to improve the performa
 
 ##MCP and Minecraft version
 NewCommands is built on Minecraft 1.8 using MCP 9.10.
-
-**To try it out, just copy the files from the `bin`-folder into the jar and launch and delete the META-INF folder in the client jar**
 
 To compile, delete the unused files from the decompiled source: (see [here](https://github.com/Mathe172/NewCommands/blob/master/obsoleteClasses.dat))
 * A line starting with `-` or `+` represents a folder that needs to be modified
@@ -105,8 +106,8 @@ The commands listed below are completely new:
 * `/try`:<br>
 	**Syntax**: `/try <command> <command2>`<br>
 	Executes `<command2>` if and only if `<command>` caused an error. **Note**: `<command>` must be enclosed in parentheses
-* `/useItem`:<br>
-	**Syntax**: `/useItem <entities>`<br>
+* `/useitem`:<br>
+	**Syntax**: `/useitem <entities>`<br>
 	Lets the specified entities perform the swing/attack animation
     
 ##Selectors
