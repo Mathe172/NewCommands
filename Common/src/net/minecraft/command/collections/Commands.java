@@ -295,7 +295,7 @@ public final class Commands extends RegistrationHelper
 			.then(Types.entityList)
 			.optional(Types.entity));
 		
-		register(command(CommandUseItem.constructable, IPermission.level2, usage("commands.useItem.usage"), "useItem")
+		register(command(CommandUseItem.constructable, IPermission.level2, usage("commands.useitem.usage"), "useitem")
 			.then(Types.entityList));
 		
 		if (MinecraftServer.getServer().isDedicatedServer())

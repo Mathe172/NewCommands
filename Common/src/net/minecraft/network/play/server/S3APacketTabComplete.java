@@ -15,15 +15,17 @@ import net.minecraft.network.play.INetHandlerPlayClient;
 public class S3APacketTabComplete implements Packet
 {
 	private List<TabCompletionData> tcDataList;
+	private String vanillaData; // TODO: Backwards compatibility
 	private static final String __OBFID = "CL_00001288";
 	
 	public S3APacketTabComplete()
 	{
 	}
 	
-	public S3APacketTabComplete(final Set<Weighted> tcDataSet)
+	public S3APacketTabComplete(final Set<Weighted> tcDataSet, final String vanillaData)
 	{
 		this.tcDataList = new ArrayList<TabCompletionData>(tcDataSet);
+		this.vanillaData = vanillaData;
 	}
 	
 	/**
@@ -47,15 +49,29 @@ public class S3APacketTabComplete implements Packet
 	@Override
 	public void writePacketData(final PacketBuffer data) throws IOException
 	{
-		data.writeInt(this.tcDataList.size());
-		
-		for (final TabCompletionData tcData : this.tcDataList)
+		if (this.vanillaData == null)
 		{
-			data.writeString(tcData.name);
-			data.writeInt(tcData.startIndex);
-			data.writeInt(tcData.endIndex);
-			data.writeString(tcData.replacement);
-			data.writeInt(tcData.newCursorIndex);
+			data.writeInt(this.tcDataList.size());
+			
+			for (final TabCompletionData tcData : this.tcDataList)
+			{
+				data.writeString(tcData.name);
+				data.writeInt(tcData.startIndex);
+				data.writeInt(tcData.endIndex);
+				data.writeString(tcData.replacement);
+				data.writeInt(tcData.newCursorIndex);
+			}
+		}
+		else
+		{
+			data.writeVarIntToBuffer(this.tcDataList.size());
+			
+			for (final TabCompletionData tcData : this.tcDataList)
+				data.writeString(
+					this.vanillaData.substring(
+						this.vanillaData.lastIndexOf(32, tcData.startIndex) + 1,
+						tcData.startIndex)
+						+ tcData.replacement);
 		}
 	}
 	

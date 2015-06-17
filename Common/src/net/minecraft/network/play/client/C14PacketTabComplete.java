@@ -15,6 +15,7 @@ public class C14PacketTabComplete implements Packet
 	private String message;
 	private int cursorIndex;
 	private BlockPos pos;
+	private boolean moddedClient; // TODO: Backwards-compatibility
 	
 	private static final String __OBFID = "CL_00001346";
 	
@@ -32,6 +33,7 @@ public class C14PacketTabComplete implements Packet
 		this.message = message;
 		this.cursorIndex = cursorIndex;
 		this.pos = pos;
+		this.moddedClient = true;
 	}
 	
 	/**
@@ -41,14 +43,15 @@ public class C14PacketTabComplete implements Packet
 	public void readPacketData(final PacketBuffer data) throws IOException
 	{
 		this.message = data.readStringFromBuffer(32767);
-		this.cursorIndex = data.readInt();
 		
-		final boolean var2 = data.readBoolean();
+		final byte var2 = data.readByte();
 		
-		if (var2)
-		{
+		this.moddedClient = (var2 & 2) != 0;
+		
+		this.cursorIndex = this.moddedClient ? data.readInt() : this.message.length();
+		
+		if ((var2 & 1) != 0)
 			this.pos = data.readBlockPos();
-		}
 	}
 	
 	/**
@@ -58,15 +61,14 @@ public class C14PacketTabComplete implements Packet
 	public void writePacketData(final PacketBuffer data) throws IOException
 	{
 		data.writeString(StringUtils.substring(this.message, 0, 32767));
-		data.writeInt(this.cursorIndex);
 		
 		final boolean var2 = this.pos != null;
-		data.writeBoolean(var2);
+		data.writeByte(var2 ? 3 : 2);
+		
+		data.writeInt(this.cursorIndex);
 		
 		if (var2)
-		{
 			data.writeBlockPos(this.pos);
-		}
 	}
 	
 	public void func_180756_a(final INetHandlerPlayServer p_180756_1_)
@@ -87,6 +89,11 @@ public class C14PacketTabComplete implements Packet
 	public BlockPos func_179709_b()
 	{
 		return this.pos;
+	}
+	
+	public boolean isModdedClient()
+	{
+		return this.moddedClient;
 	}
 	
 	/**

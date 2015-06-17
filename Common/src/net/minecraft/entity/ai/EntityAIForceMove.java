@@ -13,8 +13,6 @@ public class EntityAIForceMove extends EntityAIBase
 	private final double speed;
 	private final IAttributeInstance range;
 	
-	private double lastRange;
-	
 	private PathEntity path;
 	
 	private BlockPos pos;
@@ -36,7 +34,7 @@ public class EntityAIForceMove extends EntityAIBase
 	@Override
 	public boolean continueExecuting()
 	{
-		return !this.entity.getNavigator().noPath() || this.entity.getNavigator().setPath(this.entity.getNavigator().func_179680_a(this.pos), this.speed);
+		return !this.entity.getNavigator().noPath() || this.entity.getNavigator().setPath(findPath(), this.speed);
 	}
 	
 	@Override
@@ -49,7 +47,6 @@ public class EntityAIForceMove extends EntityAIBase
 	public void resetTask()
 	{
 		this.entity.getNavigator().clearPathEntity();
-		this.range.setBaseValue(this.lastRange);
 	}
 	
 	public void cancel()
@@ -61,22 +58,25 @@ public class EntityAIForceMove extends EntityAIBase
 	{
 		this.pos = pos;
 		
-		this.lastRange = this.range.getBaseValue();
+		return (this.path = findPath()) != null;
+	}
+	
+	public PathEntity findPath()
+	{
+		final double lastRange = this.range.getBaseValue();
 		this.range.setBaseValue(64);
 		
-		this.path = this.entity.getNavigator().func_179680_a(this.pos);
+		final PathEntity path = this.entity.getNavigator().func_179680_a(this.pos);
 		
-		if (this.path != null)
-			return true;
+		this.range.setBaseValue(lastRange);
 		
-		this.range.setBaseValue(this.lastRange);
-		return false;
+		return path;
 	}
 	
 	public boolean update(final BlockPos pos)
 	{
 		this.pos = pos;
 		
-		return this.entity.getNavigator().setPath(this.entity.getNavigator().func_179680_a(this.pos), this.speed);
+		return this.entity.getNavigator().setPath(findPath(), this.speed);
 	}
 }

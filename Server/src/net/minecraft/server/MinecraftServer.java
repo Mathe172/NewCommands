@@ -1136,16 +1136,20 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 		final String toComplete = packet.getMessage();
 		
 		if (toComplete.startsWith("/"))
-		{
 			ParsingManager.submit(new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					Parser.parseCompletion(new CompletionData(toComplete, packet.getCursorIndex(), handler.playerEntity, packet.func_179709_b()), 1).sendPacket(handler);
+					Parser.parseCompletion(
+						new CompletionData(
+							toComplete,
+							packet.getCursorIndex(),
+							handler.playerEntity,
+							packet.func_179709_b()),
+						1).sendPacket(handler, packet.isModdedClient() ? null : toComplete);
 				}
 			});
-		}
 		else
 		{
 			final int cursorIndex = packet.getCursorIndex();
@@ -1164,7 +1168,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IThre
 					for (final ITabCompletion tc : completions)
 						TabCompletionData.addToSet(tcDataSet, startIndex, cData, tc);
 					
-					handler.sendPacket(new S3APacketTabComplete(tcDataSet));
+					handler.sendPacket(new S3APacketTabComplete(tcDataSet, packet.isModdedClient() ? null : toComplete));
 				}
 			});
 		}
