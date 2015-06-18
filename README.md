@@ -306,11 +306,42 @@ You may want to insert a label, but omit the whitespace that is required after i
 The syntax to input NBT is nearly the same as it is in vanilla. For backwards-compatibility reasons, selectors and labels have to be escaped when they should be evaluated: `{CustomName:\$name}` instead of `{CustomName:$name}`. If you want to specify the type of a selector/label, you can do so by using the same literals as for numbers: `b`,`s`,`i`,`l`,`f`,`d`. These literal also work after a string enclosed in quotation marks (so you can 'build' your numbers/values from multiple selectors and labels)
 
 ##Examples
+**Note**: Since `/give` is still missing, you have to use other ways to get a command-block:
+```
+/setblock ~ ~ ~ command_block
+OR
+/summon Item ~  ~ ~ {Item:{id:command_block,Count:1}}
+```
+
+___
 ```
 for x 1 5 summon Blaze ~ ~$x ~ {CustomName:"Blaze #\$x"}
 ```
 Summons 5 Blazes on top of each other, named 'Blaze #1', ... (note that inside NBT-Tags, selectors and labels have to be escaped using `\` to improve backwards-compatibility)
 
+___
+```
+/say 1 + 2 + 3 equals @c[+ 1 + 2 3]
+```
+
+Calculates the sum of `1,2,3` and outputs the result. Note the prefix-notation: `+ 1 + 2 3` is interpreted as `+(1, +(2, 3))` or `1 + (2 + 3)`
+
+___
+```
+/@s[label=s] execute @e[type=(Pig,Cow)] say @b[~ ~-1 ~], @c[i abs -v pos @s pos $s] 
+```
+
+Let's every Pig and Cow say what they're standing on and how far away they are from you. What it does step by step:
+* Store a reference to you in the label `$s` (`@s[label=s]`)
+* Execute on all entities that are Pig or Cow (`type=(Pig,Cow)`, note the new list format)
+* Output the block beneath them (`@b[~ ~-1 ~]`)
+* Output the distance to the player labeled `$s` (you): `i(abs(-v(pos(@s), pos($s))))`
+	* Get the postion of the Pig/Cow and you
+	* Subtract them
+	* Take the length
+	* Convert it to an integer (otherwise the result contains ~10 digits)
+
+___
 ```
 activate, @p[label=p] @c[cos ry $p,label=fy] @c[-0 * $fy sin rx $p,label=dx] @c[* $fy cos rx $p,label=dz] @c[-0 sin ry $p,label=dy] execute $p (execute @e[type=Snowball,c=1,r=5] kill @s, for safe n 5 500 summon PrimedTnt ~@c[* $n $dx] ~@c[* $n $dy] ~@c[* $n $dz])
 ```
@@ -322,6 +353,7 @@ This command summons a ray of TNT in the direction the player is looking at when
 
 Note: To start the command, power the command-block once
 
+___
 ```
 activate, execute @p (tp @e[name=Mirror] ~ ~ ~ @c[-0 rx @s] @c[ry @s], @c[items @n[@s,Inventory] (@c[slot @s],100,101,102,103),label=i] entitydata @e[name=Mirror] {Equipment:\$i})
 ```
