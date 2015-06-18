@@ -1,4 +1,26 @@
 # NewCommands
+
+> - [Description](#)
+> 	- [Installation](#)
+> 	- [For end users](#)
+> 	- [For developers](#)
+> - [MCP and Minecraft version](#)
+> - [Introduction to the syntax](#)
+> - [Commands](#)
+> 	- [Command chaining](#)
+> 	- [List of commands](#)
+> - [Selectors](#)
+> 	- [Basic syntax](#)
+> 	- [List of selectors](#)
+> - [Operators](#)
+> - [Labels](#)
+> - [Strings](#)
+> - [NBT](#)
+> - [Examples](#)
+> 	- [Tab completion](#)
+> - [Code model](#)
+> 	- [Registration examples](#)
+
 ##Description
 The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system.  Although a lot of the commands are still missing, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
 
