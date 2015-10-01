@@ -49,7 +49,7 @@ NewCommands is built on Minecraft 1.8 using MCP 9.10 and Java 7.
 
 To compile, copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
 
-**Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272)) - direct execution using the `startclient.bat` files is still possible
+**Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272) ) - direct execution using the `startclient.bat` files is still possible
 
 To fix them the following steps are required:
 * Go to the `conf`-folder inside the mcp-folder and make the following changes (alternatively, you can use the `conf`-folder provided [here](https://github.com/Mathe172/NewCommands/blob/master/conf.zip?raw=true)
