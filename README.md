@@ -103,19 +103,20 @@ These commands have changed: (Only changes are listed)
 * `/fill`: Same `fast`-flag as for `/clone`
 * `/help`,`/?`: Same as before, but now also allows you to specify the 'command-path' (a list of keywords for the command without any other parameters): for example, `/help scoreboard players` would print the help information specific to that subcommand
 * `/say`: Nearly the same as before, but there are a few escape-sequences:
-    |`\0`|terminates the command, so that it can be chained with others|
-    |`\@`|this selector won't get interpreted|
-    |`\$`|this label won't get interpreted|
-    |`\\`|backslashes that appear before `0`,`@`,`$`,`\` can be escaped this way to behave normally (this is only necessary before these sequences, in other places `\\` is interpreted as `\\`)
-    For example, `/say Hello, \\ \\\@s\0, say Second message, \\@s` would print `Hello, \\ \@s` and `Second message, \<player-name>`
+	|`\0`|terminates the command, so that it can be chained with others|
+	|----|----|
+	|`\@`|this selector won't get interpreted|
+	|`\$`|this label won't get interpreted|
+	|`\\`|backslashes that appear before `0`,`@`,`$`,`\` can be escaped this way to behave normally (this is only necessary before these sequences, in other places `\\` is interpreted as `\\`)
+	For example, `/say Hello, \\ \\\@s\0, say Second message, \\@s` would print `Hello, \\ \@s` and `Second message, \<player-name>`
 * `/summon`: Optional `label <label-name>` parameter (first parameter): If specified, the resulting entity is available in the label `<label-name>` (see [labels-section](#labels) for more information)
 
 The commands listed below are completely new:
 * `/activate`:<br>
-    **Syntax**: `/activate [<delay>] [<pos1>] [<pos2>]`<br>
-    'Activates' all blocks specified (the positon of the sender, the block at `<pos1>` or the box specifed by `<pos1>` and `<pos2>`) after a delay of `<delay>` (defaulted to `1`) ticks (minimum is one). This 'activation' triggers command-blocks, grows crops, ...
+	**Syntax**: `/activate [<delay>] [<pos1>] [<pos2>]`<br>
+	'Activates' all blocks specified (the positon of the sender, the block at `<pos1>` or the box specifed by `<pos1>` and `<pos2>`) after a delay of `<delay>` (defaulted to `1`) ticks (minimum is one). This 'activation' triggers command-blocks, grows crops, ...
 * `/break`:<br>
-    No arguments. Raises an error to leave `for`-loops and similar constructs
+	No arguments. Raises an error to leave `for`-loops and similar constructs
 * `/explain`:<br>
 	**Syntax**: `/explain [all|extended] [<position>]`<br>
 	Gives further information about the errors that occured during parsing a command. If no position is specified, the last command of the player is analyzed (does **not** work on command-blocks or entities), otherwise the command stored in the command-block at position `<position>` is used.
