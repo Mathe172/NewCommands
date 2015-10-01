@@ -23,10 +23,10 @@
 	- [Registration examples](#registration-examples)
 
 ##Description
-The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system.  Although a lot of the commands are still missing, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
+The primary intention of this Minecraft modification was to improve the performance and flexibility of the command system.  Although a lot of the commands are still not upgraded to support the new syntax, nearly all of the core functionality is here, of which we will list the most important ones (for examples see below):
 
 ###Installation
-If you want to give it a try, just download the [installer-jar](https://github.com/Mathe172/NewCommands/blob/master/NewCommands_Installer_r1.1.jar?raw=true) and launch it. Note that an unmodified 1.8 version of the client/server needs to be installed for this to work. For the client installation, create a new profile and select the latest NewCommands-version under 'Use version'.
+If you want to give it a try, just download the [installer-jar](https://github.com/Mathe172/NewCommands/blob/master/NewCommands_Installer_r1.2.jar?raw=true) and launch it. Note that an unmodified 1.8 version of the client/server needs to be installed for this to work. For the client installation, create a new profile and select the latest NewCommands-version under 'Use version'.
 
 ###For end users
 * FULL backwards-compatibility (well almost... some things are interpreted that wouldn't have been before) - the syntax was just extended, not altered
@@ -44,19 +44,16 @@ If you want to give it a try, just download the [installer-jar](https://github.c
 * Everything is loaded at runtime: Command-, selector-, type- (...) registration is always possible, even at runtime
 
 ##MCP and Minecraft version
-NewCommands is built on Minecraft 1.8 using MCP 9.10.
+NewCommands is built on Minecraft 1.8 using MCP 9.10 and Java 7.
 
-To compile, delete the unused files from the decompiled source: (see [here](https://github.com/Mathe172/NewCommands/blob/master/obsoleteClasses.dat))
-* A line starting with `-` or `+` represents a folder that needs to be modified
-* `+` means whitelist: Remove everything except the files listed
-* `-` means blacklist: Remove only these files
-AFTERWARDS copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
+To compile, copy both `Common/src/` and `Client/src/`/`Server/src/` into the source. 
 
 **Note**: As of now, MCP contains two bugs preventing direct use of the reobfuscated code (described [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3271) and [here](http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-tools/1260561-toolkit-mod-coder-pack-mcp?comment=3272)) - direct execution using the `startclient.bat` files is still possible
 
 To fix them the following steps are required:
-* Delete the files `pd.class`, `pe.class` (only server), `pf.class` and `pg.class` form the `reobf`-folder
-* Copy `net/minecraft/server/MinecraftServer$4.class` from `temp/client_reobf.jar` to `reobf/minecraft/net/minecraft/server/` 
+* Go to the `conf`-folder inside the mcp-folder and make the following changes (alternatively, you can use the `conf`-folder provided [here](https://github.com/Mathe172/NewCommands/blob/master/conf.zip?raw=true)
+* In `exceptor.json`, `joined.exc` and `joined.srg`, replace all occurences of `MinecraftServer$1` to `MinecraftServer$4` with `MinecraftServer$inner1` to `MinecraftServer$inner4`
+* In `joined.srg`, append `MD: net/minecraft/command/IPermission/a (Lae;)Z net/minecraft/command/IPermission/canCommandSenderUseCommand (Lnet/minecraft/command/ICommandSender;)Z` as a new line at the end of the file
 
 ##Introduction to the syntax
 
@@ -81,6 +78,8 @@ Parentheses are used to group commands: The whole construct can be used anywhere
 **Note:** Most commands raise an error if nothing happened (e.g. no block/entity was changed, ...)
 
 ###List of commands
+**Note**: Every command that does not appear in the following lists has not yet been upgraded to work with the new syntax - it is however available (see also `/legacy`-command below): These commands work exactly like they do in vanilla, meaning only the old syntax is working. The only "new" thing is that you can terminate them with `\0` (as with the `/say`-command) so that you can use them with the chaining syntax
+
 The following commands are completely unchanged (compared to current implementation)
 * `/blockdata`
 * `/deop`
@@ -90,17 +89,24 @@ The following commands are completely unchanged (compared to current implementat
 * `/kill`
 * `/op`
 * `/particle`
-* `/say` (**Note**: Since everything after this command is interpreted as string, this command can't be chained with others)
 * `/scoreboard`
 * `/setblock`
 * `/stats`
 * `/stop`
+* `/tellraw`
 * `/tp` (**Note**: `/tp <x> <y> <z>` does not work if `<x>` can be interpreted as entity name (i.e. is a simple integer constant; there is no way to distinguish it from `/tp <target-entity> <rx> <ry>`) use `/tp @s <x> <y> <z>` instead
 
 These commands have changed: (Only changes are listed)
 * `/clone`: optional `fast` flag (first parameter). If this flag is set, most safety mechanisms are deactivated, e.g. redstone may drop,... and block updates can be omitted sometimes. Should only be used for 'stable' structures made out of simple blocks. (As a benefit, it is faster)
 * `/execute`: Position can be omitted (`/execute @e say ...` is allowed), it defaults to `~ ~ ~`. **Note**: If the preamble (selectors before command) is non-empty, parentheses should be used around the command (otherwise, the selectors might be interpreted as postions). Also, the `detect` part optionally accepts NBT-data to filter the block (while metadata can be omitted even with NBT-data, the should be specified when the NBT-data come from a selector)
 * `/fill`: Same `fast`-flag as for `/clone`
+* `/help`,`/?`: Same as before, but now also allows you to specify the 'command-path' (a list of keywords for the command without any other parameters): for example, `/help scoreboard players` would print the help information specific to that subcommand
+* `/say`: Nearly the same as before, but there are a few escape-sequences:
+    |`\0`|terminates the command, so that it can be chained with others|
+    |`\@`|this selector won't get interpreted|
+    |`\$`|this label won't get interpreted|
+    |`\\`|backslashes that appear before `0`,`@`,`$`,`\` can be escaped this way to behave normally (this is only necessary before these sequences, in other places `\\` is interpreted as `\\`)
+    For example, `/say Hello, \\ \\\@s\0, say Second message, \\@s` would print `Hello, \\ \@s` and `Second message, \<player-name>`
 * `/summon`: Optional `label <label-name>` parameter (first parameter): If specified, the resulting entity is available in the label `<label-name>` (see [labels-section](#labels) for more information)
 
 The commands listed below are completely new:
@@ -120,6 +126,9 @@ The commands listed below are completely new:
 * `/if`:<br>
 	**Syntax**: `/if <condition> <then-command> [else <else-command>]`<br>
 	Self-explanatory. **Note**: `<then-command>` must be enclosed in parentheses if the else clause is present
+* `/legacy`<br>
+	**Syntax**: `/legacy <command-name>`<br>
+	Tells you wheter a command has already been upgraded to the new syntax or not
 * `/move`:<br>
 	**Syntax**: `/move <entities> [<position>]`<br>
 	Forces the entities to move to the specified position, resp. resets this behaviour (without the `<position>`-paramater). **Note**: For performance reasons, the path is rarely reevaluated.
@@ -304,6 +313,9 @@ You may want to insert a label, but omit the whitespace that is required after i
 
 ##NBT
 The syntax to input NBT is nearly the same as it is in vanilla. For backwards-compatibility reasons, selectors and labels have to be escaped when they should be evaluated: `{CustomName:\$name}` instead of `{CustomName:$name}`. If you want to specify the type of a selector/label, you can do so by using the same literals as for numbers: `b`,`s`,`i`,`l`,`f`,`d`. These literal also work after a string enclosed in quotation marks (so you can 'build' your numbers/values from multiple selectors and labels)
+
+##JSON
+As for NBT, the changes are only minimal - to evaluate selectors and labels, you also have to put a `\` in front of them (see above)
 
 ##Examples
 **Note**: Since `/give` is still missing, you have to use other ways to get a command-block:
