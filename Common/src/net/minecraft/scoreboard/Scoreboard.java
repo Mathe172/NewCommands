@@ -7,10 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.util.EnumChatFormatting;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import net.minecraft.util.EnumChatFormatting;
 
 public class Scoreboard
 {
@@ -43,9 +43,7 @@ public class Scoreboard
 		ScoreObjective var3 = this.getObjective(p_96535_1_);
 		
 		if (var3 != null)
-		{
 			throw new IllegalArgumentException("An objective with the name \'" + p_96535_1_ + "\' already exists!");
-		}
 		else
 		{
 			var3 = new ScoreObjective(this, p_96535_1_, p_96535_2_);
@@ -75,9 +73,7 @@ public class Scoreboard
 		final Map var3 = (Map) this.field_96544_c.get(p_178819_1_);
 		
 		if (var3 == null)
-		{
 			return false;
-		}
 		else
 		{
 			final Score var4 = (Score) var3.get(p_178819_2_);
@@ -108,7 +104,7 @@ public class Scoreboard
 	
 	public Score getScore(final String scoreholder, final ScoreObjective objective)
 	{
-		final Map<ScoreObjective, Score> scores = getScores(scoreholder);
+		final Map<ScoreObjective, Score> scores = this.getScores(scoreholder);
 		
 		return scores == null ? null : scores.get(objective);
 	}
@@ -127,9 +123,7 @@ public class Scoreboard
 			final Score var5 = (Score) var4.get(p_96534_1_);
 			
 			if (var5 != null)
-			{
 				var2.add(var5);
-			}
 		}
 		
 		Collections.sort(var2, Score.scoreComparator);
@@ -155,9 +149,7 @@ public class Scoreboard
 			var3 = (Map) this.field_96544_c.remove(p_178822_1_);
 			
 			if (var3 != null)
-			{
 				this.func_96516_a(p_178822_1_);
-			}
 		}
 		else
 		{
@@ -172,14 +164,10 @@ public class Scoreboard
 					final Map var5 = (Map) this.field_96544_c.remove(p_178822_1_);
 					
 					if (var5 != null)
-					{
 						this.func_96516_a(p_178822_1_);
-					}
 				}
 				else if (var4 != null)
-				{
 					this.func_178820_a(p_178822_1_, p_178822_2_);
-				}
 			}
 		}
 	}
@@ -204,9 +192,7 @@ public class Scoreboard
 		Object var2 = this.field_96544_c.get(p_96510_1_);
 		
 		if (var2 == null)
-		{
 			var2 = Maps.newHashMap();
-		}
 		
 		return (Map) var2;
 	}
@@ -223,19 +209,13 @@ public class Scoreboard
 		this.scoreObjectives.remove(p_96519_1_.getName());
 		
 		for (int var2 = 0; var2 < 19; ++var2)
-		{
 			if (this.getObjectiveInDisplaySlot(var2) == p_96519_1_)
-			{
 				this.setObjectiveInDisplaySlot(var2, (ScoreObjective) null);
-			}
-		}
 		
 		final List var5 = (List) this.scoreObjectiveCriterias.get(p_96519_1_.getCriteria());
 		
 		if (var5 != null)
-		{
 			var5.remove(p_96519_1_);
-		}
 		
 		final Iterator var3 = this.field_96544_c.values().iterator();
 		
@@ -277,9 +257,7 @@ public class Scoreboard
 		ScorePlayerTeam var2 = this.getTeam(p_96527_1_);
 		
 		if (var2 != null)
-		{
 			throw new IllegalArgumentException("A team with the name \'" + p_96527_1_ + "\' already exists!");
-		}
 		else
 		{
 			var2 = new ScorePlayerTeam(this, p_96527_1_);
@@ -309,17 +287,13 @@ public class Scoreboard
 	public boolean func_151392_a(final String p_151392_1_, final String p_151392_2_)
 	{
 		if (!this.teams.containsKey(p_151392_2_))
-		{
 			return false;
-		}
 		else
 		{
 			final ScorePlayerTeam var3 = this.getTeam(p_151392_2_);
 			
 			if (this.getPlayersTeam(p_151392_1_) != null)
-			{
 				this.removePlayerFromTeams(p_151392_1_);
-			}
 			
 			this.teamMemberships.put(p_151392_1_, var3);
 			var3.getMembershipCollection().add(p_151392_1_);
@@ -337,9 +311,7 @@ public class Scoreboard
 			return true;
 		}
 		else
-		{
 			return false;
-		}
 	}
 	
 	/**
@@ -348,9 +320,7 @@ public class Scoreboard
 	public void removePlayerFromTeam(final String p_96512_1_, final ScorePlayerTeam p_96512_2_)
 	{
 		if (this.getPlayersTeam(p_96512_1_) != p_96512_2_)
-		{
 			throw new IllegalStateException("Player is either on another team or not on any team. Cannot remove from team \'" + p_96512_2_.getRegisteredName() + "\'.");
-		}
 		else
 		{
 			this.teamMemberships.remove(p_96512_1_);
@@ -446,9 +416,7 @@ public class Scoreboard
 				final EnumChatFormatting var1 = EnumChatFormatting.func_175744_a(p_96517_0_ - 3);
 				
 				if (var1 != null && var1 != EnumChatFormatting.RESET)
-				{
 					return "sidebar.team." + var1.getFriendlyName();
-				}
 			}
 			
 			return null;
@@ -461,17 +429,11 @@ public class Scoreboard
 	public static int getObjectiveDisplaySlotNumber(final String p_96537_0_)
 	{
 		if (p_96537_0_.equalsIgnoreCase("list"))
-		{
 			return 0;
-		}
 		else if (p_96537_0_.equalsIgnoreCase("sidebar"))
-		{
 			return 1;
-		}
 		else if (p_96537_0_.equalsIgnoreCase("belowName"))
-		{
 			return 2;
-		}
 		else
 		{
 			if (p_96537_0_.startsWith("sidebar.team."))
@@ -480,9 +442,7 @@ public class Scoreboard
 				final EnumChatFormatting var2 = EnumChatFormatting.getValueByName(var1);
 				
 				if (var2 != null && var2.func_175746_b() >= 0)
-				{
 					return var2.func_175746_b() + 3;
-				}
 			}
 			
 			return -1;
@@ -496,9 +456,7 @@ public class Scoreboard
 			field_178823_g = new String[19];
 			
 			for (int var0 = 0; var0 < 19; ++var0)
-			{
 				field_178823_g[var0] = getObjectiveDisplaySlot(var0);
-			}
 		}
 		
 		return field_178823_g;

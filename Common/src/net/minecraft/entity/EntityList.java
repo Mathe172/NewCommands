@@ -1,11 +1,18 @@
 package net.minecraft.entity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion;
@@ -75,18 +82,14 @@ import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.world.World;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 public class EntityList
 {
 	private static final Logger logger = LogManager.getLogger();
 	
 	/** Provides a mapping between entity classes and a string */
 	private static final Map stringToClassMapping = Maps.newHashMap();
+	
+	private static final List<String> classNames;
 	
 	/** Provides a mapping between a string and an entity classes */
 	private static final Map classToStringMapping = Maps.newHashMap();
@@ -110,21 +113,13 @@ public class EntityList
 	private static void addMapping(final Class p_75618_0_, final String p_75618_1_, final int p_75618_2_)
 	{
 		if (stringToClassMapping.containsKey(p_75618_1_))
-		{
 			throw new IllegalArgumentException("ID is already registered: " + p_75618_1_);
-		}
 		else if (idToClassMapping.containsKey(Integer.valueOf(p_75618_2_)))
-		{
 			throw new IllegalArgumentException("ID is already registered: " + p_75618_2_);
-		}
 		else if (p_75618_2_ == 0)
-		{
 			throw new IllegalArgumentException("Cannot register to reserved id: " + p_75618_2_);
-		}
 		else if (p_75618_0_ == null)
-		{
 			throw new IllegalArgumentException("Cannot register null clazz for id: " + p_75618_2_);
-		}
 		else
 		{
 			stringToClassMapping.put(p_75618_1_, p_75618_0_);
@@ -158,9 +153,7 @@ public class EntityList
 			final Class var3 = (Class) stringToClassMapping.get(p_75620_0_);
 			
 			if (var3 != null)
-			{
-				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance( worldIn );
-			}
+				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance(worldIn);
 		} catch (final Exception var4)
 		{
 			var4.printStackTrace();
@@ -192,22 +185,16 @@ public class EntityList
 			final Class var3 = (Class) stringToClassMapping.get(id);
 			
 			if (var3 != null)
-			{
-				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance( worldIn );
-			}
+				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance(worldIn);
 		} catch (final Exception var4)
 		{
 			var4.printStackTrace();
 		}
 		
 		if (var2 != null)
-		{
 			var2.readFromNBT(tag);
-		}
 		else
-		{
 			logger.warn("Skipping Entity with id " + id);
-		}
 		
 		return var2;
 	}
@@ -224,18 +211,14 @@ public class EntityList
 			final Class var3 = getClassFromID(p_75616_0_);
 			
 			if (var3 != null)
-			{
-				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance( worldIn );
-			}
+				var2 = (Entity) var3.getConstructor(new Class[] { World.class }).newInstance(worldIn);
 		} catch (final Exception var4)
 		{
 			var4.printStackTrace();
 		}
 		
 		if (var2 == null)
-		{
 			logger.warn("Skipping Entity with id " + p_75616_0_);
-		}
 		
 		return var2;
 	}
@@ -283,21 +266,24 @@ public class EntityList
 	{
 	}
 	
-	public static List func_180124_b()
+	public static List<String> func_180124_b()
 	{
-		final Set var0 = stringToClassMapping.keySet();
-		final ArrayList var1 = Lists.newArrayList();
-		final Iterator var2 = var0.iterator();
+		return classNames;
+	}
+	
+	private static List<String> getClassNames()
+	{
+		final Set<?> var0 = stringToClassMapping.keySet();
+		final ArrayList<String> var1 = Lists.newArrayList();
+		final Iterator<?> var2 = var0.iterator();
 		
 		while (var2.hasNext())
 		{
 			final String var3 = (String) var2.next();
-			final Class var4 = (Class) stringToClassMapping.get(var3);
+			final Class<?> var4 = (Class<?>) stringToClassMapping.get(var3);
 			
 			if ((var4.getModifiers() & 1024) != 1024)
-			{
 				var1.add(var3);
-			}
 		}
 		
 		var1.add("LightningBolt");
@@ -309,13 +295,9 @@ public class EntityList
 		String var2 = getEntityString(p_180123_0_);
 		
 		if (var2 == null && p_180123_0_ instanceof EntityPlayer)
-		{
 			var2 = "Player";
-		}
 		else if (var2 == null && p_180123_0_ instanceof EntityLightningBolt)
-		{
 			var2 = "LightningBolt";
-		}
 		
 		return p_180123_1_.equals(var2);
 	}
@@ -390,6 +372,8 @@ public class EntityList
 		addMapping(EntityEnderCrystal.class, "EnderCrystal", 200);
 		
 		completions.add(new TabCompletion("LightningBolt"));
+		
+		classNames = Collections.unmodifiableList(getClassNames());
 	}
 	
 	public static class EntityEggInfo

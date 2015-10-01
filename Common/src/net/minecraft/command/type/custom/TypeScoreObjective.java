@@ -3,8 +3,10 @@ package net.minecraft.command.type.custom;
 import java.util.Collection;
 import java.util.HashSet;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.collections.TypeIDs;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+
+import net.minecraft.command.collections.Parsers;
 import net.minecraft.command.completion.DataRequest;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -12,47 +14,35 @@ import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.base.CompoundType;
-import net.minecraft.command.type.management.CConverter;
 import net.minecraft.scoreboard.IScoreObjectiveCriteria;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.server.MinecraftServer;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-
 public final class TypeScoreObjective extends CompoundType<ScoreObjective>
 {
-	public static final CConverter<String, ScoreObjective> StringToObjective = new CConverter<String, ScoreObjective>()
+	private TypeScoreObjective(final IComplete completer)
 	{
-		@Override
-		public ScoreObjective convert(final String toConvert) throws CommandException
-		{
-			final ScoreObjective ret = MinecraftServer.getServer().worldServerForDimension(0).getScoreboard().getObjective(toConvert);
-			
-			if (ret != null)
-				return ret;
-			
-			throw new CommandException("Objective not found: " + toConvert);
-		}
-	};
+		super(Parsers.scoreObjective, completer);
+	}
 	
-	private static final CDataType<ScoreObjective> parser = new ParserName.CustomType<>("score name", TypeIDs.ScoreObjective, StringToObjective);
+	private TypeScoreObjective(final Predicate<ScoreObjective> filter)
+	{
+		super(Parsers.scoreObjective, getCompleter(filter));
+	}
 	
-	private static final IComplete completionsReadOnlyCompletions = getCompleter(new Predicate<ScoreObjective>()
+	public static final IComplete completer = getCompleter(Predicates.<ScoreObjective> alwaysTrue());
+	public static final IComplete writeableCompleter = getCompleter(new Predicate<ScoreObjective>()
 	{
 		@Override
 		public boolean apply(final ScoreObjective objective)
 		{
 			return !objective.getCriteria().isReadOnly();
 		}
-	});// TODO:....
+	});
 	
-	public static final CDataType<ScoreObjective> type = new TypeScoreObjective(Predicates.<ScoreObjective> alwaysTrue());
-	public static final CDataType<ScoreObjective> typeWriteable = new CompoundType<>(parser, completionsReadOnlyCompletions);
-	
-	public static final CDataType<String> typeWriteableString = new CompoundType<>(new ParserName("score name"), completionsReadOnlyCompletions); // TODO:....
-	
-	public static final CDataType<ScoreObjective> parserTrigger = new TypeScoreObjective(new Predicate<ScoreObjective>()
+	public static final CDataType<ScoreObjective> type = new TypeScoreObjective(completer);
+	public static final CDataType<ScoreObjective> typeWriteable = new TypeScoreObjective(writeableCompleter);
+	public static final CDataType<ScoreObjective> typeTrigger = new TypeScoreObjective(new Predicate<ScoreObjective>()
 	{
 		@Override
 		public boolean apply(final ScoreObjective objective)
@@ -60,6 +50,8 @@ public final class TypeScoreObjective extends CompoundType<ScoreObjective>
 			return objective.getCriteria() == IScoreObjectiveCriteria.field_178791_c;
 		}
 	});
+	
+	public static final CDataType<String> typeWriteableString = new CompoundType<>(new ParserName("score name"), writeableCompleter);
 	
 	private static IComplete getCompleter(final Predicate<ScoreObjective> filter)
 	{
@@ -83,10 +75,5 @@ public final class TypeScoreObjective extends CompoundType<ScoreObjective>
 				});
 			}
 		};
-	}
-	
-	private TypeScoreObjective(final Predicate<ScoreObjective> filter)
-	{
-		super(parser, getCompleter(filter));
 	}
 }

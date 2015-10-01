@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
@@ -19,7 +21,7 @@ import net.minecraft.command.type.management.relations.Relation.Attribute;
 
 public abstract class Convertable<T, W, E extends CommandException>
 {
-	private static final Map<String, Convertable<?, ?, ?>> convertables = new HashMap<>();
+	private static final PatriciaTrie<Convertable<?, ?, ?>> convertables = new PatriciaTrie<>();
 	
 	private final Map<Convertable<?, ?, ?>, Converter<?, T, ?>> convertableFrom = new HashMap<>();
 	protected final Map<Convertable<?, ?, ? extends E>, Converter<T, ?, ? extends E>> convertableTo = new HashMap<>();

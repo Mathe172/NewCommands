@@ -3,17 +3,20 @@ package net.minecraft.command.selectors.entity;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+
+import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.TypedWrapper.Getter;
+import net.minecraft.command.collections.Parsers;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.collections.Types;
 import net.minecraft.command.completion.DataRequest;
@@ -24,15 +27,12 @@ import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.completion.TabCompletionData.Weighted;
 import net.minecraft.command.descriptors.SelectorDescriptor;
 import net.minecraft.command.descriptors.SelectorDescriptorDefault.DefaultParserData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.selectors.entity.FilterList.InvertableArg;
 import net.minecraft.command.selectors.entity.SelectorDescriptorEntity.ExParserData;
 import net.minecraft.command.selectors.entity.SelectorEntity.SelectorType;
 import net.minecraft.command.type.IDataType;
-import net.minecraft.command.type.custom.ParserDouble;
-import net.minecraft.command.type.custom.ParserInt;
 import net.minecraft.command.type.custom.TypeNullable;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
@@ -40,9 +40,6 @@ import net.minecraft.command.type.custom.nbt.TypeNBTArg;
 import net.minecraft.command.type.management.TypeID;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.server.MinecraftServer;
-
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserData>
 {
@@ -52,7 +49,7 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 		public InvertableArg team = null;
 		public InvertableArg type = null;
 		
-		public Map<String, MutablePair<Getter<Integer>, Getter<Integer>>> primitiveScores = new HashMap<>();
+		public PatriciaTrie<MutablePair<Getter<Integer>, Getter<Integer>>> primitiveScores = new PatriciaTrie<>();
 		public boolean nullScoreAllowed = true;
 		
 		public ExParserData(final Parser parser)
@@ -62,7 +59,9 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 	}
 	
 	private static final List<IDataType<?>> unnamedTypes = new ArrayList<>(4);
-	private static final Map<String, IDataType<?>> namedTypes = new HashMap<>(21);
+	private static final PatriciaTrie<IDataType<?>> namedTypes = new PatriciaTrie<>();
+	
+	private static final List<String> keyMapping = new ArrayList<>(4);
 	private static final Set<ITabCompletion> keyCompletions = new HashSet<>(18);
 	
 	private static final ITabCompletion nameCompletion = new TabCompletion("name=", "name=", "name");
@@ -74,25 +73,30 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.typeXNC));
 		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.typeYNC));
 		unnamedTypes.add(new TypeNullable<>(TypeCoordinate.typeZNC));
-		unnamedTypes.add(ParserInt.parser);
+		unnamedTypes.add(Parsers.integer);
+		
+		keyMapping.add("x");
+		keyMapping.add("y");
+		keyMapping.add("z");
+		keyMapping.add("r");
 		
 		namedTypes.put("x", TypeCoordinate.typeXNC);
 		namedTypes.put("y", TypeCoordinate.typeYNC);
 		namedTypes.put("z", TypeCoordinate.typeZNC);
-		namedTypes.put("r", ParserInt.parser);
-		namedTypes.put("rm", ParserInt.parser);
-		namedTypes.put("dx", ParserDouble.parser);
-		namedTypes.put("dy", ParserDouble.parser);
-		namedTypes.put("dz", ParserDouble.parser);
+		namedTypes.put("r", Parsers.integer);
+		namedTypes.put("rm", Parsers.integer);
+		namedTypes.put("dx", Parsers.dbl);
+		namedTypes.put("dy", Parsers.dbl);
+		namedTypes.put("dz", Parsers.dbl);
 		namedTypes.put("dxyz", Types.generalType(TypeIDs.Coordinates));
-		namedTypes.put("c", ParserInt.parser);
-		namedTypes.put("m", ParserInt.parser);
-		namedTypes.put("l", ParserInt.parser);
-		namedTypes.put("lm", ParserInt.parser);
-		namedTypes.put("rx", ParserDouble.parser);
-		namedTypes.put("rxm", ParserDouble.parser);
-		namedTypes.put("ry", ParserDouble.parser);
-		namedTypes.put("rym", ParserDouble.parser);
+		namedTypes.put("c", Parsers.integer);
+		namedTypes.put("m", Parsers.integer);
+		namedTypes.put("l", Parsers.integer);
+		namedTypes.put("lm", Parsers.integer);
+		namedTypes.put("rx", Parsers.dbl);
+		namedTypes.put("rxm", Parsers.dbl);
+		namedTypes.put("ry", Parsers.dbl);
+		namedTypes.put("rym", Parsers.dbl);
 		
 		namedTypes.put("xyz", TypeCoordinates.nonCentered);
 		namedTypes.put("nbt", TypeNBTArg.parserEntity);
@@ -117,8 +121,16 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 	@Override
 	public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final ExParserData data)
 	{
+		final Set<String> keySet = new HashSet<>(keyMapping.size() - data.unnamedParams.size() + data.namedParams.size());
+		
+		for (int i = 0; i < data.unnamedParams.size(); ++i)
+			if (keyMapping.get(i) != null)
+				keySet.add(keyMapping.get(i));
+		
+		keySet.addAll(data.namedParams.keySet());
+		
 		for (final ITabCompletion tc : keyCompletions)
-			if (!data.namedParams.containsKey(tc.name.toLowerCase()))
+			if (!keySet.contains(tc.name.toLowerCase()))
 				TabCompletionData.addToSet(tcDataSet, startIndex, cData, tc);
 		
 		if (data.name == null)
@@ -181,7 +193,7 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 	}
 	
 	@Override
-	public void parse(final Parser parser, final String key, final ExParserData data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final String key, final ExParserData data) throws SyntaxErrorException
 	{
 		final IDataType<?> valueType = namedTypes.get(key);
 		
@@ -215,9 +227,9 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 		throw parser.SEE("Unknown parameter key '" + key + "' encountered ");
 	}
 	
-	private final void parseScore(final Parser parser, final String name, final boolean min, final ExParserData data) throws SyntaxErrorException, CompletionException
+	private final void parseScore(final Parser parser, final String name, final boolean min, final ExParserData data) throws SyntaxErrorException
 	{
-		final Getter<Integer> value = ParserInt.parser.parse(parser).addToProcess(data.toProcess).get();
+		final Getter<Integer> value = Parsers.integer.parse(parser).addToProcess(data.toProcess).get();
 		
 		final MutablePair<Getter<Integer>, Getter<Integer>> scoreData = data.primitiveScores.get(name);
 		
@@ -234,7 +246,7 @@ public final class SelectorDescriptorEntity extends SelectorDescriptor<ExParserD
 	}
 	
 	@Override
-	public void parse(final Parser parser, final ExParserData data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final ExParserData data) throws SyntaxErrorException
 	{
 		if (unnamedTypes.size() <= data.unnamedParams.size())
 			throw data.parser.SEE("Too many unnamed parameters encountered while parsing selector (", ")");

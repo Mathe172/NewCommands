@@ -9,6 +9,12 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+
 import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ThreadLanServerPing;
@@ -27,12 +33,6 @@ import net.minecraft.world.WorldType;
 import net.minecraft.world.demo.DemoWorldServer;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
 
 public class IntegratedServer extends MinecraftServer
 {
@@ -78,45 +78,31 @@ public class IntegratedServer extends MinecraftServer
 		WorldInfo var8 = var7.loadWorldInfo();
 		
 		if (var8 == null)
-		{
 			var8 = new WorldInfo(this.theWorldSettings, p_71247_2_);
-		}
 		else
-		{
 			var8.setWorldName(p_71247_2_);
-		}
 		
 		for (int var9 = 0; var9 < this.worldServers.length; ++var9)
 		{
 			byte var10 = 0;
 			
 			if (var9 == 1)
-			{
 				var10 = -1;
-			}
 			
 			if (var9 == 2)
-			{
 				var10 = 1;
-			}
 			
 			if (var9 == 0)
 			{
 				if (this.isDemo())
-				{
 					this.worldServers[var9] = (WorldServer) (new DemoWorldServer(this, var7, var8, var10, this.theProfiler)).init();
-				}
 				else
-				{
 					this.worldServers[var9] = (WorldServer) (new WorldServer(this, var7, var8, var10, this.theProfiler)).init();
-				}
 				
 				this.worldServers[var9].initialize(this.theWorldSettings);
 			}
 			else
-			{
 				this.worldServers[var9] = (WorldServer) (new WorldServerMulti(this, var7, var10, this.worldServers[0], this.theProfiler)).init();
-			}
 			
 			this.worldServers[var9].addWorldAccess(new WorldManager(this, this.worldServers[var9]));
 		}
@@ -124,9 +110,7 @@ public class IntegratedServer extends MinecraftServer
 		this.getConfigurationManager().setPlayerManager(this.worldServers);
 		
 		if (this.worldServers[0].getWorldInfo().getDifficulty() == null)
-		{
 			this.setDifficultyForAllWorlds(this.mc.gameSettings.difficulty);
-		}
 		
 		this.initialWorldChunkLoad();
 	}
@@ -173,7 +157,6 @@ public class IntegratedServer extends MinecraftServer
 			synchronized (this.futureTaskQueue)
 			{
 				while (!this.futureTaskQueue.isEmpty())
-				{
 					try
 					{
 						((FutureTask) this.futureTaskQueue.poll()).run();
@@ -181,7 +164,6 @@ public class IntegratedServer extends MinecraftServer
 					{
 						logger.fatal(var8);
 					}
-				}
 			}
 		}
 		else
@@ -201,12 +183,12 @@ public class IntegratedServer extends MinecraftServer
 				
 				if (!var10.isDifficultyLocked() && var3.getDifficulty() != var10.getDifficulty())
 				{
-					logger.info("Changing difficulty to {}, from {}",  var3.getDifficulty(), var10.getDifficulty() );
+					logger.info("Changing difficulty to {}, from {}", var3.getDifficulty(), var10.getDifficulty());
 					this.setDifficultyForAllWorlds(var3.getDifficulty());
 				}
 				else if (var3.isDifficultyLocked() && !var10.isDifficultyLocked())
 				{
-					logger.info("Locking difficulty to {}",  var3.getDifficulty() );
+					logger.info("Locking difficulty to {}", var3.getDifficulty());
 					final WorldServer[] var4 = this.worldServers;
 					final int var5 = var4.length;
 					
@@ -215,9 +197,7 @@ public class IntegratedServer extends MinecraftServer
 						final WorldServer var7 = var4[var6];
 						
 						if (var7 != null)
-						{
 							var7.getWorldInfo().setDifficultyLocked(true);
-						}
 					}
 				}
 			}
@@ -302,9 +282,7 @@ public class IntegratedServer extends MinecraftServer
 				String var1 = ClientBrandRetriever.getClientModName();
 				
 				if (!var1.equals("vanilla"))
-				{
 					return "Definitely; Client brand changed to \'" + var1 + "\'";
-				}
 				else
 				{
 					var1 = IntegratedServer.this.getServerModName();
@@ -321,9 +299,7 @@ public class IntegratedServer extends MinecraftServer
 		super.setDifficultyForAllWorlds(difficulty);
 		
 		if (this.mc.theWorld != null)
-		{
 			this.mc.theWorld.getWorldInfo().setDifficulty(difficulty);
-		}
 	}
 	
 	@Override
@@ -361,9 +337,7 @@ public class IntegratedServer extends MinecraftServer
 			}
 			
 			if (var3 <= 0)
-			{
 				var3 = 25564;
-			}
 			
 			this.getNetworkSystem().addLanEndpoint((InetAddress) null, var3);
 			logger.info("Started on " + var3);

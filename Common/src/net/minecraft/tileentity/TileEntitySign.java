@@ -1,5 +1,7 @@
 package net.minecraft.tileentity;
 
+import com.google.gson.JsonParseException;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
@@ -19,8 +21,6 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-
-import com.google.gson.JsonParseException;
 
 public class TileEntitySign extends TileEntity
 {
@@ -77,7 +77,7 @@ public class TileEntitySign extends TileEntity
 			}
 			
 			@Override
-			public boolean canCommandSenderUseCommand(final int permissionLevel)
+			public boolean canCommandSenderUseCommand(final int permissionLevel, final String command)
 			{
 				return true;
 			}
@@ -154,13 +154,11 @@ public class TileEntitySign extends TileEntity
 					final ClickEvent event = style.getChatClickEvent();
 					
 					if (event != null)
-					{
 						if (event.getAction() == ClickEvent.Action.RUN_COMMAND)
 						{
 							this.commands[i] = new FutureCommand(event.getValue());
 							continue;
 						}
-					}
 				}
 			}
 			
@@ -192,9 +190,7 @@ public class TileEntitySign extends TileEntity
 		this.isEditable = p_145913_1_;
 		
 		if (!p_145913_1_)
-		{
 			this.field_145917_k = null;
-		}
 	}
 	
 	public void func_145912_a(final EntityPlayer p_145912_1_)
@@ -231,7 +227,7 @@ public class TileEntitySign extends TileEntity
 			}
 			
 			@Override
-			public boolean canCommandSenderUseCommand(final int permissionLevel)
+			public boolean canCommandSenderUseCommand(final int permissionLevel, final String command)
 			{
 				return true;
 			}
@@ -274,10 +270,8 @@ public class TileEntitySign extends TileEntity
 		};
 		
 		for (final IFutureCommand command : this.commands)
-		{
 			if (command != null)
 				CommandHandler.executeCommand(var2, command.getCommand());
-		}
 		
 		return true;
 	}

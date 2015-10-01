@@ -6,7 +6,6 @@ import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
@@ -24,12 +23,11 @@ public class ParserLazyString extends CTypeParse<String>// TODO:..., Completion.
 	}
 	
 	@Override
-	public ArgWrapper<String> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<String> iParse(final Parser parser, final Context parserData) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(lazyStringMatcher);
 		
 		if (parser.findInc(m))
-		{
 			switch (m.group(1))
 			{
 			case "\"":
@@ -39,7 +37,6 @@ public class ParserLazyString extends CTypeParse<String>// TODO:..., Completion.
 			case "\\$":
 				return TypeIDs.String.labelParser.parse(parser);
 			}
-		}
 		
 		return TypeIDs.String.wrap(ParsingUtilities.parseLazyString(parser, ParsingUtilities.baseMatcher));
 	}

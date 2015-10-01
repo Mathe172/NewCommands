@@ -7,7 +7,6 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.descriptors.SelectorDescriptorNoContent.PrimitiveData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.management.TypeID;
@@ -59,13 +58,13 @@ public class SelectorDescriptorNoContent extends SelectorDescriptor<PrimitiveDat
 	}
 	
 	@Override
-	public void parse(final Parser parser, final String key, final PrimitiveData data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final String key, final PrimitiveData data) throws SyntaxErrorException
 	{
 		throw parser.SEE("Selector does not have any parameters ");
 	}
 	
 	@Override
-	public void parse(final Parser parser, final PrimitiveData data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final PrimitiveData data) throws SyntaxErrorException
 	{
 		throw parser.SEE("Selector does not have any parameters ");
 	}

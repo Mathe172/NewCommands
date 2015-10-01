@@ -57,14 +57,12 @@ public class OperatorItems extends CommandArg<NBTBase>
 		final List<Integer> items = this.slots.eval(sender);
 		
 		if (nbt.getId() == 10 && items.size() == 1)
-		{
 			if (items.size() == 1)
 			{
 				final NBTTagCompound compound = (NBTTagCompound) nbt;
 				
 				return Collections.<NBTBase> singletonList(hasSlot(compound, items.get(0)) ? compound : new NBTTagCompound());
 			}
-		}
 		
 		final List<NBTBase> ret = new ArrayList<>(items.size());
 		

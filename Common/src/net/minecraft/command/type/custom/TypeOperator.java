@@ -4,7 +4,6 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -21,7 +20,7 @@ public class TypeOperator<T> extends CustomCompletable<T>
 	}
 	
 	@Override
-	public T iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public T iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final ArgWrapper<?> toConv = TypeUntypedOperator.parseOperator(parser);
 		

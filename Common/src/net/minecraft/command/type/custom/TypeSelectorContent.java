@@ -14,7 +14,6 @@ import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.SParserData;
 import net.minecraft.command.descriptors.SelectorDescriptor;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -31,7 +30,7 @@ public class TypeSelectorContent<D extends SParserData> extends TypeCompletable<
 	}
 	
 	@Override
-	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final D parserData = this.descriptor.newParserData(parser);
 		
@@ -40,7 +39,7 @@ public class TypeSelectorContent<D extends SParserData> extends TypeCompletable<
 		
 		parser.incIndex(1);
 		
-		parser.terminateCompletion();
+		ParsingUtilities.terminateCompletion(parser);
 		
 		final IExParse<Void, D> kvPair = this.descriptor.getKVPair();
 		
@@ -60,7 +59,7 @@ public class TypeSelectorContent<D extends SParserData> extends TypeCompletable<
 				if (parserData.label == null)
 					return parserData.finalize(ret);
 				
-				return parserData.finalize(procLabelModifier(parser, parserData, ret));
+				return parserData.finalize(this.procLabelModifier(parser, parserData, ret));
 			}
 			
 			if ("}".equals(m.group(1)))

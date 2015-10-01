@@ -20,7 +20,7 @@ public class PrimitiveParameter<T> extends Primitive<T>
 	@Override
 	public final T eval(final ICommandSender sender) throws CommandException
 	{
-		return get();
+		return this.get();
 	}
 	
 	@Override

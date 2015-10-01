@@ -29,7 +29,7 @@ public abstract class ArgWrapper<R> extends AbstractWrapper<R>
 	@SuppressWarnings("unchecked")
 	public <T> CommandArg<T> get(final TypeID<T> type)
 	{
-		checkTypes(type);
+		this.checkTypes(type);
 		
 		return (CommandArg<T>) this.arg();
 	}
@@ -61,7 +61,7 @@ public abstract class ArgWrapper<R> extends AbstractWrapper<R>
 	{
 		return this.type.wrap(new CommandArg<R>()
 		{
-			CommandArg<R> arg = arg();
+			CommandArg<R> arg = ArgWrapper.this.arg();
 			
 			@Override
 			public R eval(final ICommandSender sender) throws CommandException
@@ -75,7 +75,7 @@ public abstract class ArgWrapper<R> extends AbstractWrapper<R>
 	
 	public TypedWrapper<R> addToProcess(final List<Processable> toProcess)
 	{
-		final Initialized<R> ret = new Initialized<>(arg());
+		final Initialized<R> ret = new Initialized<>(this.arg());
 		
 		toProcess.add(ret);
 		

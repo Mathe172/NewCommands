@@ -207,11 +207,8 @@ public class Block
 		final ResourceLocation var1 = new ResourceLocation(name);
 		
 		if (blockRegistry.containsKey(var1))
-		{
 			return (Block) blockRegistry.getObject(var1);
-		}
 		else
-		{
 			try
 			{
 				return (Block) blockRegistry.getObjectById(Integer.parseInt(name));
@@ -219,7 +216,6 @@ public class Block
 			{
 				return null;
 			}
-		}
 	}
 	
 	public boolean isFullBlock()
@@ -280,13 +276,9 @@ public class Block
 	public int getMetaFromState(final IBlockState state)
 	{
 		if (state != null && !state.getPropertyNames().isEmpty())
-		{
 			throw new IllegalArgumentException("Don\'t know how to convert " + state + " back into data...");
-		}
 		else
-		{
 			return 0;
-		}
 	}
 	
 	/**
@@ -399,9 +391,7 @@ public class Block
 		this.blockHardness = hardness;
 		
 		if (this.blockResistance < hardness * 5.0F)
-		{
 			this.blockResistance = hardness * 5.0F;
-		}
 		
 		return this;
 	}
@@ -461,9 +451,7 @@ public class Block
 			return worldIn.getCombinedLight(pos, var3.getLightValue());
 		}
 		else
-		{
 			return var4;
-		}
 	}
 	
 	public boolean shouldSideBeRendered(final IBlockAccess worldIn, final BlockPos pos, final EnumFacing side)
@@ -495,9 +483,7 @@ public class Block
 		final AxisAlignedBB var7 = this.getCollisionBoundingBox(worldIn, pos, state);
 		
 		if (var7 != null && mask.intersectsWith(var7))
-		{
 			list.add(var7);
-		}
 	}
 	
 	public AxisAlignedBB getCollisionBoundingBox(final World worldIn, final BlockPos pos, final IBlockState state)
@@ -620,17 +606,13 @@ public class Block
 			final int var6 = this.quantityDroppedWithBonus(fortune, worldIn.rand);
 			
 			for (int var7 = 0; var7 < var6; ++var7)
-			{
 				if (worldIn.rand.nextFloat() <= chance)
 				{
 					final Item var8 = this.getItemDropped(state, worldIn.rand, fortune);
 					
 					if (var8 != null)
-					{
 						spawnAsEntity(worldIn, pos, new ItemStack(var8, 1, this.damageDropped(state)));
-					}
 				}
-			}
 		}
 	}
 	
@@ -660,14 +642,12 @@ public class Block
 	protected void dropXpOnBlockBreak(final World worldIn, final BlockPos pos, int amount)
 	{
 		if (!worldIn.isRemote)
-		{
 			while (amount > 0)
 			{
 				final int var4 = EntityXPOrb.getXPSplit(amount);
 				amount -= var4;
 				worldIn.spawnEntityInWorld(new EntityXPOrb(worldIn, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, var4));
 			}
-		}
 	}
 	
 	/**
@@ -707,104 +687,66 @@ public class Block
 		Vec3 var10 = start.getIntermediateWithZValue(end, this.maxZ);
 		
 		if (!this.isVecInsideYZBounds(var5))
-		{
 			var5 = null;
-		}
 		
 		if (!this.isVecInsideYZBounds(var6))
-		{
 			var6 = null;
-		}
 		
 		if (!this.isVecInsideXZBounds(var7))
-		{
 			var7 = null;
-		}
 		
 		if (!this.isVecInsideXZBounds(var8))
-		{
 			var8 = null;
-		}
 		
 		if (!this.isVecInsideXYBounds(var9))
-		{
 			var9 = null;
-		}
 		
 		if (!this.isVecInsideXYBounds(var10))
-		{
 			var10 = null;
-		}
 		
 		Vec3 var11 = null;
 		
 		if (var5 != null && (var11 == null || start.squareDistanceTo(var5) < start.squareDistanceTo(var11)))
-		{
 			var11 = var5;
-		}
 		
 		if (var6 != null && (var11 == null || start.squareDistanceTo(var6) < start.squareDistanceTo(var11)))
-		{
 			var11 = var6;
-		}
 		
 		if (var7 != null && (var11 == null || start.squareDistanceTo(var7) < start.squareDistanceTo(var11)))
-		{
 			var11 = var7;
-		}
 		
 		if (var8 != null && (var11 == null || start.squareDistanceTo(var8) < start.squareDistanceTo(var11)))
-		{
 			var11 = var8;
-		}
 		
 		if (var9 != null && (var11 == null || start.squareDistanceTo(var9) < start.squareDistanceTo(var11)))
-		{
 			var11 = var9;
-		}
 		
 		if (var10 != null && (var11 == null || start.squareDistanceTo(var10) < start.squareDistanceTo(var11)))
-		{
 			var11 = var10;
-		}
 		
 		if (var11 == null)
-		{
 			return null;
-		}
 		else
 		{
 			EnumFacing var12 = null;
 			
 			if (var11 == var5)
-			{
 				var12 = EnumFacing.WEST;
-			}
 			
 			if (var11 == var6)
-			{
 				var12 = EnumFacing.EAST;
-			}
 			
 			if (var11 == var7)
-			{
 				var12 = EnumFacing.DOWN;
-			}
 			
 			if (var11 == var8)
-			{
 				var12 = EnumFacing.UP;
-			}
 			
 			if (var11 == var9)
-			{
 				var12 = EnumFacing.NORTH;
-			}
 			
 			if (var11 == var10)
-			{
 				var12 = EnumFacing.SOUTH;
-			}
 			
 			return new MovingObjectPosition(var11.addVector(pos.getX(), pos.getY(), pos.getZ()), var12, pos);
 		}
@@ -1004,9 +946,7 @@ public class Block
 			final ItemStack var7 = this.createStackedBlock(state);
 			
 			if (var7 != null)
-			{
 				spawnAsEntity(worldIn, pos, var7);
-			}
 		}
 		else
 		{
@@ -1026,9 +966,7 @@ public class Block
 		final Item var3 = Item.getItemFromBlock(this);
 		
 		if (var3 != null && var3.getHasSubtypes())
-		{
 			var2 = this.getMetaFromState(state);
-		}
 		
 		return new ItemStack(var3, 1, var2);
 	}
@@ -1468,9 +1406,7 @@ public class Block
 			var14 = (Block) var13.next();
 			
 			if (var14.blockMaterial == Material.air)
-			{
 				var14.useNeighborBrightness = false;
-			}
 			else
 			{
 				boolean var15 = false;
@@ -1481,9 +1417,7 @@ public class Block
 				final boolean var20 = var14.lightOpacity == 0;
 				
 				if (var16 || var17 || var18 || var19 || var20)
-				{
 					var15 = true;
-				}
 				
 				var14.useNeighborBrightness = var15;
 			}

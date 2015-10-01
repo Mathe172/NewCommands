@@ -2,12 +2,12 @@ package net.minecraft.command.type.custom.coordinate;
 
 import java.util.regex.Matcher;
 
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion.SingleChar;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.MatcherRegistry;
@@ -28,7 +28,7 @@ public abstract class TypeCoordinateBase extends CustomCompletable<Coordinate>
 	};
 	
 	@Override
-	public Coordinate iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public Coordinate iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(coordMatcher);
 		
@@ -39,7 +39,7 @@ public abstract class TypeCoordinateBase extends CustomCompletable<Coordinate>
 		final String s = m.group(2);
 		
 		if (relative)
-			parser.terminateCompletion();
+			ParsingUtilities.terminateCompletion(parser);
 		else if (s == null)
 			throw parser.SEE("'~' or coordinate expected ");
 		

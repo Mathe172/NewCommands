@@ -8,7 +8,6 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CompoundArg;
 import net.minecraft.command.arg.Processable;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
@@ -23,7 +22,7 @@ public final class TypeCommand
 	public static final CDataType<Integer> parser = new CTypeParse<Integer>()
 	{
 		@Override
-		public ArgWrapper<Integer> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Integer> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			return TypeIDs.Integer.wrap(ParserCommands.parse(parser, false));
 		}
@@ -35,7 +34,7 @@ public final class TypeCommand
 	public static final CTypeParse<Integer> parserSingleCmd = new CTypeParse<Integer>()
 	{
 		@Override
-		public ArgWrapper<Integer> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Integer> iParse(final Parser parser, final Context parserData) throws SyntaxErrorException
 		{
 			final List<Processable> toProcess = new ArrayList<>();
 			final List<Boolean> ignoreErrors = new ArrayList<>();

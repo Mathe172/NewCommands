@@ -10,7 +10,6 @@ import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.SelectorDescriptorSingleArg.ParserDataSingleArg;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
@@ -49,7 +48,7 @@ public class SelectorDescriptorSingleArg extends SelectorDescriptor<ParserDataSi
 		
 		public <T> CommandArg<T> getRequiredArg(final TypeID<T> type) throws SyntaxErrorException
 		{
-			return getRequiredArg().get(type);
+			return this.getRequiredArg().get(type);
 		}
 	}
 	
@@ -95,7 +94,7 @@ public class SelectorDescriptorSingleArg extends SelectorDescriptor<ParserDataSi
 	}
 	
 	@Override
-	public void parse(final Parser parser, final String key, final ParserDataSingleArg data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final String key, final ParserDataSingleArg data) throws SyntaxErrorException
 	{
 		if (!key.equals(this.key))
 			throw parser.SEE("Unknown key '" + key + "' ");
@@ -104,7 +103,7 @@ public class SelectorDescriptorSingleArg extends SelectorDescriptor<ParserDataSi
 	}
 	
 	@Override
-	public void parse(final Parser parser, final ParserDataSingleArg data) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final ParserDataSingleArg data) throws SyntaxErrorException
 	{
 		if (data.arg != null)
 			throw parser.SEE("Selector has only one argument ");

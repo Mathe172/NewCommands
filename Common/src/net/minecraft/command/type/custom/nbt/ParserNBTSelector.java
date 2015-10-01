@@ -5,7 +5,6 @@ import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -23,7 +22,7 @@ public final class ParserNBTSelector extends CustomCompletable<CommandArg<NBTBas
 	}
 	
 	@Override
-	public CommandArg<NBTBase> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public CommandArg<NBTBase> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		return NBTUtilities.procIdentifier(parser, TypeUntypedSelector.parseName(parser).parse(parser));
 	}

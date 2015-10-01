@@ -34,7 +34,7 @@ public class EntityAIForceMove extends EntityAIBase
 	@Override
 	public boolean continueExecuting()
 	{
-		return !this.entity.getNavigator().noPath() || this.entity.getNavigator().setPath(findPath(), this.speed);
+		return !this.entity.getNavigator().noPath() || this.entity.getNavigator().setPath(this.findPath(), this.speed);
 	}
 	
 	@Override
@@ -58,7 +58,7 @@ public class EntityAIForceMove extends EntityAIBase
 	{
 		this.pos = pos;
 		
-		return (this.path = findPath()) != null;
+		return (this.path = this.findPath()) != null;
 	}
 	
 	public PathEntity findPath()
@@ -77,6 +77,6 @@ public class EntityAIForceMove extends EntityAIBase
 	{
 		this.pos = pos;
 		
-		return this.entity.getNavigator().setPath(findPath(), this.speed);
+		return this.entity.getNavigator().setPath(this.findPath(), this.speed);
 	}
 }

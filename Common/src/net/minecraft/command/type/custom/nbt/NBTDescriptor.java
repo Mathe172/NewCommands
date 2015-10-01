@@ -3,20 +3,25 @@ package net.minecraft.command.type.custom.nbt;
 import java.util.Collections;
 import java.util.Set;
 
+import net.minecraft.command.collections.Completers;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound.CompoundData;
 
-public abstract class NBTDescriptor
+public class NBTDescriptor
 {
+	private NBTDescriptor()
+	{
+	}
+	
 	public static interface Tag
 	{
-		public abstract ParserNBTTag getTagParser();
+		public ParserNBTTag getTagParser();
 		
-		public abstract ParserNBTList getListParser();
+		public ParserNBTList getListParser();
 		
-		public abstract ParserNBTCompound getCompoundParser();
+		public ParserNBTCompound getCompoundParser();
 	}
 	
 	public static abstract class Compound
@@ -34,18 +39,20 @@ public abstract class NBTDescriptor
 		public abstract Tag getTagDescriptor(int index);
 	}
 	
-	private static final DefaultCompound defaultCompound = new DefaultCompound();
-	private static final DefaultList defaultList = new DefaultList();
+	private static final DefaultCompound primitiveCompound = new DefaultCompound();
+	private static final DefaultList primitiveList = new DefaultList();
 	
 	public static final Tag defaultTag = new DefaultTag();
-	public static final Tag defaultTagList = new DefaultTag(NBTUtilities.bracketCompleter);
-	public static final Tag defaultTagCompound = new DefaultTag(NBTUtilities.braceCompleter);
+	public static final Tag defaultList = new DefaultTag(Completers.bracketCompleter);
+	public static final Tag defaultCompound = new DefaultTag(Completers.braceCompleter);
+	
+	public static final Tag baseDescriptor = new DefaultTag(Completers.braceBracketCompleter);
 	
 	public static final class DefaultTag implements Tag
 	{
 		private final ParserNBTTag tagParser;
-		private final ParserNBTList listParser = new ParserNBTList(defaultList);
-		private final ParserNBTCompound compoundParser = new ParserNBTCompound(defaultCompound);
+		private final ParserNBTList listParser = new ParserNBTList(primitiveList);
+		private final ParserNBTCompound compoundParser = new ParserNBTCompound(primitiveCompound);
 		
 		private DefaultTag()
 		{
@@ -54,7 +61,7 @@ public abstract class NBTDescriptor
 		
 		public DefaultTag(final IComplete completer)
 		{
-			this.tagParser = new ParserNBTTagCustom(this, completer);
+			this.tagParser = new ParserNBTTag(this, completer);
 		}
 		
 		@Override
@@ -78,7 +85,7 @@ public abstract class NBTDescriptor
 	
 	private static class DefaultCompound extends Compound
 	{
-		private final NBTPair pair = new NBTPair(this);
+		private final TypeNBTPair pair = new TypeNBTPair(this);
 		
 		@Override
 		public Tag getSubDescriptor(final String key)

@@ -15,7 +15,7 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -158,7 +158,6 @@ public class CommandClone extends CommandArg<Integer>
 		final int zEnd = zReverse ? boxOrig.minZ : boxOrig.maxZ + 1;
 		
 		if (this.fast)
-		{
 			for (int z = zStart; zReverse != z < zEnd; z += zIncrement)
 				for (int y = yStart; yReverse != y < yEnd; y += yIncrement)
 					for (int x = xStart; xReverse != x < xEnd; x += xIncrement)
@@ -194,7 +193,6 @@ public class CommandClone extends CommandArg<Integer>
 						if (this.mode == Mode.move && sourceState.getBlock() != Blocks.air && !boxTarget.func_175898_b(sourcePos))
 							world.setBlockState(sourcePos, Blocks.air.getDefaultState(), 18);
 					}
-		}
 		else
 		{
 			final List<BlockPos> sourcePositions = this.mode == Mode.move ? new ArrayList<BlockPos>(size - intersectionSize(boxTarget, boxOrig)) : null;

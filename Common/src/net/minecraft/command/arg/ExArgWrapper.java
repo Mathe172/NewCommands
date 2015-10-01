@@ -29,7 +29,7 @@ public class ExArgWrapper<R, A extends CommandArg<R>> extends ArgWrapper<R>
 		@Override
 		public Getter<R> get()
 		{
-			return arg();
+			return this.arg();
 		}
 		
 		// This is checked...
@@ -37,7 +37,7 @@ public class ExArgWrapper<R, A extends CommandArg<R>> extends ArgWrapper<R>
 		@Override
 		public <T> Primitive<T> get(final TypeID<T> type)
 		{
-			checkTypes(type);
+			this.checkTypes(type);
 			
 			return (Primitive<T>) this.arg();
 		}

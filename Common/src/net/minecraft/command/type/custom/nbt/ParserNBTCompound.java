@@ -1,27 +1,25 @@
 package net.minecraft.command.type.custom.nbt;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+
+import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Compound;
 import net.minecraft.command.type.custom.nbt.NBTUtilities.NBTData;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 public class ParserNBTCompound
 {
@@ -36,33 +34,37 @@ public class ParserNBTCompound
 	{
 		public String name = null;
 		
-		public final Map<String, NBTBase> primitiveData = new HashMap<>();
-		public final Set<String> keySet = new HashSet<>();
+		public final PatriciaTrie<NBTBase> primitiveData = new PatriciaTrie<>();
 		public final ArrayList<Pair<String, CommandArg<NBTBase>>> data = new ArrayList<>();
 		
 		@Override
 		public void put(final NBTBase data)
 		{
 			this.primitiveData.put(this.name, data);
-			this.keySet.add(this.name);
 		}
 		
 		@Override
 		public void add(final CommandArg<NBTBase> data)
 		{
 			this.data.add(new ImmutablePair<>(this.name, data));
-			this.keySet.add(this.name);
 		}
 		
-		public boolean containsKey(final String key)
+		public Set<String> keySet()
 		{
-			return this.keySet.contains(key);
+			final Set<String> keySet = new HashSet<>();
+			
+			keySet.addAll(this.primitiveData.keySet());
+			
+			for (final Pair<String, ?> item : this.data)
+				keySet.add(item.getLeft());
+			
+			return keySet;
 		}
 	}
 	
-	public void parse(final Parser parser, final NBTData parserData) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final NBTData parserData) throws SyntaxErrorException
 	{
-		parser.terminateCompletion();
+		ParsingUtilities.terminateCompletion(parser);
 		
 		final CompoundData data = new CompoundData();
 		
@@ -94,7 +96,7 @@ public class ParserNBTCompound
 		};
 	}
 	
-	public void parseItems(final Parser parser, final CompoundData data) throws SyntaxErrorException, CompletionException
+	public void parseItems(final Parser parser, final CompoundData data) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(ParsingUtilities.listEndMatcher);
 		

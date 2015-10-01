@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+
 import net.minecraft.command.completion.TabCompleter;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.network.play.client.C14PacketTabComplete;
@@ -12,11 +17,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 
 public class GuiChat extends GuiScreen
 {
@@ -97,50 +97,34 @@ public class GuiChat extends GuiScreen
 	{
 		this.waitingOnAutocomplete = false;
 		
-		if ((keyCode != Keyboard.KEY_TAB || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) && keyCode != Keyboard.KEY_LSHIFT) // ||CRTL
-		{
+		if ((keyCode != Keyboard.KEY_TAB || Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) && keyCode != Keyboard.KEY_LSHIFT)
 			this.cachedTCs = null;
-			// this.tcIterator = null;
-		}
+		// this.tcIterator = null;
 		
 		if (keyCode == Keyboard.KEY_TAB)
 			this.autoComplete(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT));
 		
 		if (keyCode == 1)
-		{
 			this.mc.displayGuiScreen((GuiScreen) null);
-		}
 		else if (keyCode != 28 && keyCode != 156)
 		{
 			if (keyCode == 200)
-			{
 				this.getSentHistory(-1);
-			}
 			else if (keyCode == 208)
-			{
 				this.getSentHistory(1);
-			}
 			else if (keyCode == 201)
-			{
 				this.mc.ingameGUI.getChatGUI().scroll(this.mc.ingameGUI.getChatGUI().getLineCount() - 1);
-			}
 			else if (keyCode == 209)
-			{
 				this.mc.ingameGUI.getChatGUI().scroll(-this.mc.ingameGUI.getChatGUI().getLineCount() + 1);
-			}
 			else
-			{
 				this.inputField.textboxKeyTyped(typedChar, keyCode);
-			}
 		}
 		else
 		{
 			final String var3 = this.inputField.getText().trim();
 			
 			if (var3.length() > 0)
-			{
 				this.func_175275_f(var3);
-			}
 			
 			this.mc.displayGuiScreen((GuiScreen) null);
 		}
@@ -158,19 +142,13 @@ public class GuiChat extends GuiScreen
 		if (var1 != 0)
 		{
 			if (var1 > 1)
-			{
 				var1 = 1;
-			}
 			
 			if (var1 < -1)
-			{
 				var1 = -1;
-			}
 			
 			if (!isShiftKeyDown())
-			{
 				var1 *= 7;
-			}
 			
 			this.mc.ingameGUI.getChatGUI().scroll(var1);
 		}
@@ -187,9 +165,7 @@ public class GuiChat extends GuiScreen
 			final IChatComponent var4 = this.mc.ingameGUI.getChatGUI().getChatComponent(Mouse.getX(), Mouse.getY());
 			
 			if (this.func_175276_a(var4))
-			{
 				return;
-			}
 		}
 		
 		this.inputField.mouseClicked(mouseX, mouseY, mouseButton);
@@ -200,13 +176,9 @@ public class GuiChat extends GuiScreen
 	protected void func_175274_a(final String p_175274_1_, final boolean p_175274_2_)
 	{
 		if (p_175274_2_)
-		{
 			this.inputField.setText(p_175274_1_);
-		}
 		else
-		{
 			this.inputField.writeText(p_175274_1_);
-		}
 	}
 	
 	public void autoComplete(final boolean reverse)
@@ -274,7 +246,6 @@ public class GuiChat extends GuiScreen
 		var2 = MathHelper.clamp_int(var2, 0, var3);
 		
 		if (var2 != this.sentHistoryCursor)
-		{
 			if (var2 == var3)
 			{
 				this.sentHistoryCursor = var3;
@@ -283,14 +254,11 @@ public class GuiChat extends GuiScreen
 			else
 			{
 				if (this.sentHistoryCursor == var3)
-				{
 					this.historyBuffer = this.inputField.getText();
-				}
 				
 				this.inputField.setText((String) this.mc.ingameGUI.getChatGUI().getSentMessages().get(var2));
 				this.sentHistoryCursor = var2;
 			}
-		}
 	}
 	
 	/**
@@ -304,9 +272,7 @@ public class GuiChat extends GuiScreen
 		final IChatComponent var4 = this.mc.ingameGUI.getChatGUI().getChatComponent(Mouse.getX(), Mouse.getY());
 		
 		if (var4 != null && var4.getChatStyle().getChatHoverEvent() != null)
-		{
 			this.func_175272_a(var4, mouseX, mouseY);
-		}
 		
 		super.drawScreen(mouseX, mouseY, partialTicks);
 	}

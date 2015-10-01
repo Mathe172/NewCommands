@@ -1,5 +1,7 @@
 package net.minecraft.command.commands.dedicated;
 
+import com.mojang.authlib.GameProfile;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.CommandUtilities;
@@ -7,10 +9,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.server.MinecraftServer;
-
-import com.mojang.authlib.GameProfile;
 
 public class CommandDeOp extends CommandArg<Integer>
 {

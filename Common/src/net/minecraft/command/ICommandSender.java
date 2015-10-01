@@ -22,8 +22,9 @@ public interface ICommandSender
 	
 	/**
 	 * Returns true if the command sender is allowed to use the given command.
+	 * @param command will nearly always be empty, it only exists to keep the signature intact
 	 */
-	boolean canCommandSenderUseCommand(int permissionLevel);
+	boolean canCommandSenderUseCommand(int permissionLevel, @Deprecated String command);
 	
 	BlockPos getPosition();
 	

@@ -3,20 +3,19 @@ package net.minecraft.command.construction;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.command.collections.Completers;
 import net.minecraft.command.completion.ProviderCompleter;
 import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.DefaultTag;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;
-import net.minecraft.command.type.custom.nbt.NBTUtilities;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound;
 import net.minecraft.command.type.custom.nbt.ParserNBTList;
 import net.minecraft.command.type.custom.nbt.ParserNBTTag;
-import net.minecraft.command.type.custom.nbt.ParserNBTTagCustom;
 
 public final class NBTConstructorList extends NBTDescriptor.List implements Tag
 {
-	private final ParserNBTTag tagParser = new ParserNBTTagCustom(this, NBTUtilities.bracketCompleter);
+	private final ParserNBTTag tagParser = new ParserNBTTag(this, Completers.bracketCompleter);
 	private final List<Tag> itemDescriptors = new ArrayList<>();
 	private final ParserNBTList listParser = new ParserNBTList(this);
 	

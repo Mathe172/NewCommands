@@ -7,7 +7,7 @@ import net.minecraft.command.arg.Setter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.commands.CommandBreak.BreakException;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 
 public class CommandFor extends CommandArg<Integer>
 {

@@ -90,12 +90,10 @@ public class EntityAICustom extends EntityAIBase
 			this.ai = ai;
 			
 			if (ai != null)
-			{
 				if (ai.getMutexBits() != this.getMutexBits())
 					this.requiresRestart = true;
 				else
 					this.ai.startExecuting();
-			}
 		}
 		else
 		{

@@ -1,11 +1,10 @@
 package net.minecraft.command.server;
 
-import io.netty.buffer.ByteBuf;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.FutureCommand;
@@ -93,9 +92,7 @@ public abstract class CommandBlockLogic implements ICommandSender
 		p_145758_1_.setBoolean("TrackOutput", this.trackOutput);
 		
 		if (this.lastOutput != null && this.trackOutput)
-		{
 			p_145758_1_.setString("LastOutput", IChatComponent.Serializer.componentToJson(this.lastOutput));
-		}
 		
 		this.field_175575_g.func_179670_b(p_145758_1_);
 	}
@@ -109,28 +106,19 @@ public abstract class CommandBlockLogic implements ICommandSender
 		this.successCount = tag.getInteger("SuccessCount");
 		
 		if (tag.hasKey("CustomName", 8))
-		{
 			this.customName = tag.getString("CustomName");
-		}
 		
 		if (tag.hasKey("TrackOutput", 1))
-		{
 			this.trackOutput = tag.getBoolean("TrackOutput");
-		}
 		
 		if (tag.hasKey("LastOutput", 8) && this.trackOutput)
-		{
 			this.lastOutput = IChatComponent.Serializer.jsonToComponent(tag.getString("LastOutput"));
-		}
 		
 		this.field_175575_g.func_179668_a(tag);
 	}
 	
-	/**
-	 * Returns true if the command sender is allowed to use the given command.
-	 */
 	@Override
-	public boolean canCommandSenderUseCommand(final int permissionLevel)
+	public boolean canCommandSenderUseCommand(final int permissionLevel, final String command)
 	{
 		return permissionLevel <= 2;
 	}
@@ -155,14 +143,11 @@ public abstract class CommandBlockLogic implements ICommandSender
 	public void trigger(final World worldIn)
 	{
 		if (worldIn.isRemote)
-		{
 			this.successCount = 0;
-		}
 		
 		final MinecraftServer var2 = MinecraftServer.getServer();
 		
 		if (var2 != null && var2.func_175578_N() && var2.isCommandBlockEnabled())
-		{
 			try
 			{
 				this.lastOutput = null;
@@ -203,11 +188,8 @@ public abstract class CommandBlockLogic implements ICommandSender
 				});
 				throw new ReportedException(var5);
 			}
-		}
 		else
-		{
 			this.successCount = 0;
-		}
 	}
 	
 	/**
@@ -280,15 +262,11 @@ public abstract class CommandBlockLogic implements ICommandSender
 	public boolean func_175574_a(final EntityPlayer p_175574_1_)
 	{
 		if (!p_175574_1_.capabilities.isCreativeMode)
-		{
 			return false;
-		}
 		else
 		{
 			if (p_175574_1_.getEntityWorld().isRemote)
-			{
 				p_175574_1_.func_146095_a(this);
-			}
 			
 			return true;
 		}

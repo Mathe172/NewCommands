@@ -1,6 +1,6 @@
 package net.minecraft.command.arg;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -59,7 +59,7 @@ public class PermissionWrapper<T> extends CommandArg<T>
 	
 	public static void complete(final TCDSet tcDataSet, final int startIndex, final CompletionData cData, final Map<ITabCompletion, IPermission> completions)
 	{
-		final Map<Weighted, IPermission> filtered = new HashMap<>();
+		final Map<Weighted, IPermission> filtered = new IdentityHashMap<>();
 		
 		for (final Entry<ITabCompletion, IPermission> e : completions.entrySet())
 		{

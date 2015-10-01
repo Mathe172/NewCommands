@@ -8,7 +8,7 @@ import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.Setter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;

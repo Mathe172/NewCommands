@@ -5,7 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 
 public class CommandBreak extends CommandArg<Integer>
 {

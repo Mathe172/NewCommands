@@ -19,9 +19,10 @@ import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.command.arg.CommandArg;
+import net.minecraft.command.collections.Completers;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.base.CompoundType;
@@ -48,14 +49,6 @@ public final class CommandScoreboard
 	{
 	}
 	
-	public static final Collection<String> colors = initColors();
-	
-	@SuppressWarnings("unchecked")
-	private static Collection<String> initColors()
-	{
-		return EnumChatFormatting.getValidValues(true, false);
-	}
-	
 	public static final CompleterResourcePath completerCriterion = new CompleterResourcePath();
 	public static final CDataType<String> typeCriterion = new CompoundType<>(new ParserName("objective criterion"), completerCriterion);
 	
@@ -65,7 +58,7 @@ public final class CommandScoreboard
 	
 	public static final CDataType<String> typeOperation = new TypeStringLiteral.Escaped(operationMatcher, "+=", "-=", "*=", "/=", "%=", "=", ">", "<", "><");
 	
-	public static final CDataType<String> typeColor = new TypeStringLiteral(colors);
+	public static final CDataType<String> typeColor = new TypeStringLiteral(Completers.chatColors);
 	
 	public static final CDataType<String> typeVisibility = new TypeStringLiteral(Team.EnumVisible.func_178825_a());
 	
@@ -1044,12 +1037,10 @@ public final class CommandScoreboard
 				throw new EntityNotFoundException();
 			
 			for (final String scoreholder : scoreholders)
-			{
 				if (scoreboard.func_151392_a(scoreholder, teamName))
 					newMembers.add(scoreholder);
 				else
 					failedMembers.add(scoreholder);
-			}
 			
 			if (!newMembers.isEmpty())
 			{
@@ -1090,12 +1081,10 @@ public final class CommandScoreboard
 				throw new EntityNotFoundException();
 			
 			for (final String scoreholder : scoreholders)
-			{
 				if (scoreboard.removePlayerFromTeams(scoreholder))
 					removedMembers.add(scoreholder);
 				else
 					failedMembers.add(scoreholder);
-			}
 			
 			if (!removedMembers.isEmpty())
 			{
@@ -1184,7 +1173,7 @@ public final class CommandScoreboard
 					final EnumChatFormatting color = EnumChatFormatting.getValueByName(value);
 					
 					if (color == null || color.isFancyStyling())
-						throw new WrongUsageException("commands.scoreboard.teams.option.noValue", "color", ParsingUtilities.joinNiceString(CommandScoreboard.colors));
+						throw new WrongUsageException("commands.scoreboard.teams.option.noValue", "color", ParsingUtilities.joinNiceString(Completers.chatColors));
 					
 					team.func_178774_a(color);
 					team.setNamePrefix(color.toString());

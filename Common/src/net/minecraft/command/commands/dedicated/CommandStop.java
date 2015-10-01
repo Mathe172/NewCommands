@@ -1,7 +1,7 @@
 package net.minecraft.command.commands.dedicated;
 
-import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.construction.CommandConstructable;

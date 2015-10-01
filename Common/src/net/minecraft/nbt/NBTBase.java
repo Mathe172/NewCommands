@@ -28,7 +28,7 @@ public abstract class NBTBase
 	/**
 	 * Creates a new NBTBase object that corresponds with the passed in id.
 	 */
-	protected static NBTBase createNewByType(byte id)
+	protected static NBTBase createNewByType(final byte id)
 	{
 		switch (id)
 		{
@@ -87,12 +87,10 @@ public abstract class NBTBase
 	}
 	
 	@Override
-	public boolean equals(Object p_equals_1_)
+	public boolean equals(final Object p_equals_1_)
 	{
 		if (!(p_equals_1_ instanceof NBTBase))
-		{
 			return false;
-		}
 		else
 		{
 			final NBTBase var2 = (NBTBase) p_equals_1_;
@@ -128,24 +126,16 @@ public abstract class NBTBase
 		public abstract float getFloat();
 	}
 	
-	public static boolean compareTags(NBTBase p_175775_0_, NBTBase p_175775_1_, boolean p_175775_2_)
+	public static boolean compareTags(final NBTBase p_175775_0_, final NBTBase p_175775_1_, final boolean p_175775_2_)
 	{
 		if (p_175775_0_ == p_175775_1_)
-		{
 			return true;
-		}
 		else if (p_175775_0_ == null)
-		{
 			return true;
-		}
 		else if (p_175775_1_ == null)
-		{
 			return false;
-		}
 		else if (!p_175775_0_.getClass().equals(p_175775_1_.getClass()))
-		{
 			return false;
-		}
 		else if (p_175775_0_ instanceof NBTTagCompound)
 		{
 			final NBTTagCompound var9 = (NBTTagCompound) p_175775_0_;
@@ -157,9 +147,7 @@ public abstract class NBTBase
 			do
 			{
 				if (!var11.hasNext())
-				{
 					return true;
-				}
 				
 				var12 = (String) var11.next();
 				var13 = var9.getTag(var12);
@@ -173,9 +161,7 @@ public abstract class NBTBase
 			final NBTTagList var4 = (NBTTagList) p_175775_1_;
 			
 			if (var3.tagCount() == 0)
-			{
 				return var4.tagCount() == 0;
-			}
 			else
 			{
 				int var5 = 0;
@@ -200,9 +186,7 @@ public abstract class NBTBase
 						}
 						
 						if (!var7)
-						{
 							return false;
-						}
 						
 						++var5;
 						break;
@@ -213,8 +197,6 @@ public abstract class NBTBase
 			}
 		}
 		else
-		{
 			return p_175775_0_.equals(p_175775_1_);
-		}
 	}
 }

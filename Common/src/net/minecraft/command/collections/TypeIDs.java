@@ -12,14 +12,6 @@ import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
-import net.minecraft.command.type.custom.ParserBlockID;
-import net.minecraft.command.type.custom.ParserDouble;
-import net.minecraft.command.type.custom.ParserEntity;
-import net.minecraft.command.type.custom.ParserICmdSender;
-import net.minecraft.command.type.custom.ParserInt;
-import net.minecraft.command.type.custom.ParserItemID;
-import net.minecraft.command.type.custom.TypeBoolean;
-import net.minecraft.command.type.custom.TypeScoreObjective;
 import net.minecraft.command.type.custom.coordinate.Coordinate;
 import net.minecraft.command.type.custom.coordinate.Coordinate.CoordValue;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
@@ -156,11 +148,11 @@ public final class TypeIDs
 			}
 		});
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.Integer, ParserInt.stringToInt);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Integer, Converters.stringToInt);
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.Double, ParserDouble.stringToDouble);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Double, Converters.stringToDouble);
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.Boolean, TypeBoolean.stringToBoolean);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.Boolean, Converters.stringToBoolean);
 		
 		TypeIDs.String.addPrimitiveConverter(TypeIDs.Short, new CConverter<String, Short>()
 		{
@@ -339,7 +331,7 @@ public final class TypeIDs
 			}
 		});
 		
-		TypeIDs.UUID.addPrimitiveConverter(TypeIDs.Entity, ParserEntity.UUIDToEntity);
+		TypeIDs.UUID.addPrimitiveConverter(TypeIDs.Entity, Converters.UUIDToEntity);
 		
 		TypeIDs.Entity.addPrimitiveConverter(TypeIDs.UUID, new CConverter<Entity, String>()
 		{
@@ -350,7 +342,7 @@ public final class TypeIDs
 			}
 		});
 		
-		TypeIDs.Entity.addDefaultConverter(TypeIDs.ICmdSender, ParserICmdSender.EntityToICmdSender);
+		TypeIDs.Entity.addDefaultConverter(TypeIDs.ICmdSender, Converters.EntityToICmdSender);
 		
 		TypeIDs.ICmdSender.addPrimitiveConverter(TypeIDs.Entity, new CConverter<ICommandSender, Entity>()
 		{
@@ -433,7 +425,7 @@ public final class TypeIDs
 			}
 		});
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.ScoreObjective, TypeScoreObjective.StringToObjective);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.ScoreObjective, Converters.StringToObjective);
 		
 		TypeIDs.Integer.addConverter(Coordinate.typeCoord, new SConverter<CommandArg<Integer>, CoordValue>()
 		{
@@ -460,7 +452,7 @@ public final class TypeIDs
 			}
 		});
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.BlockID, ParserBlockID.stringToBlock);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.BlockID, Converters.stringToBlock);
 		
 		TypeIDs.BlockID.addChild(TypeIDs.BlockState, new CConverter<IBlockState, Block>()
 		{
@@ -482,7 +474,7 @@ public final class TypeIDs
 			}
 		});
 		
-		TypeIDs.String.addPrimitiveConverter(TypeIDs.ItemID, ParserItemID.stringToItem);
+		TypeIDs.String.addPrimitiveConverter(TypeIDs.ItemID, Converters.stringToItem);
 		
 		TypeIDs.BlockPos.addDefaultConverter(TypeIDs.Coordinates, new SConverter<BlockPos, Vec3>()
 		{

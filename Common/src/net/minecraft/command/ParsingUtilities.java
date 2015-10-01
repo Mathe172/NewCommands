@@ -1,8 +1,12 @@
 package net.minecraft.command;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
@@ -13,7 +17,7 @@ import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.arg.TypedWrapper;
 import net.minecraft.command.arg.TypedWrapper.Getter;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.parser.CompletionParser;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
@@ -27,13 +31,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 public final class ParsingUtilities
 {
 	public static final MatcherRegistry aKeyMatcher = new MatcherRegistry("\\G\\s*+([\\w-]++)\\s*+\\=");
 	public static final MatcherRegistry listEndMatcher = new MatcherRegistry("\\G\\s*+([,\\]}])");
-	public static final MatcherRegistry nameMatcher = new MatcherRegistry("\\G[\\w-]*+");
+	public static final MatcherRegistry nameMatcher = new MatcherRegistry("\\G[\\w-]++");
 	public static final MatcherRegistry keyMatcher = new MatcherRegistry("\\G\\s*+([\\w-]++)");
 	public static final MatcherRegistry endingMatcher = new MatcherRegistry("\\G(\\s*+)([,;)\\]]|\\z)");
 	public static final MatcherRegistry endingMatcherCompletion = new MatcherRegistry("\\G(\\s*+)([,;)\\]])");
@@ -44,10 +49,9 @@ public final class ParsingUtilities
 	
 	public static final MatcherRegistry stringMatcher = new MatcherRegistry("\\G\\s*+([\\w\\.:-]++)");
 	
-	public static final MatcherRegistry escapedMatcher = new MatcherRegistry("\\G([^\\\\\"]*+)(?:\"|\\\\(.))");
 	public static final MatcherRegistry quoteMatcher = new MatcherRegistry("\\G\\s*+\"");
 	
-	public final static MatcherRegistry baseMatcher = new MatcherRegistry("\\G[^\\[\\s]*+(?:(\\[)|(?=\\s|\\z))"); // TODO:...
+	public final static MatcherRegistry baseMatcher = new MatcherRegistry("\\G[^\\[\\s]*+(?:(\\[)|(?=\\s|\\z))");
 	public final static MatcherRegistry stackedMatcher = new MatcherRegistry("\\G[^\\[\\]]*+(\\[|\\])");
 	public static final MatcherRegistry whitespaceMatcher = new MatcherRegistry("\\G\\s*+");
 	
@@ -55,12 +59,12 @@ public final class ParsingUtilities
 	{
 	}
 	
-	public static <R> R generalParse(final Parser parser, final CConvertable<?, R> target, final Matcher m) throws SyntaxErrorException, CompletionException
+	public static <R> R generalParse(final Parser parser, final CConvertable<?, R> target, final Matcher m) throws SyntaxErrorException
 	{
 		if (!parser.findInc(m))
 			return null;
 		
-		parser.terminateCompletion();
+		terminateCompletion(parser);
 		
 		return "@".equals(m.group(1)) ? target.selectorParser.parse(parser) : target.labelParser.parse(parser);
 	}
@@ -97,16 +101,10 @@ public final class ParsingUtilities
 		for (int i = 0; i < toJoin.size(); ++i)
 		{
 			if (i > 0)
-			{
 				if (i == toJoin.size() - 1)
-				{
 					ret.appendText(" and ");
-				}
 				else if (i > 0)
-				{
 					ret.appendText(", ");
-				}
-			}
 			
 			ret.appendSibling(toJoin.get(i));
 		}
@@ -123,16 +121,10 @@ public final class ParsingUtilities
 			final String item = elements[i].toString();
 			
 			if (i > 0)
-			{
 				if (i == elements.length - 1)
-				{
 					sb.append(" and ");
-				}
 				else
-				{
 					sb.append(", ");
-				}
-			}
 			
 			sb.append(item);
 		}
@@ -164,7 +156,7 @@ public final class ParsingUtilities
 	/**
 	 * Note: Does not call generalParse
 	 */
-	public static <T> CommandArg<T> parseString(final Parser parser, final Matcher stringMatcher, final Converter<String, T, ?> converter, final PrimitiveCallback<T> callback) throws SyntaxErrorException, CompletionException
+	public static <T> CommandArg<T> parseString(final Parser parser, final Matcher stringMatcher, final Converter<String, T, ?> converter, final PrimitiveCallback<T> callback) throws SyntaxErrorException
 	{
 		if (parser.findInc(stringMatcher))
 			return callback.call(parser, stringMatcher.group(1));
@@ -175,7 +167,7 @@ public final class ParsingUtilities
 		return null;
 	}
 	
-	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final Matcher stringMatcher, final PrimitiveCallback<T> callback) throws SyntaxErrorException, CompletionException
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final Matcher stringMatcher, final PrimitiveCallback<T> callback) throws SyntaxErrorException
 	{
 		final ArgWrapper<T> ret = context.generalParse(parser, target);
 		
@@ -190,12 +182,12 @@ public final class ParsingUtilities
 		return null;
 	}
 	
-	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final MatcherRegistry m, final PrimitiveCallback<T> callback) throws SyntaxErrorException, CompletionException
+	public static <T> ArgWrapper<T> parseString(final Parser parser, final Context context, final TypeID<T> target, final Converter<String, T, ?> converter, final MatcherRegistry m, final PrimitiveCallback<T> callback) throws SyntaxErrorException
 	{
 		return parseString(parser, context, target, converter, parser.getMatcher(m), callback);
 	}
 	
-	public static ArgWrapper<String> parseString(final Parser parser, final Context context, final TypeID<String> target, final MatcherRegistry m, final PrimitiveCallback<String> callback) throws SyntaxErrorException, CompletionException
+	public static ArgWrapper<String> parseString(final Parser parser, final Context context, final TypeID<String> target, final MatcherRegistry m, final PrimitiveCallback<String> callback) throws SyntaxErrorException
 	{
 		return parseString(parser, context, target, idStringConverter, parser.getMatcher(m), callback);
 	}
@@ -203,7 +195,7 @@ public final class ParsingUtilities
 	/**
 	 * Note: Does not call generalParse
 	 */
-	public static String parseLiteralString(final Parser parser, final Matcher m, final String errorMessage) throws SyntaxErrorException, CompletionException
+	public static String parseLiteralString(final Parser parser, final Matcher m, final String errorMessage) throws SyntaxErrorException
 	{
 		if (parser.findInc(m))
 			return m.group(1);
@@ -214,7 +206,7 @@ public final class ParsingUtilities
 	/**
 	 * Note: Does not call generalParse
 	 */
-	public static String parseLiteralString(final Parser parser, final MatcherRegistry m, final String errorMessage) throws SyntaxErrorException, CompletionException
+	public static String parseLiteralString(final Parser parser, final MatcherRegistry m, final String errorMessage) throws SyntaxErrorException
 	{
 		return parseLiteralString(parser, parser.getMatcher(m), errorMessage);
 	}
@@ -222,7 +214,7 @@ public final class ParsingUtilities
 	/**
 	 * Note: Does not call generalParse
 	 */
-	public static String parseLiteralString(final Parser parser, final String errorMessage) throws SyntaxErrorException, CompletionException
+	public static String parseLiteralString(final Parser parser, final String errorMessage) throws SyntaxErrorException
 	{
 		return parseLiteralString(parser, parser.getMatcher(stringMatcher), errorMessage);
 	}
@@ -230,10 +222,39 @@ public final class ParsingUtilities
 	/**
 	 * Requires the opening quotation mark to be parsed!
 	 */
-	public static <T> CommandArg<T> parseQuotedString(final Parser parser, final Converter<String, T, ?> converter, final PrimitiveCallback<T> callback) throws SyntaxErrorException, CompletionException
+	public static String parseEscapedString(final Parser parser, final char endChar) throws SyntaxErrorException
 	{
-		final Matcher m = parser.getMatcher(escapedMatcher);
+		final StringBuilder sb = new StringBuilder();
 		
+		int partStart = parser.getIndex();
+		while (!parser.endReached())
+		{
+			final char nextChar = parser.consumeNextChar();
+			
+			if (nextChar == endChar)
+				return sb.append(parser.toParse, partStart, parser.getIndex() - 1).toString();
+			
+			if (nextChar == '\\')
+			{
+				if (parser.endReached())
+					throw parser.SEE("Unterminated string ");
+				
+				sb.append(parser.toParse, partStart, parser.getIndex() - 1);
+				
+				procCSequence(parser, parser.consumeNextChar(), sb);
+				
+				partStart = parser.getIndex();
+			}
+		}
+		
+		throw parser.SEE("Missing " + (endChar != '\'' ? "'" + endChar + "'" : "\"'\"") + " ");
+	}
+	
+	/**
+	 * Requires the opening quotation mark to be parsed!
+	 */
+	public static <T> CommandArg<T> parseQuotedString(final Parser parser, final Converter<String, T, ?> converter, final PrimitiveCallback<T> callback, final char endChar) throws SyntaxErrorException
+	{
 		StringBuilder sb = new StringBuilder();
 		
 		final List<CommandArg<String>> parts = new ArrayList<>();
@@ -241,12 +262,15 @@ public final class ParsingUtilities
 		final IParse<ArgWrapper<String>> selectorParser = TypeIDs.String.selectorParser;
 		final IParse<ArgWrapper<String>> labelParser = TypeIDs.String.labelParser;
 		
-		while (parser.findInc(m))
+		int partStart = parser.getIndex();
+		while (!parser.endReached())
 		{
-			sb.append(m.group(1));
+			final char nextChar = parser.consumeNextChar();
 			
-			if (m.group(2) == null)
+			if (nextChar == endChar)
 			{
+				sb.append(parser.toParse, partStart, parser.getIndex() - 1);
+				
 				if (parts.isEmpty())
 					return callback.call(parser, sb.toString());
 				if (sb.length() != 0)
@@ -255,45 +279,127 @@ public final class ParsingUtilities
 				return converter.transform(new CompositeString(parts));
 			}
 			
-			switch (m.group(2).charAt(0))
+			if (nextChar == '\\')
 			{
-			case '@':
-				sb = resetSB(parts, sb);
+				if (parser.endReached())
+					throw parser.SEE("Unterminated string ");
 				
-				parts.add(selectorParser.parse(parser).arg());
-				continue;
-			case '$':
-				sb = resetSB(parts, sb);
+				sb.append(parser.toParse, partStart, parser.getIndex() - 1);
 				
-				parts.add(labelParser.parse(parser).arg());
-				continue;
-			case '"':
-				sb.append('"');
-				continue;
-			case '\\':
-				sb.append('\\');
-				continue;
-			case '!': // '\!' represents 'nothing', useful for stuff like "@s-text" => use "@s\!-text"
-				continue;
-			default:
-				sb.append(m.group(2));
+				final char controlChar = parser.consumeNextChar();
+				
+				switch (controlChar)
+				{
+				case '@':
+					sb = resetSB(parts, sb);
+					
+					parts.add(selectorParser.parse(parser).arg());
+					break;
+				case '$':
+					sb = resetSB(parts, sb);
+					
+					parts.add(labelParser.parse(parser).arg());
+					break;
+				case '!': // '\!' represents 'nothing', useful for stuff like "@s-text" => use "@s\!-text"
+					break;
+				default:
+					procCSequence(parser, controlChar, sb);
+				}
+				
+				partStart = parser.getIndex();
 			}
 		}
 		
-		throw parser.SEE("Missing '\"' ");
+		throw parser.SEE("Missing " + (endChar != '\'' ? "'" + endChar + "'" : "\"'\"") + " ");
 	}
 	
-	public static CommandArg<String> parseQuotedString(final Parser parser, final PrimitiveCallback<String> callback) throws SyntaxErrorException, CompletionException
+	public static final void procCSequence(final Parser parser, final char controlChar, final StringBuilder sb) throws SyntaxErrorException
+	{
+		switch (controlChar)
+		{
+		case 'b':
+			sb.append('\b');
+			return;
+		case 'f':
+			sb.append('\f');
+			return;
+		case 'n':
+			sb.append('\n');
+			return;
+		case 'r':
+			sb.append('\r');
+			return;
+		case 't':
+			sb.append('\t');
+			return;
+		case 'u':
+			if (parser.getIndex() + 4 > parser.len)
+				throw parser.SEE("Unterminated escape sequence: \\u" + parser.toParse.substring(parser.getIndex()) + " ");
+			
+			char result = 0;
+			for (int i = 1; i <= 4; ++i)
+			{
+				final char c = parser.consumeNextChar();
+				
+				result = (char) (result << 4);
+				if ((c >= '0') && (c <= '9'))
+					result = (char) (result + c - '0');
+				else if ((c >= 'a') && (c <= 'f'))
+					result = (char) (result + c - 'a' + 10);
+				else if ((c >= 'A') && (c <= 'F'))
+					result = (char) (result + c - 'A' + 10);
+				else
+					throw parser.SEE("Invalid escape sequence: \\u" + parser.toParse.substring(parser.getIndex() - i, parser.getIndex() - i + 4) + " ");
+			}
+			
+			sb.append(result);
+			return;
+		default:
+			sb.append(controlChar);
+		}
+	}
+	
+	/**
+	 * Requires the opening quotation mark to be parsed!
+	 */
+	public static <T> CommandArg<T> parseQuotedString(final Parser parser, final Converter<String, T, ?> converter, final PrimitiveCallback<T> callback) throws SyntaxErrorException
+	{
+		return parseQuotedString(parser, converter, callback, '"');
+	}
+	
+	/**
+	 * Requires the opening quotation mark to be parsed!
+	 */
+	public static CommandArg<String> parseQuotedString(final Parser parser, final PrimitiveCallback<String> callback) throws SyntaxErrorException
 	{
 		return parseQuotedString(parser, idStringConverter, callback);
 	}
 	
-	public static CommandArg<String> parseQuotedString(final Parser parser) throws SyntaxErrorException, CompletionException
+	/**
+	 * Requires the opening quotation mark to be parsed!
+	 */
+	public static CommandArg<String> parseQuotedString(final Parser parser) throws SyntaxErrorException
 	{
 		return parseQuotedString(parser, ParserName.callback);
 	}
 	
-	public static interface PrimitiveCallback<T> // TODO:......
+	/**
+	 * Requires the opening quotation mark to be parsed!
+	 */
+	public static CommandArg<String> parseQuotedString(final Parser parser, final PrimitiveCallback<String> callback, final char endChar) throws SyntaxErrorException
+	{
+		return parseQuotedString(parser, idStringConverter, callback, endChar);
+	}
+	
+	/**
+	 * Requires the opening quotation mark to be parsed!
+	 */
+	public static CommandArg<String> parseQuotedString(final Parser parser, final char endChar) throws SyntaxErrorException
+	{
+		return parseQuotedString(parser, ParserName.callback, endChar);
+	}
+	
+	public static interface PrimitiveCallback<T>
 	{
 		public CommandArg<T> call(final Parser parser, final String s) throws SyntaxErrorException;
 	}
@@ -375,10 +481,9 @@ public final class ParsingUtilities
 		final Matcher bm = parser.getMatcher(baseMatcher);
 		final Matcher sm = parser.getMatcher(ParsingUtilities.stackedMatcher);
 		
-		parser.findInc(whitespaceMatcher); // TODO:...
+		parser.findInc(whitespaceMatcher);
 		
 		while (true)
-		{
 			if (level == 0)
 			{
 				if (!parser.findInc(bm))
@@ -399,7 +504,6 @@ public final class ParsingUtilities
 				else
 					--level;
 			}
-		}
 	}
 	
 	public static <T> Getter<T> get(final TypeID<T> type, final TypedWrapper<?> wrapper)
@@ -408,5 +512,44 @@ public final class ParsingUtilities
 			return null;
 		
 		return wrapper.get(type);
+	}
+	
+	@SafeVarargs
+	public static final <T> Set<T> setOrNull(final T... elements)
+	{
+		return elements == null || elements.length == 0 ? null : elements.length == 1 ? Collections.singleton(elements[0]) : new HashSet<>(Arrays.asList(elements));
+	}
+	
+	public static void proposeCompletion(final Parser parser)
+	{
+		parser.supplyHint(CompletionParser.propose);
+	}
+	
+	public static void terminateCompletion(final Parser parser)
+	{
+		parser.supplyHint(CompletionParser.terminate);
+	}
+	
+	public static IChatComponent location(final Parser parser)
+	{
+		final String toParse = parser.toParse;
+		final int index = parser.getIndex();
+		
+		final int start = index > 19 ? index - 20 : 0;
+		
+		final int end = index < toParse.length() - 20 ? index + 19 : toParse.length();
+		
+		final IChatComponent prefix = new ChatComponentText((start > 0 ? "…" : "") + toParse.substring(start, index));
+		
+		final IChatComponent cursor = new ChatComponentText("|");
+		
+		final IChatComponent postfix = new ChatComponentText(toParse.substring(index, end) + (end < toParse.length() ? "…" : ""));
+		
+		prefix.getChatStyle().setColor(EnumChatFormatting.GRAY);
+		cursor.getChatStyle().setColor(EnumChatFormatting.RED);
+		postfix.getChatStyle().setColor(EnumChatFormatting.GRAY);
+		
+		final IChatComponent message = prefix.appendSibling(cursor).appendSibling(postfix);
+		return message;
 	}
 }

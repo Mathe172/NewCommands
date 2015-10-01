@@ -7,7 +7,6 @@ import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.collections.Types;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
@@ -17,11 +16,11 @@ import net.minecraft.util.Vec3;
 
 public abstract class TypeCoordinates
 {
-	public static final CDataType<Vec3> centered = new TypeAlternatives.Typed<>(new Centered(), Types.generalType(TypeIDs.Coordinates));
-	public static final CDataType<Vec3> nonCentered = new TypeAlternatives.Typed<>(new NonCentered(), Types.generalType(TypeIDs.Coordinates));
+	public static final CDataType<Vec3> centered = new TypeAlternatives.Typed<>("coordinates", Types.generalType(TypeIDs.Coordinates), new Centered());
+	public static final CDataType<Vec3> nonCentered = new TypeAlternatives.Typed<>("coordinates", Types.generalType(TypeIDs.Coordinates), new NonCentered());
 	
-	public static final CDataType<Shift> shiftC = new TypeAlternatives.Typed<>(new shiftC(), Types.generalType(TypeIDs.Shift));
-	public static final CDataType<Shift> shiftNC = new TypeAlternatives.Typed<>(new shiftNC(), Types.generalType(TypeIDs.Shift));
+	public static final CDataType<Shift> shiftC = new TypeAlternatives.Typed<>("coordinates", Types.generalType(TypeIDs.Shift), new shiftC());
+	public static final CDataType<Shift> shiftNC = new TypeAlternatives.Typed<>("coordinates", Types.generalType(TypeIDs.Shift), new shiftNC());
 	
 	/**
 	 * y-Coordinate NOT centered
@@ -29,7 +28,7 @@ public abstract class TypeCoordinates
 	private static class Centered extends CTypeParse<Vec3>
 	{
 		@Override
-		public ArgWrapper<Vec3> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Vec3> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			final Coordinate x = TypeCoordinate.xC.parse(parser);
 			final Coordinate y = TypeCoordinate.yNC.parse(parser);
@@ -42,7 +41,7 @@ public abstract class TypeCoordinates
 	private static class NonCentered extends CTypeParse<Vec3>
 	{
 		@Override
-		public ArgWrapper<Vec3> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Vec3> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			final Coordinate x = TypeCoordinate.xNC.parse(parser);
 			final Coordinate y = TypeCoordinate.yNC.parse(parser);
@@ -58,7 +57,7 @@ public abstract class TypeCoordinates
 	private static class shiftC extends CTypeParse<Shift>
 	{
 		@Override
-		public ArgWrapper<Shift> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Shift> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			final Coordinate x = TypeCoordinate.shiftXC.parse(parser);
 			final Coordinate y = TypeCoordinate.shiftYNC.parse(parser);
@@ -71,7 +70,7 @@ public abstract class TypeCoordinates
 	private static class shiftNC extends CTypeParse<Shift>
 	{
 		@Override
-		public ArgWrapper<Shift> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<Shift> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			final Coordinate x = TypeCoordinate.shiftXNC.parse(parser);
 			final Coordinate y = TypeCoordinate.shiftYNC.parse(parser);

@@ -38,9 +38,7 @@ public class S3APacketTabComplete implements Packet
 		this.tcDataList = new ArrayList<TabCompletionData>(amount);
 		
 		for (int i = 0; i < amount; ++i)
-		{
 			this.tcDataList.add(new TabCompletionData(data.readStringFromBuffer(32767), data.readInt(), data.readInt(), data.readStringFromBuffer(32767), data.readInt()));
-		}
 	}
 	
 	/**

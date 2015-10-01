@@ -2,7 +2,7 @@ package net.minecraft.command.construction;
 
 import java.util.Set;
 
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.IExParse;
 

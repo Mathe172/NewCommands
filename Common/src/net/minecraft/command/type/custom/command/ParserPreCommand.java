@@ -8,7 +8,6 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.Processable;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IParse;
 import net.minecraft.command.type.custom.TypeUntypedSelector;
@@ -19,7 +18,7 @@ public final class ParserPreCommand
 	{
 	}
 	
-	public static final CommandArg<Integer> parse(final Parser parser, final List<Processable> toProcess, final List<Boolean> ignoreErrors, final boolean standalone) throws SyntaxErrorException, CompletionException
+	public static final CommandArg<Integer> parse(final Parser parser, final List<Processable> toProcess, final List<Boolean> ignoreErrors, final boolean standalone) throws SyntaxErrorException
 	{
 		final Matcher oParenthMatcher = parser.getMatcher(ParsingUtilities.oParenthMatcher);
 		

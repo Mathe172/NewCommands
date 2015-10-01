@@ -5,7 +5,6 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -22,7 +21,7 @@ public final class TypeCommandName extends CTypeCompletable<String>
 	}
 	
 	@Override
-	public ArgWrapper<String> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<String> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		return ParserName.parser.parse(parser, context);
 	}

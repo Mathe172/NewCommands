@@ -5,12 +5,13 @@ import java.util.regex.Pattern;
 
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
+import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.base.ExCustomParse;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;
 import net.minecraft.command.type.custom.nbt.NBTUtilities.NBTData;
+import net.minecraft.command.type.metadata.ICompletable;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagFloat;
@@ -32,13 +33,18 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 		this.descriptor = descriptor;
 	}
 	
+	public ParserNBTTag(final Tag descriptor, final IComplete completer)
+	{
+		this(descriptor);
+		this.addEntry(new ICompletable.Default(completer));
+	}
+	
 	@Override
-	public Void parse(final Parser parser, final NBTData parserData) throws SyntaxErrorException, CompletionException
+	public Void iParse(final Parser parser, final NBTData parserData) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(specialMatcher);
 		
 		if (parser.findInc(m))
-		{
 			switch (m.group(1))
 			{
 			case "\"":
@@ -57,7 +63,6 @@ public class ParserNBTTag extends ExCustomParse<Void, NBTData>
 				this.descriptor.getCompoundParser().parse(parser, parserData);
 				return null;
 			}
-		}
 		
 		final Matcher nm = parser.getMatcher(numberMatcher);
 		

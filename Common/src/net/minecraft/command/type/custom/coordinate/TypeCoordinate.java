@@ -10,7 +10,6 @@ import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -226,7 +225,7 @@ public class TypeCoordinate
 		}
 		
 		@Override
-		public ArgWrapper<SingleShift> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<SingleShift> iParse(final Parser parser, final Context parserData) throws SyntaxErrorException
 		{
 			final Coordinate coord = TypeShift.this.parser.parse(parser, parserData);
 			

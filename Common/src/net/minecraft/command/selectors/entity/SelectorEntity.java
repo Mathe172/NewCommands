@@ -9,6 +9,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.commons.lang3.tuple.MutablePair;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Ordering;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.NumberInvalidException;
@@ -42,12 +49,6 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-
-import org.apache.commons.lang3.tuple.MutablePair;
-
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Ordering;
 
 public class SelectorEntity extends CommandArg<List<Entity>>
 {
@@ -126,7 +127,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		
 		this.nbt = SelectorConstructable.getParam(TypeIDs.NBTCompound, "nbt", parserData);
 		
-		final Map<String, MutablePair<Getter<Integer>, Getter<Integer>>> pScores = parserData.primitiveScores;
+		final PatriciaTrie<MutablePair<Getter<Integer>, Getter<Integer>>> pScores = parserData.primitiveScores;
 		
 		this.nullScoreAllowed = parserData.nullScoreAllowed && pScores.isEmpty();
 		
@@ -227,7 +228,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 	@Override
 	public List<Entity> eval(final ICommandSender sender) throws CommandException
 	{
-		if (!sender.canCommandSenderUseCommand(1))
+		if (!sender.canCommandSenderUseCommand(1, "@"))
 			return Collections.emptyList();
 		
 		final List<Predicate<Entity>> predList = new ArrayList<Predicate<Entity>>();
@@ -273,20 +274,14 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		final ArrayList<Entity> matches = new ArrayList<>();
 		
 		for (final World world : worlds)
-		{
 			if (this.isPlayerSelector && world.playerEntities.size() < world.loadedEntityList.size() * 16)
 			{
 				for (final Object player : world.playerEntities)
-				{
 					if (allPredicate.apply((Entity) player))
 						matches.add((Entity) player);
-				}
 			}
 			else
-			{
 				world.filterEntities(box, matches, allPredWithType);
-			}
-		}
 		
 		return this.applySelType(matches, coords);
 	}
@@ -441,10 +436,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		final Set<String> ret = new HashSet<String>(types.size());
 		
 		for (final String type : types)
-		{
 			if (checkTypeValid(sender, type))
 				ret.add(type);
-		}
 		return ret;
 	}
 	
@@ -581,7 +574,6 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 		}
 		
 		if (lm != null && lm > 0)
-		{
 			predList.add(new Predicate<Entity>()
 			{
 				@Override
@@ -594,7 +586,6 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 					return lm <= player.experienceLevel;
 				}
 			});
-		}
 	}
 	
 	private AxisAlignedBB dPredicate(final List<Predicate<Entity>> predList, final Vec3 origin) throws CommandException
@@ -737,7 +728,6 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 				final double fRxm = wrapAngleTo90(rxm);
 				
 				if (fRxm < fRx)
-				{
 					predList.add(new Predicate<Entity>()
 					{
 						@Override
@@ -747,9 +737,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 							return pitch >= fRxm && pitch <= fRx;
 						}
 					});
-				}
 				else
-				{
 					predList.add(new Predicate<Entity>()
 					{
 						@Override
@@ -759,10 +747,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 							return pitch >= fRxm || pitch <= fRx;
 						}
 					});
-				}
 			}
 			else
-			{
 				predList.add(new Predicate<Entity>()
 				{
 					@Override
@@ -771,7 +757,6 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						return e.rotationPitch <= fRx;
 					}
 				});
-			}
 		}
 		else if (rxm != null)
 		{
@@ -796,7 +781,6 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 				final double fRym = MathHelper.wrapAngleTo180_double(rym);
 				
 				if (fRym < fRy)
-				{
 					predList.add(new Predicate<Entity>()
 					{
 						@Override
@@ -806,9 +790,7 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 							return yaw >= fRym && yaw <= fRy;
 						}
 					});
-				}
 				else
-				{
 					predList.add(new Predicate<Entity>()
 					{
 						@Override
@@ -818,10 +800,8 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 							return yaw >= fRym || yaw <= fRy;
 						}
 					});
-				}
 			}
 			else
-			{
 				predList.add(new Predicate<Entity>()
 				{
 					@Override
@@ -830,7 +810,6 @@ public class SelectorEntity extends CommandArg<List<Entity>>
 						return e.rotationYaw <= fRy;
 					}
 				});
-			}
 		}
 		else if (rym != null)
 		{

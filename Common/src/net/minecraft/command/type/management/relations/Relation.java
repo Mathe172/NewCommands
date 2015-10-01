@@ -3,13 +3,15 @@ package net.minecraft.command.type.management.relations;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.type.management.Convertable;
 import net.minecraft.command.type.management.Converter;
 
 public class Relation
 {
-	private static final Map<String, Relation> relations = new HashMap<>();
+	private static final PatriciaTrie<Relation> relations = new PatriciaTrie<>();
 	
 	private final Map<Relation, Provider> providers = new HashMap<>();
 	

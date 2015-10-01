@@ -8,7 +8,6 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.descriptors.SelectorDescriptor;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -18,7 +17,7 @@ import net.minecraft.command.type.TypeCompletable;
 public class TypeUntypedSelector extends TypeCompletable<ArgWrapper<?>>
 {
 	@Override
-	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		return parseName(parser).parse(parser);
 	}
@@ -27,7 +26,8 @@ public class TypeUntypedSelector extends TypeCompletable<ArgWrapper<?>>
 	{
 		final Matcher m = parser.getMatcher(ParsingUtilities.nameMatcher);
 		
-		parser.find(m);
+		if (!parser.find(m))
+			throw parser.SEE("No selector name found ");
 		
 		final SelectorDescriptor<?> descriptor = SelectorDescriptor.getDescriptor(m.group());
 		

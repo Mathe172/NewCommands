@@ -1,56 +1,57 @@
 package net.minecraft.command.collections;
 
 import net.minecraft.command.construction.NBTConstructor;
+import net.minecraft.command.construction.NBTConstructor.ConstructionHelper;
 import net.minecraft.command.construction.NBTConstructorList;
-import net.minecraft.command.type.custom.nbt.NBTDescriptor;
+import net.minecraft.command.type.custom.TypeScoreObjective;
 
-public final class NBTDescriptors
+public final class NBTDescriptors extends ConstructionHelper
 {
-	public static final NBTConstructor entity = new NBTConstructor();
-	public static final NBTConstructor block = new NBTConstructor();
-	public static final NBTConstructor item = new NBTConstructor();
+	public static final NBTConstructor entity = compound();
+	public static final NBTConstructor block = compound();
+	public static final NBTConstructor item = compound();
 	
 	private NBTDescriptors()
 	{
 	}
 	
-	public static void init()
+	static
 	{
-		final NBTConstructorList resultStats = new NBTConstructorList().then(new NBTConstructor()
-			.key("AffectedBlocksName",
-				"AffectedBlocksObjective",
-				"AffectedEntitiesName",
-				"AffectedEntitiesObjective",
-				"AffectedItemsName",
-				"AffectedItemsObjective",
-				"QueryResultName",
-				"QueryResultObjective",
-				"SuccessCountName",
-				"SuccessCountObjective"));
+		final NBTConstructorList resultStats = list(compound()
+			.key("AffectedBlocksName", Completers.scoreHolder)
+			.key("AffectedBlocksObjective", TypeScoreObjective.writeableCompleter)
+			.key("AffectedEntitiesName", Completers.scoreHolder)
+			.key("AffectedEntitiesObjective", TypeScoreObjective.writeableCompleter)
+			.key("AffectedItemsName", Completers.scoreHolder)
+			.key("AffectedItemsObjective", TypeScoreObjective.writeableCompleter)
+			.key("QueryResultName", Completers.scoreHolder)
+			.key("QueryResultObjective", TypeScoreObjective.writeableCompleter)
+			.key("SuccessCountName", Completers.scoreHolder)
+			.key("SuccessCountObjective", TypeScoreObjective.writeableCompleter));
 		
-		final NBTConstructorList blockList = new NBTConstructorList(Completers.blockCompleter);
-		final NBTConstructorList effectList = new NBTConstructorList(new NBTConstructor()
+		final NBTConstructorList blockList = list(Completers.blockCompleter);
+		final NBTConstructorList effectList = list(compound()
 			.key("Ambient",
 				"Amplifier",
 				"Duration",
 				"Id",
 				"ShowParticles"));
-		final NBTConstructorList enchantmentList = new NBTConstructorList(new NBTConstructor()
+		final NBTConstructorList enchantmentList = list(compound()
 			.key("id",
 				"lvl"));
 		
-		final NBTConstructorList itemList = new NBTConstructorList(item);
+		final NBTConstructorList itemList = list(item);
 		
 		item.key("Count",
 			"Damage")
 			.key("id", Completers.itemCompleter)
 			.sKey("Slot")
-			.key("tag", new NBTConstructor()
+			.key("tag", compound()
 				.key("CanDestroy", blockList)
 				.key("CanPlaceOn", blockList)
-				.key("display", new NBTConstructor()
+				.key("display", compound()
 					.key("Name")
-					.key("Lore", NBTDescriptor.defaultTagList))
+					.key("Lore", defList))
 				.key("HideFlags",
 					"Unbreakable")
 				.sKey("map_is_scaling")
@@ -58,20 +59,20 @@ public final class NBTDescriptors
 					"generation",
 					"resolved",
 					"title")
-				.sKey("pages", NBTDescriptor.defaultTagList)
-				.sKey("Fireworks", new NBTConstructor()
-					.key("Explosions", NBTDescriptor.defaultTagList)
+				.sKey("pages", defList)
+				.sKey("Fireworks", compound()
+					.key("Explosions", defList)
 					.key("Flight"))
-				.sKey("Explosion", new NBTConstructor()
-					.key("Colors", NBTDescriptor.defaultTagList)
-					.key("FadeColors", NBTDescriptor.defaultTagList)
+				.sKey("Explosion", compound()
+					.key("Colors", defList)
+					.key("FadeColors", defList)
 					.key("Flicker",
 						"Trail",
 						"Type"))
 				.sKey("RepairCost")
-				.sKey("display", new NBTConstructor()
+				.sKey("display", compound()
 					.key("color"))
-				.key("AttributeModifiers", new NBTConstructorList(new NBTConstructor()
+				.key("AttributeModifiers", list(compound()
 					.key("Amount",
 						"Name",
 						"AttributeName",
@@ -81,7 +82,7 @@ public final class NBTDescriptors
 				.sKey("SkullOwner")
 				.key("BlockEntityTag", block)
 				.sKey("CustomPotionEffects", effectList)
-				.sKey("pages", NBTDescriptor.defaultTagList)
+				.sKey("pages", defList)
 				.sKey("StoredEnchantments", enchantmentList)
 				.sKey("ench", enchantmentList));
 		
@@ -96,9 +97,9 @@ public final class NBTDescriptors
 			.key("id", Completers.entityID)
 			.key("Equipment", itemList)
 			
-			.key("Motion", NBTDescriptor.defaultTagList)
-			.key("Rotation", NBTDescriptor.defaultTagList)
-			.key("Pos", NBTDescriptor.defaultTagList)
+			.key("Motion", defList)
+			.key("Rotation", defList)
+			.key("Pos", defList)
 			
 			.sKey("OnGround",
 				"PortalCooldown")
@@ -109,10 +110,10 @@ public final class NBTDescriptors
 			.sKey("AbsorptionAmount")
 			.key("ActiveEffects", effectList)
 			.sKey("AttackTime")
-			.key("Attributes", new NBTConstructorList(new NBTConstructor()
+			.key("Attributes", list(compound()
 				.key("Name",
 					"Base")
-				.key("Modifiers", new NBTConstructorList(new NBTConstructor()
+				.key("Modifiers", list(compound()
 					.key("Amount",
 						"Name",
 						"Operation")
@@ -124,8 +125,8 @@ public final class NBTDescriptors
 				"Health",
 				"HurtByTimestamp",
 				"HurtTime")
-			.sKey("DropChances", NBTDescriptor.defaultTagList)
-			.sKey("Leash", new NBTConstructor()
+			.sKey("DropChances", defList)
+			.sKey("Leash", compound()
 				.key("UUIDLeast",
 					"UUIDMost",
 					"X",
@@ -136,8 +137,8 @@ public final class NBTDescriptors
 				"PersistenceRequired",
 				"Silent")
 			.sKey("Inventory", itemList)
-			.sKey("Offers", new NBTConstructor()
-				.key("Recipies", new NBTConstructorList(new NBTConstructor()
+			.sKey("Offers", compound()
+				.key("Recipies", list(compound()
 					.key("buy", item)
 					.key("buyB", item)
 					.key("sell", item)
@@ -154,17 +155,17 @@ public final class NBTDescriptors
 			.sKey("TileID", Completers.blockCompleter)
 			.key("Item", item)
 			.sKey("inTile", Completers.blockCompleter)
-			.sKey("direction", NBTDescriptor.defaultTagList)
+			.sKey("direction", defList)
 			.sKey("FireworksItem", item)
 			.sKey("ownerName", Completers.userCompleter)
 			.sKey("Potion", item)
-			.sKey("Pose", new NBTConstructor()
-				.key("Head", NBTDescriptor.defaultTagList)
-				.key("Body", NBTDescriptor.defaultTagList)
-				.key("LeftArm", NBTDescriptor.defaultTagList)
-				.key("RightArm", NBTDescriptor.defaultTagList)
-				.key("LeftLeg", NBTDescriptor.defaultTagList)
-				.key("RightLeg", NBTDescriptor.defaultTagList));
+			.sKey("Pose", compound()
+				.key("Head", defList)
+				.key("Body", defList)
+				.key("LeftArm", defList)
+				.key("RightArm", defList)
+				.key("LeftLeg", defList)
+				.key("RightLeg", defList));
 		
 		block.key("CustomName",
 			"Lock")
@@ -173,7 +174,7 @@ public final class NBTDescriptors
 				"y",
 				"z")
 			.sKey("Base")
-			.sKey("Patterns", new NBTConstructorList(new NBTConstructor()
+			.sKey("Patterns", list(compound()
 				.key("Color",
 					"Pattern")))
 			.key("Command")
@@ -189,16 +190,16 @@ public final class NBTDescriptors
 			.sKey("ExtraType",
 				"Rot",
 				"SkullType")
-			.sKey("Owner", new NBTConstructor()
+			.sKey("Owner", compound()
 				.key("Id")
 				.key("Name", Completers.userCompleter)
-				.key("Properties", new NBTConstructor()
-					.key("textures", new NBTConstructorList(new NBTConstructor()
+				.key("Properties", compound()
+					.key("textures", list(compound()
 						.key("Signature",
 							"Value")))))
 			.sKey("EntityId", Completers.entityID)
 			.sKey("SpawnData", entity)
-			.sKey("SpawnPotentials", new NBTConstructorList(new NBTConstructor()
+			.sKey("SpawnPotentials", list(compound()
 				.key("Properties", entity)
 				.key("Type", Completers.entityID)
 				.key("Weight")))

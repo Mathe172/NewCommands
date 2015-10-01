@@ -37,7 +37,7 @@ public abstract class CommandArg<T> implements Processable
 	@Override
 	public void process(final ICommandSender sender) throws CommandException
 	{
-		eval(sender);
+		this.eval(sender);
 	}
 	
 	public ArgWrapper<T> wrap(final TypeID<T> type)

@@ -13,6 +13,9 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommand;
@@ -34,9 +37,6 @@ import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class DedicatedServer extends MinecraftServer implements IServer
 {
@@ -66,18 +66,14 @@ public class DedicatedServer extends MinecraftServer implements IServer
 			public void run()
 			{
 				while (true)
-				{
 					try
 					{
 						while (true)
-						{
 							Thread.sleep(2147483647L);
-						}
 					} catch (final InterruptedException var2)
 					{
 						;
 					}
-				}
 			}
 		};
 	}
@@ -101,9 +97,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 				try
 				{
 					while (!DedicatedServer.this.isServerStopped() && DedicatedServer.this.isServerRunning() && (var2 = var1.readLine()) != null)
-					{
 						DedicatedServer.this.addPendingCommand(var2, DedicatedServer.this);
-					}
 				} catch (final IOException var4)
 				{
 					DedicatedServer.logger.error("Exception handling console input", var4);
@@ -115,9 +109,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 		logger.info("Starting minecraft server version 1.8");
 		
 		if (Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L)
-		{
 			logger.warn("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
-		}
 		
 		logger.info("Loading properties");
 		this.settings = new PropertyManager(new File("server.properties"));
@@ -132,9 +124,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 		else
 		{
 			if (this.isSinglePlayer())
-			{
 				this.setHostname("127.0.0.1");
-			}
 			else
 			{
 				this.setOnlineMode(this.settings.getBooleanProperty("online-mode", true));
@@ -151,13 +141,9 @@ public class DedicatedServer extends MinecraftServer implements IServer
 			this.setPlayerIdleTimeout(this.settings.getIntProperty("player-idle-timeout", 0));
 			
 			if (this.settings.getIntProperty("difficulty", 1) < 0)
-			{
 				this.settings.setProperty("difficulty", Integer.valueOf(0));
-			}
 			else if (this.settings.getIntProperty("difficulty", 1) > 3)
-			{
 				this.settings.setProperty("difficulty", Integer.valueOf(3));
-			}
 			
 			this.canSpawnStructures = this.settings.getBooleanProperty("generate-structures", true);
 			final int var2 = this.settings.getIntProperty("gamemode", WorldSettings.GameType.SURVIVAL.getID());
@@ -166,14 +152,10 @@ public class DedicatedServer extends MinecraftServer implements IServer
 			InetAddress var3 = null;
 			
 			if (this.getServerHostname().length() > 0)
-			{
 				var3 = InetAddress.getByName(this.getServerHostname());
-			}
 			
 			if (this.getServerPort() < 0)
-			{
 				this.setServerPort(this.settings.getIntProperty("server-port", 25565));
-			}
 			
 			logger.info("Generating keypair");
 			this.setKeyPair(CryptManager.generateKeyPair());
@@ -185,7 +167,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 			} catch (final IOException var17)
 			{
 				logger.warn("**** FAILED TO BIND TO PORT!");
-				logger.warn("The exception was: {}",  var17.toString() );
+				logger.warn("The exception was: {}", var17.toString());
 				logger.warn("Perhaps a server is already running on that port?");
 				return false;
 			}
@@ -199,23 +181,17 @@ public class DedicatedServer extends MinecraftServer implements IServer
 			}
 			
 			if (this.convertFiles())
-			{
 				this.getPlayerProfileCache().func_152658_c();
-			}
 			
 			if (!PreYggdrasilConverter.tryConvert(this.settings))
-			{
 				return false;
-			}
 			else
 			{
 				this.setConfigManager(new DedicatedPlayerList(this));
 				final long var4 = System.nanoTime();
 				
 				if (this.getFolderName() == null)
-				{
 					this.setFolderName(this.settings.getStringProperty("level-name", "world"));
-				}
 				
 				final String var6 = this.settings.getStringProperty("level-seed", "");
 				final String var7 = this.settings.getStringProperty("level-type", "DEFAULT");
@@ -223,27 +199,21 @@ public class DedicatedServer extends MinecraftServer implements IServer
 				long var9 = (new Random()).nextLong();
 				
 				if (var6.length() > 0)
-				{
 					try
 					{
 						final long var11 = Long.parseLong(var6);
 						
 						if (var11 != 0L)
-						{
 							var9 = var11;
-						}
 					} catch (final NumberFormatException var16)
 					{
 						var9 = var6.hashCode();
 					}
-				}
 				
 				WorldType var18 = WorldType.parseWorldType(var7);
 				
 				if (var18 == null)
-				{
 					var18 = WorldType.DEFAULT;
-				}
 				
 				this.isAnnouncingPlayerAchievements();
 				this.isCommandBlockEnabled();
@@ -433,7 +403,7 @@ public class DedicatedServer extends MinecraftServer implements IServer
 		while (!this.pendingCommandList.isEmpty())
 		{
 			final ServerCommand var1 = this.pendingCommandList.remove(0);
-			CommandHandler.executeCommand(var1.sender, var1.command.get());
+			CommandHandler.executeCommand(var1.sender, var1.command.get(), 0);
 		}
 	}
 	
@@ -545,21 +515,13 @@ public class DedicatedServer extends MinecraftServer implements IServer
 	public boolean isBlockProtected(final World worldIn, final BlockPos pos, final EntityPlayer playerIn)
 	{
 		if (worldIn.provider.getDimensionId() != 0)
-		{
 			return false;
-		}
 		else if (this.func_180508_aN().getOppedPlayers().hasEntries())
-		{
 			return false;
-		}
 		else if (this.func_180508_aN().canSendCommands(playerIn.getGameProfile()))
-		{
 			return false;
-		}
 		else if (this.getSpawnProtectionSize() <= 0)
-		{
 			return false;
-		}
 		else
 		{
 			final BlockPos var4 = worldIn.getSpawnPoint();
@@ -596,13 +558,9 @@ public class DedicatedServer extends MinecraftServer implements IServer
 		int var1 = this.settings.getIntProperty("max-world-size", super.getMaxWorldSize());
 		
 		if (var1 < 1)
-		{
 			var1 = 1;
-		}
 		else if (var1 > super.getMaxWorldSize())
-		{
 			var1 = super.getMaxWorldSize();
-		}
 		
 		return var1;
 	}

@@ -10,7 +10,6 @@ import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
 import net.minecraft.command.descriptors.SParserData;
 import net.minecraft.command.descriptors.SelectorDescriptor;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IParse;
@@ -29,13 +28,13 @@ public class KVPair<D extends SParserData> extends ExCustomCompletable<Void, D>
 	}
 	
 	@Override
-	public Void iParse(final Parser parser, final D data) throws SyntaxErrorException, CompletionException
+	public Void iParse(final Parser parser, final D data) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(ParsingUtilities.aKeyMatcher);
 		
 		if (parser.findInc(m))
 		{
-			parser.terminateCompletion();
+			ParsingUtilities.terminateCompletion(parser);
 			final String key = m.group(1).toLowerCase();
 			
 			if ("label".equals(key))

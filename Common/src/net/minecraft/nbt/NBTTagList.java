@@ -32,30 +32,22 @@ public class NBTTagList extends NBTBase
 	void write(final DataOutput output) throws IOException
 	{
 		if (!this.tagList.isEmpty())
-		{
 			this.tagType = this.tagList.get(0).getId();
-		}
 		else
-		{
 			this.tagType = 0;
-		}
 		
 		output.writeByte(this.tagType);
 		output.writeInt(this.tagList.size());
 		
 		for (int var2 = 0; var2 < this.tagList.size(); ++var2)
-		{
 			this.tagList.get(var2).write(output);
-		}
 	}
 	
 	@Override
 	void read(final DataInput input, final int depth, final NBTSizeTracker sizeTracker) throws IOException
 	{
 		if (depth > 512)
-		{
 			throw new RuntimeException("Tried to read NBT tag with too high complexity, depth > 512");
-		}
 		else
 		{
 			sizeTracker.read(8L);
@@ -102,9 +94,7 @@ public class NBTTagList extends NBTBase
 	public void appendTag(final NBTBase nbt)
 	{
 		if (this.tagType == 0)
-		{
 			this.tagType = nbt.getId();
-		}
 		else if (this.tagType != nbt.getId())
 		{
 			LOGGER.warn("Adding mismatching tag types to tag list");
@@ -122,9 +112,7 @@ public class NBTTagList extends NBTBase
 		if (idx >= 0 && idx < this.tagList.size())
 		{
 			if (this.tagType == 0)
-			{
 				this.tagType = nbt.getId();
-			}
 			else if (this.tagType != nbt.getId())
 			{
 				LOGGER.warn("Adding mismatching tag types to tag list");
@@ -134,9 +122,7 @@ public class NBTTagList extends NBTBase
 			this.tagList.set(idx, nbt);
 		}
 		else
-		{
 			LOGGER.warn("index out of bounds to set tag in tag list");
-		}
 	}
 	
 	/**
@@ -167,9 +153,7 @@ public class NBTTagList extends NBTBase
 			return var2.getId() == 10 ? (NBTTagCompound) var2 : new NBTTagCompound();
 		}
 		else
-		{
 			return new NBTTagCompound();
-		}
 	}
 	
 	public int[] getIntArray(final int i)
@@ -180,9 +164,7 @@ public class NBTTagList extends NBTBase
 			return var2.getId() == 11 ? ((NBTTagIntArray) var2).getIntArray() : new int[0];
 		}
 		else
-		{
 			return new int[0];
-		}
 	}
 	
 	public double getDouble(final int i)
@@ -193,9 +175,7 @@ public class NBTTagList extends NBTBase
 			return var2.getId() == 6 ? ((NBTTagDouble) var2).getDouble() : 0.0D;
 		}
 		else
-		{
 			return 0.0D;
-		}
 	}
 	
 	public float getFloat(final int i)
@@ -206,9 +186,7 @@ public class NBTTagList extends NBTBase
 			return var2.getId() == 5 ? ((NBTTagFloat) var2).getFloat() : 0.0F;
 		}
 		else
-		{
 			return 0.0F;
-		}
 	}
 	
 	/**
@@ -222,9 +200,7 @@ public class NBTTagList extends NBTBase
 			return var2.getId() == 8 ? var2.getString() : var2.toString();
 		}
 		else
-		{
 			return "";
-		}
 	}
 	
 	/**
@@ -271,9 +247,7 @@ public class NBTTagList extends NBTBase
 			final NBTTagList var2 = (NBTTagList) p_equals_1_;
 			
 			if (this.tagType == var2.tagType)
-			{
 				return this.tagList.equals(var2.tagList);
-			}
 		}
 		
 		return false;
@@ -334,21 +308,21 @@ public class NBTTagList extends NBTBase
 		@Override
 		public void appendTag(final NBTBase nbt)
 		{
-			shallowCopy();
+			this.shallowCopy();
 			super.appendTag(nbt);
 		}
 		
 		@Override
 		public NBTBase removeTag(final int i)
 		{
-			shallowCopy();
+			this.shallowCopy();
 			return super.removeTag(i);
 		}
 		
 		@Override
 		public void set(final int idx, final NBTBase nbt)
 		{
-			shallowCopy();
+			this.shallowCopy();
 			super.set(idx, nbt);
 		}
 	}

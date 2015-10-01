@@ -27,7 +27,6 @@ public class ChatComponentProcessor
 			if (target != null && playerName.equals("*"))
 				playerName = ParsingUtilities.getEntityIdentifier(target);
 			else
-			{
 				try
 				{
 					playerName = Parser.parseScoreHolder(playerName).eval(sender);
@@ -37,7 +36,6 @@ public class ChatComponentProcessor
 				} catch (final CommandException e)
 				{
 				}
-			}
 			
 			ret = new ChatComponentScore(playerName, scoreToProc.func_179994_h());
 			((ChatComponentScore) ret).func_179997_b(scoreToProc.getUnformattedTextForChat());
@@ -62,15 +60,11 @@ public class ChatComponentProcessor
 			}
 		}
 		else if (toProcess instanceof ChatComponentText)
-		{
 			ret = new ChatComponentText(((ChatComponentText) toProcess).getChatComponentText_TextValue());
-		}
 		else
 		{
 			if (!(toProcess instanceof ChatComponentTranslation))
-			{
 				return toProcess;
-			}
 			
 			final Object[] var8 = ((ChatComponentTranslation) toProcess).getFormatArgs();
 			
@@ -79,9 +73,7 @@ public class ChatComponentProcessor
 				final Object var12 = var8[var10];
 				
 				if (var12 instanceof IChatComponent)
-				{
 					var8[var10] = func_179985_a(sender, (IChatComponent) var12, target);
-				}
 			}
 			
 			ret = new ChatComponentTranslation(((ChatComponentTranslation) toProcess).getKey(), var8);
@@ -90,9 +82,7 @@ public class ChatComponentProcessor
 		final ChatStyle var9 = toProcess.getChatStyle();
 		
 		if (var9 != null)
-		{
 			ret.setChatStyle(var9.createShallowCopy());
-		}
 		
 		final Iterator var11 = toProcess.getSiblings().iterator();
 		

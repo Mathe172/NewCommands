@@ -3,11 +3,12 @@ package net.minecraft.command.collections;
 import java.util.Collections;
 import java.util.Set;
 
+import com.google.common.math.DoubleMath;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.IPermission;
 import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.PlayerNotFoundException;
 import net.minecraft.command.SyntaxErrorException;
@@ -17,10 +18,7 @@ import net.minecraft.command.construction.OperatorConstructable;
 import net.minecraft.command.construction.RegistrationHelper;
 import net.minecraft.command.descriptors.OperatorDescriptor.ListOperands;
 import net.minecraft.command.operators.OperatorItems;
-import net.minecraft.command.type.custom.ParserDouble;
-import net.minecraft.command.type.custom.ParserInt;
 import net.minecraft.command.type.custom.ParserName;
-import net.minecraft.command.type.custom.TypeBoolean;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates;
 import net.minecraft.command.type.custom.nbt.TypeNBTBase;
 import net.minecraft.command.type.management.TypeID;
@@ -29,8 +27,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
-
-import com.google.common.math.DoubleMath;
 
 public class Operators extends RegistrationHelper
 {
@@ -44,9 +40,9 @@ public class Operators extends RegistrationHelper
 		final Set<TypeID<?>> resTypeNBT = Collections.<TypeID<?>> singleton(TypeIDs.NBTBase);
 		final Set<TypeID<?>> resTypeBoolean = Collections.<TypeID<?>> singleton(TypeIDs.Boolean);
 		
-		register("+", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("+", operator(level(0), resTypeDouble)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(
 				new OperatorConstructable()
 				{
@@ -67,9 +63,9 @@ public class Operators extends RegistrationHelper
 					}
 				}));
 		
-		register("*", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("*", operator(level(0), resTypeDouble)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(
 				new OperatorConstructable()
 				{
@@ -90,9 +86,9 @@ public class Operators extends RegistrationHelper
 					}
 				}));
 		
-		register("/", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("/", operator(level(0), resTypeDouble)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(
 				new OperatorConstructable()
 				{
@@ -118,7 +114,7 @@ public class Operators extends RegistrationHelper
 					}
 				}));
 		
-		register("-", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).then(ParserDouble.parser).construct(
+		register("-", operator(level(0), resTypeDouble).then(Parsers.dbl).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -138,7 +134,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("sqrt", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).construct(
+		register("sqrt", operator(level(0), resTypeDouble).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -162,7 +158,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("sq", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).construct(
+		register("sq", operator(level(0), resTypeDouble).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -183,7 +179,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("-0", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).construct(
+		register("-0", operator(level(0), resTypeDouble).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -202,7 +198,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("floor", operator(IPermission.unrestricted, resTypeInt).then(ParserDouble.parser).construct(
+		register("floor", operator(level(0), resTypeInt).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -221,7 +217,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("ceil", operator(IPermission.unrestricted, resTypeInt).then(ParserDouble.parser).construct(
+		register("ceil", operator(level(0), resTypeInt).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -240,7 +236,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("sin", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).construct(
+		register("sin", operator(level(0), resTypeDouble).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -259,7 +255,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("cos", operator(IPermission.unrestricted, resTypeDouble).then(ParserDouble.parser).construct(
+		register("cos", operator(level(0), resTypeDouble).then(Parsers.dbl).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -279,7 +275,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("x", operator(IPermission.level2, resTypeDouble).then(Types.ICmdSender).construct(
+		register("x", operator(level(2), resTypeDouble).then(Types.ICmdSender).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -298,7 +294,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("y", operator(IPermission.level2, resTypeDouble).then(Types.ICmdSender).construct(
+		register("y", operator(level(2), resTypeDouble).then(Types.ICmdSender).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -317,7 +313,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("z", operator(IPermission.level2, resTypeDouble).then(Types.ICmdSender).construct(
+		register("z", operator(level(2), resTypeDouble).then(Types.ICmdSender).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -336,7 +332,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("pos", operator(IPermission.level2, resTypeVec3).then(Types.ICmdSender).construct(
+		register("pos", operator(level(2), resTypeVec3).then(Types.ICmdSender).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -355,7 +351,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("rx", operator(IPermission.level2, resTypeDouble).then(Types.entity).construct(
+		register("rx", operator(level(2), resTypeDouble).then(Types.entity).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -374,7 +370,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("ry", operator(IPermission.level2, resTypeDouble).then(Types.entity).construct(
+		register("ry", operator(level(2), resTypeDouble).then(Types.entity).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -393,7 +389,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("slot", operator(IPermission.level2, resTypeInt).then(Types.entity).construct(
+		register("slot", operator(level(2), resTypeInt).then(Types.entity).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -417,7 +413,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("rd", operator(IPermission.level2, resTypeEntity).then(Types.entity).construct(
+		register("rd", operator(level(2), resTypeEntity).then(Types.entity).construct(
 			new OperatorConstructable()
 			{
 				@Override
@@ -441,7 +437,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("+v", operator(IPermission.unrestricted, resTypeVec3)
+		register("+v", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
@@ -463,7 +459,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("-v", operator(IPermission.unrestricted, resTypeVec3)
+		register("-v", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
@@ -485,8 +481,8 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("*v", operator(IPermission.unrestricted, resTypeVec3)
-			.then(ParserDouble.parser)
+		register("*v", operator(level(0), resTypeVec3)
+			.then(Parsers.dbl)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -509,8 +505,8 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("/v", operator(IPermission.unrestricted, resTypeVec3)
-			.then(ParserDouble.parser)
+		register("/v", operator(level(0), resTypeVec3)
+			.then(Parsers.dbl)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -531,13 +527,13 @@ public class Operators extends RegistrationHelper
 							if (divisor == 0.0)
 								throw new NumberInvalidException("Can't divide by 0");
 							
-							return new Vec3(base.xCoord * divisor, base.yCoord * divisor, base.zCoord * divisor);
+							return new Vec3(base.xCoord / divisor, base.yCoord / divisor, base.zCoord / divisor);
 						}
 					});
 				}
 			}));
 		
-		register("v0", operator(IPermission.unrestricted, resTypeVec3)
+		register("v0", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -564,7 +560,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("cv", operator(IPermission.unrestricted, resTypeVec3)
+		register("cv", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -586,7 +582,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("abs", operator(IPermission.unrestricted, resTypeDouble)
+		register("abs", operator(level(0), resTypeDouble)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -606,7 +602,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register(".", operator(IPermission.unrestricted, resTypeDouble)
+		register(".", operator(level(0), resTypeDouble)
 			.then(TypeCoordinates.nonCentered)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
@@ -628,7 +624,29 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("rxv", operator(IPermission.unrestricted, resTypeDouble)
+		register("^v", operator(level(0), resTypeVec3)
+			.then(TypeCoordinates.nonCentered)
+			.then(TypeCoordinates.nonCentered)
+			.construct(new OperatorConstructable()
+			{
+				@Override
+				public ArgWrapper<?> construct(final ListOperands operands) throws SyntaxErrorException
+				{
+					return TypeIDs.Coordinates.wrap(new CommandArg<Vec3>()
+					{
+						private final CommandArg<Vec3> arg1 = operands.get(TypeIDs.Coordinates);
+						private final CommandArg<Vec3> arg2 = operands.get(TypeIDs.Coordinates);
+						
+						@Override
+						public Vec3 eval(final ICommandSender sender) throws CommandException
+						{
+							return this.arg1.eval(sender).crossProduct(this.arg2.eval(sender));
+						}
+					});
+				}
+			}));
+		
+		register("rxv", operator(level(0), resTypeDouble)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -654,7 +672,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("ryv", operator(IPermission.unrestricted, resTypeDouble)
+		register("ryv", operator(level(0), resTypeDouble)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -680,7 +698,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("fv", operator(IPermission.level2, resTypeVec3)
+		register("fv", operator(level(2), resTypeVec3)
 			.then(Types.entity)
 			.construct(new OperatorConstructable()
 			{
@@ -707,7 +725,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("xv", operator(IPermission.unrestricted, resTypeVec3)
+		register("xv", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -727,7 +745,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("yv", operator(IPermission.unrestricted, resTypeVec3)
+		register("yv", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -747,7 +765,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("zv", operator(IPermission.unrestricted, resTypeVec3)
+		register("zv", operator(level(0), resTypeVec3)
 			.then(TypeCoordinates.nonCentered)
 			.construct(new OperatorConstructable()
 			{
@@ -771,12 +789,12 @@ public class Operators extends RegistrationHelper
 		register("ey", constant(new Vec3(0, 1, 0), TypeIDs.Coordinates));
 		register("ez", constant(new Vec3(0, 0, 1), TypeIDs.Coordinates));
 		
-		register("items", operator(IPermission.unrestricted, resTypeNBT)
+		register("items", operator(level(0), resTypeNBT)
 			.then(TypeNBTBase.parserDefault)
-			.then(ParserInt.parserList)
+			.then(Parsers.integerList)
 			.construct(OperatorItems.constructable));
 		
-		register("isAir", operator(IPermission.unrestricted, resTypeBoolean)
+		register("isAir", operator(level(0), resTypeBoolean)
 			.then(Types.blockID)
 			.construct(new OperatorConstructable()
 			{
@@ -796,7 +814,7 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("meta", operator(IPermission.unrestricted, resTypeInt)
+		register("meta", operator(level(0), resTypeInt)
 			.then(Types.blockState)
 			.construct(new OperatorConstructable()
 			{
@@ -817,8 +835,8 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("!", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(TypeBoolean.parser)
+		register("!", alias("not"), operator(level(0), resTypeBoolean)
+			.then(Parsers.bool)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -835,11 +853,11 @@ public class Operators extends RegistrationHelper
 						}
 					});
 				}
-			}), "not");
+			}));
 		
-		register("&&", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(TypeBoolean.parser)
-			.then(TypeBoolean.parser)
+		register("&&", operator(level(0), resTypeBoolean)
+			.then(Parsers.bool)
+			.then(Parsers.bool)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -859,9 +877,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("&", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(TypeBoolean.parser)
-			.then(TypeBoolean.parser)
+		register("&", alias("and"), operator(level(0), resTypeBoolean)
+			.then(Parsers.bool)
+			.then(Parsers.bool)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -879,11 +897,11 @@ public class Operators extends RegistrationHelper
 						}
 					});
 				}
-			}), "and");
+			}));
 		
-		register("||", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(TypeBoolean.parser)
-			.then(TypeBoolean.parser)
+		register("||", operator(level(0), resTypeBoolean)
+			.then(Parsers.bool)
+			.then(Parsers.bool)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -903,9 +921,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("|", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(TypeBoolean.parser)
-			.then(TypeBoolean.parser)
+		register("|", alias("or"), operator(level(0), resTypeBoolean)
+			.then(Parsers.bool)
+			.then(Parsers.bool)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -923,18 +941,20 @@ public class Operators extends RegistrationHelper
 						}
 					});
 				}
-			}), "or");
+			}));
 		
-		register("i", primitiveOperator(IPermission.unrestricted, ParserInt.parser, resTypeInt));
+		register("i", primitiveOperator(level(0), Parsers.integer, resTypeInt));
 		
-		register("s", primitiveOperator(IPermission.unrestricted, ParserName.parser, resTypeString));
+		register("d", primitiveOperator(level(0), Parsers.dbl, resTypeDouble));
 		
-		register("e", primitiveOperator(IPermission.unrestricted, Types.entity, resTypeEntity));
+		register("s", primitiveOperator(level(0), ParserName.parser, resTypeString));
 		
-		register("v", primitiveOperator(IPermission.unrestricted, TypeCoordinates.nonCentered, resTypeVec3));
+		register("e", primitiveOperator(level(0), Types.entity, resTypeEntity));
 		
-		register("exp", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserDouble.parser)
+		register("v", primitiveOperator(level(0), TypeCoordinates.nonCentered, resTypeVec3));
+		
+		register("exp", operator(level(0), resTypeDouble)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -953,8 +973,8 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("ln", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserDouble.parser)
+		register("ln", operator(level(0), resTypeDouble)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -978,9 +998,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("^", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("^", alias("pow"), operator(level(0), resTypeDouble)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1004,11 +1024,11 @@ public class Operators extends RegistrationHelper
 						}
 					});
 				}
-			}), "pow");
+			}));
 		
-		register("%", operator(IPermission.unrestricted, resTypeDouble)
-			.then(ParserInt.parser)
-			.then(ParserInt.parser)
+		register("%", operator(level(0), resTypeDouble)
+			.then(Parsers.integer)
+			.then(Parsers.integer)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1031,9 +1051,9 @@ public class Operators extends RegistrationHelper
 		register("pi", constant(Math.PI, TypeIDs.Double));
 		register("e_", constant(Math.E, TypeIDs.Double));
 		
-		register(">", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register(">", operator(level(0), resTypeBoolean)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1053,9 +1073,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register(">=", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register(">=", operator(level(0), resTypeBoolean)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1075,9 +1095,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("<", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("<", operator(level(0), resTypeBoolean)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1097,9 +1117,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("<=", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("<=", operator(level(0), resTypeBoolean)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1119,9 +1139,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("==", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("==", operator(level(0), resTypeBoolean)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1141,9 +1161,9 @@ public class Operators extends RegistrationHelper
 				}
 			}));
 		
-		register("!=", operator(IPermission.unrestricted, resTypeBoolean)
-			.then(ParserDouble.parser)
-			.then(ParserDouble.parser)
+		register("!=", operator(level(0), resTypeBoolean)
+			.then(Parsers.dbl)
+			.then(Parsers.dbl)
 			.construct(new OperatorConstructable()
 			{
 				@Override
@@ -1172,9 +1192,9 @@ public class Operators extends RegistrationHelper
 			}
 		}), resTypeDouble));
 		
-		register("rndI", operator(IPermission.unrestricted, resTypeInt)
-			.then(ParserInt.parser)
-			.then(ParserInt.parser)
+		register("rndI", operator(level(0), resTypeInt)
+			.then(Parsers.integer)
+			.then(Parsers.integer)
 			.construct(new OperatorConstructable()
 			{
 				@Override

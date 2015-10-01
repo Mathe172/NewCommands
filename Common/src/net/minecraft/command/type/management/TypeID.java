@@ -2,9 +2,9 @@ package net.minecraft.command.type.management;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ParsingUtilities;
@@ -14,7 +14,6 @@ import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.collections.Relations;
 import net.minecraft.command.completion.TabCompletion;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
@@ -24,7 +23,7 @@ import net.minecraft.command.type.custom.TypeTypeID;
 
 public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 {
-	private static final Map<String, TypeID<?>> typeIDs = new HashMap<>();
+	private static final PatriciaTrie<TypeID<?>> typeIDs = new PatriciaTrie<>();
 	
 	public final Convertable<T, ?, CommandException> primitive;
 	public final TabCompletion completion;
@@ -88,7 +87,7 @@ public class TypeID<T> extends CConvertable<CommandArg<T>, ArgWrapper<T>>
 		return new CTypeParse<T>()
 		{
 			@Override
-			public ArgWrapper<T> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+			public ArgWrapper<T> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 			{
 				return TypeID.this.wrap(toWrap.parse(parser, context));
 			}

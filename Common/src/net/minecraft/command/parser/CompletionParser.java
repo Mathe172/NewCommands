@@ -1,14 +1,21 @@
 package net.minecraft.command.parser;
 
+import java.util.ArrayDeque;
+
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
+import net.minecraft.command.collections.MetaColl;
 import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.type.IType;
+import net.minecraft.command.parser.CompletionParser.ResParserState.CompletionModifier;
+import net.minecraft.command.type.ICachedParse;
+import net.minecraft.command.type.metadata.ICompletable;
+import net.minecraft.command.type.metadata.ICompletable.CompletionCallback;
+import net.minecraft.command.type.metadata.MetaEntry.PrimitiveHint;
+import net.minecraft.command.type.metadata.MetaID;
+import net.minecraft.command.type.metadata.MetaProvider;
 import net.minecraft.util.BlockPos;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 public class CompletionParser extends Parser
 {
@@ -33,16 +40,19 @@ public class CompletionParser extends Parser
 	private final CompletionData cData;
 	
 	private boolean terminateCompletion = false;
-	private boolean proposeCompletion = false;
-	
-	private boolean terminateCompletionTriggered = false;
-	private boolean completionTriggered = false;
 	
 	private final TCDSet tcDataSet = new TCDSet();
 	
+	private final ArrayDeque<CompletionCallback> completers = new ArrayDeque<>();
+	private final ArrayDeque<CompletionCallback> proposed = new ArrayDeque<>();
+	
 	public CompletionParser(final String toParse, final int startIndex, final CompletionData cData)
 	{
-		super(toParse, startIndex, true, false, false);
+		super(toParse, startIndex, false);
+		
+		// The Completion-version of the pattern tricks the parser into thinking that the end is not yet reached, thus calling the subparsers for completions
+		this.getMatcher(ParsingUtilities.endingMatcherCompletion);
+		
 		this.cData = cData;
 		
 		this.suppressEx = true;
@@ -56,136 +66,260 @@ public class CompletionParser extends Parser
 		this.suppressEx = true;
 	}
 	
-	@Override
-	public <R, D> R parse(final IType<R, D> target, final D parserData) throws SyntaxErrorException, CompletionException
-	{
-		final int startIndex = this.getIndex();
-		
-		final boolean terminateCompletion = this.terminateCompletion;
-		this.terminateCompletion = false;
-		
-		final boolean proposeCompletion = this.proposeCompletion;
-		this.proposeCompletion = false;
-		
-		this.completionTriggered = false;
-		
-		R ret;
-		
-		try
-		{
-			ret = target.iParse(this, parserData);
-			
-		} catch (final CompletionException e)
-		{
-			this.complete(target, startIndex, parserData);
-			
-			this.cleanup(terminateCompletion, proposeCompletion);
-			
-			throw e;
-		} catch (final SyntaxErrorException e)
-		{
-			this.complete(target, startIndex, parserData);
-			
-			this.cleanup(terminateCompletion, proposeCompletion);
-			
-			if (this.snapshot)
-				throw e;
-			
-			throw CompletionException.ex;
-		}
-		
-		if (this.getIndex() >= this.cData.cursorIndex - 1 || this.proposeCompletion)
-			this.complete(target, startIndex, parserData);
-		
-		this.cleanup(terminateCompletion, proposeCompletion);
-		
-		return ret;
-	}
-	
-	private void cleanup(final boolean terminateCompletion, final boolean proposeCompletion)
-	{
-		this.terminateCompletionTriggered = this.terminateCompletion;
-		
-		this.terminateCompletion |= terminateCompletion;
-		this.proposeCompletion = proposeCompletion;
-	}
-	
-	private <D> void complete(final IType<?, D> target, final int startIndex, final D parserData)
-	{
-		if (!this.terminateCompletion && startIndex <= this.cData.cursorIndex)
-		{
-			this.completionTriggered = true;
-			target.complete(this.tcDataSet, this, startIndex, this.cData, parserData);
-		}
-	}
-	
-	@Override
-	public void terminateCompletion()
-	{
-		this.terminateCompletion = true;
-	}
-	
-	@Override
-	public void proposeCompletion()
-	{
-		this.proposeCompletion = true;
-	}
-	
 	public TCDSet getTCDSet()
 	{
 		return this.tcDataSet;
 	}
 	
-	private static class ParserStateRes extends Parser.IParserStateRes<ParserStateRes>
+	public static final MetaID<PrimitiveHint> hintID = new MetaID<>(MetaColl.typeHint);
+	
+	public static final PrimitiveHint propose = new PrimitiveHint(hintID);
+	public static final PrimitiveHint terminate = new PrimitiveHint(hintID);
+	
+	@Override
+	public <D> void supplyHint(final MetaProvider<D> hint, final D data)
 	{
-		public final boolean terminateCompletionTriggered;
-		public final boolean completionTriggered;
+		final PrimitiveHint eHint = hint.getData(hintID, this, data);
 		
-		public ParserStateRes(final int index, final Context defContext, final IVersionManager<ParserStateRes>.Version version, final boolean terminateCompletionTriggered, final boolean completionTriggered)
+		if (eHint == null)
+			return;
+		
+		if (eHint == propose)
+			this.proposeCompletion();
+		else
+			this.terminateCompletion();
+	}
+	
+	protected void terminateCompletion()
+	{
+		this.terminateCompletion = true;
+		this.completers.clear();
+		this.proposed.clear();
+	}
+	
+	protected void proposeCompletion()
+	{
+		if (this.completers.isEmpty())
+			return;
+		
+		this.proposed.push(this.completers.pop());
+		this.completers.push(NULL);
+	}
+	
+	@Override
+	public <D> boolean pushMetadata(final MetaProvider<D> data, final D parserData)
+	{
+		final CompletionCallback completer = data.getData(ICompletable.metaID, this, parserData);
+		
+		if (completer == null)
+			return false;
+		
+		this.completers.push(completer);
+		return true;
+	}
+	
+	@Override
+	public void popMetadata(final MetaProvider<?> data)
+	{
+		if (!data.canProvide(ICompletable.metaID) || this.completers.isEmpty())
+			return;
+		
+		this.complete(false);
+	}
+	
+	protected void complete(final boolean forceCompletion)
+	{
+		final CompletionCallback completer = this.completers.pop();
+		
+		if (completer == NULL)
+			this.proposed.pop().complete(this.tcDataSet, this, this.cData);
+		else if (forceCompletion || this.getIndex() == this.cData.cursorIndex)
+			completer.complete(this.tcDataSet, this, this.cData);
+	}
+	
+	protected void complete(final boolean forceCompletion, final int endCount)
+	{
+		for (int i = CompletionParser.this.completers.size(); i > endCount; --i)
+			this.complete(forceCompletion);
+	}
+	
+	protected static abstract class ResParserState extends Parser.IResParserState<ResParserState>
+	{
+		public final CompletionModifier modifier;
+		
+		public ResParserState(
+			final int index,
+			final Context defContext,
+			final IVersionManager<ResParserState, ?> versionManager,
+			final CompletionModifier modifier)
 		{
-			super(index, defContext, version);
+			super(index, defContext, versionManager);
+			this.modifier = modifier;
+		}
+		
+		public static enum CompletionModifier
+		{
+			none, terminate, propose;
+		}
+		
+		protected static class Success extends ResParserState
+		{
+			private final ArgWrapper<?> res;
+			
+			public Success(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager, final CompletionModifier modifier, final ArgWrapper<?> res)
+			{
+				super(index, defContext, versionManager, modifier);
+				this.res = res;
+			}
+			
+			@Override
+			public ArgWrapper<?> res() throws SyntaxErrorException
+			{
+				return this.res;
+			}
+		}
+		
+		protected static class Error extends ResParserState
+		{
+			private final SyntaxErrorException ex;
+			
+			public Error(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager, final CompletionModifier modifier, final SyntaxErrorException ex)
+			{
+				super(index, defContext, versionManager, modifier);
+				this.ex = ex;
+			}
+			
+			@Override
+			public ArgWrapper<?> res() throws SyntaxErrorException
+			{
+				throw this.ex;
+			}
+		}
+	}
+	
+	protected static class SnapshotState extends ISnapshotState<ResParserState>
+	{
+		public final int completersCount;
+		public final boolean terminateCompletionTriggered;
+		
+		public SnapshotState(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager, final int completersCount, final boolean terminateCompletionTriggered)
+		{
+			super(index, defContext, versionManager);
+			this.completersCount = completersCount;
 			this.terminateCompletionTriggered = terminateCompletionTriggered;
-			this.completionTriggered = completionTriggered;
 		}
 	}
 	
 	@Override
-	protected IVersionManager<?> newVersionManager()
+	protected IVersionManager<?, ?> newVersionManager()
 	{
 		return new VersionManager();
 	}
 	
-	private class VersionManager extends Parser.IVersionManager<ParserStateRes>
+	private static final CompletionCallback markerCompleter = new CompletionCallback()
 	{
 		@Override
-		public Pair<ParserStateRes, ArgWrapper<?>> parseFetchState(final IType<? extends ArgWrapper<?>, Context> target, final Context context) throws SyntaxErrorException, CompletionException
+		public void complete(final TCDSet tcDataSet, final Parser parser, final CompletionData cData)
 		{
-			final ArgWrapper<?> res = CompletionParser.this.parse(target, context);
-			
-			this.saveSnapshot();
-			
-			final ParserStateRes state = new ParserStateRes(
-				CompletionParser.this.getIndex(),
-				CompletionParser.this.defContext,
-				this.version,
-				CompletionParser.this.terminateCompletionTriggered,
-				CompletionParser.this.completionTriggered);
-			
-			return new ImmutablePair<ParserStateRes, ArgWrapper<?>>(state, res);
 		}
-		
+	};
+	
+	private static final CompletionCallback NULL = new CompletionCallback()
+	{
 		@Override
-		public void applyCompletion(final IType<? extends ArgWrapper<?>, Context> target, final ParserState initialState, final ParserStateRes newState)
+		public void complete(final TCDSet tcDataSet, final Parser parser, final CompletionData cData)
 		{
-			if (newState.completionTriggered)
-				target.complete(CompletionParser.this.tcDataSet, CompletionParser.this, initialState.index, CompletionParser.this.cData, initialState.context);
 		}
-		
+	};
+	
+	private class VersionManager extends IVersionManager<ResParserState, SnapshotState>
+	{
 		@Override
-		public void setState(final ParserStateRes state)
+		public void setState(final ResParserState state)
 		{
 			super.setState(state);
 			
+			switch (state.modifier)
+			{
+			case terminate:
+				CompletionParser.this.terminateCompletion();
+				return;
+			case propose:
+				CompletionParser.this.proposeCompletion();
+			case none:
+			}
+		}
+		
+		@Override
+		protected ResParserState parseFetchState(final ICachedParse target, final Context context) throws SyntaxErrorException
+		{
+			final boolean useMarker = CompletionParser.this.completers.isEmpty() || CompletionParser.this.completers.peek() == NULL;
+			
+			if (useMarker)
+				CompletionParser.this.completers.push(markerCompleter);
+			
+			final boolean terminateCompletion = CompletionParser.this.terminateCompletion;
+			CompletionParser.this.terminateCompletion = false;
+			
+			try
+			{
+				final ArgWrapper<?> res = target.iCachedParse(CompletionParser.this, context);
+				
+				final CompletionModifier modifier =
+					CompletionParser.this.terminateCompletion
+						? CompletionModifier.terminate
+						: (useMarker ? CompletionParser.this.completers.pop() : CompletionParser.this.completers.peek()) == NULL
+							? CompletionModifier.propose
+							: CompletionModifier.none;
+				
+				if (modifier == CompletionModifier.propose && useMarker)
+				{
+					CompletionParser.this.proposed.pop();
+					CompletionParser.this.proposeCompletion();
+				}
+				
+				return new ResParserState.Success(CompletionParser.this.getIndex(), CompletionParser.this.defContext, this, modifier, res);
+			} catch (final SyntaxErrorException ex)
+			{
+				final CompletionModifier modifier =
+					CompletionParser.this.terminateCompletion
+						? CompletionModifier.terminate
+						: CompletionModifier.none;
+				
+				return new ResParserState.Error(CompletionParser.this.getIndex(), CompletionParser.this.defContext, this, modifier, ex);
+			} finally
+			{
+				CompletionParser.this.terminateCompletion |= terminateCompletion;
+			}
+		}
+		
+		@Override
+		protected SnapshotState saveSnapshot()
+		{
+			final boolean terminateCompletion = CompletionParser.this.terminateCompletion;
+			
+			CompletionParser.this.terminateCompletion = false;
+			
+			return new SnapshotState(
+				CompletionParser.this.getIndex(),
+				CompletionParser.this.defContext,
+				this,
+				CompletionParser.this.completers.size(),
+				terminateCompletion);
+		}
+		
+		@Override
+		protected void restoreSnapshot(final SnapshotState state)
+		{
+			super.restoreSnapshot(state);
+			
+			final int endCount = CompletionParser.this.terminateCompletion ? 0 : state.completersCount;
+			CompletionParser.this.complete(true, endCount);
+		}
+		
+		@Override
+		protected void finalizeSnapshot(final SnapshotState state)
+		{
 			CompletionParser.this.terminateCompletion |= state.terminateCompletionTriggered;
 		}
 	}

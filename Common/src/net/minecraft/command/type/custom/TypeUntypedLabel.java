@@ -41,7 +41,8 @@ public class TypeUntypedLabel extends CustomCompletable<ArgWrapper<?>>
 	{
 		final Matcher m = parser.getMatcher(ParsingUtilities.nameMatcher);
 		
-		parser.find(m);
+		if (!parser.find(m))
+			throw parser.SEE("No label name found ");
 		
 		final ArgWrapper<?> label = parser.getLabel(m.group());
 		

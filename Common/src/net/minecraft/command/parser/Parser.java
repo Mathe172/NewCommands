@@ -10,6 +10,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.UnmodifiableIterator;
+
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.WrongUsageException;
@@ -23,17 +30,13 @@ import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
+import net.minecraft.command.type.ICachedParse;
 import net.minecraft.command.type.IExParse;
-import net.minecraft.command.type.IType;
 import net.minecraft.command.type.custom.command.ParserCommands;
 import net.minecraft.command.type.management.CConvertable;
 import net.minecraft.command.type.management.TypeID;
+import net.minecraft.command.type.metadata.MetaProvider;
 import net.minecraft.entity.Entity;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.UnmodifiableIterator;
 
 public class Parser
 {
@@ -42,7 +45,7 @@ public class Parser
 	
 	protected int index;
 	
-	private final IVersionManager<?> versionManager;
+	private final IVersionManager<?, ?> versionManager;
 	
 	private final List<Matcher> matchers;
 	
@@ -50,9 +53,8 @@ public class Parser
 	
 	public final boolean catchStack;
 	public boolean suppressEx;
-	public final boolean debug;
 	
-	public Parser(final String toParse, final int startIndex, final boolean completionPatterns, final boolean catchStack, final boolean debug)
+	public Parser(final String toParse, final int startIndex, final boolean catchStack)
 	{
 		this.defContext = Context.defContext;
 		
@@ -65,17 +67,13 @@ public class Parser
 		
 		this.matchers = new ArrayList<>(MatcherRegistry.getCount());
 		
-		// The Completion-version of the pattern tricks the parser into thinking that the end is not yet reached, thus calling the subparsers for completions
-		this.getMatcher(completionPatterns ? ParsingUtilities.endingMatcherCompletion : ParsingUtilities.endingMatcher);
-		
 		this.suppressEx = false;
 		this.catchStack = catchStack;
-		this.debug = debug;
 	}
 	
 	public Parser(final String toParse, final int startIndex)
 	{
-		this(toParse, startIndex, false, false, false);
+		this(toParse, startIndex, false);
 	}
 	
 	public Parser(final String toParse)
@@ -83,7 +81,13 @@ public class Parser
 		this(toParse, 0);
 	}
 	
-	private SyntaxErrorException handleFatalError(final String messageStart, final Throwable t)
+	@Override
+	public String toString()
+	{
+		return this.toParse + '\n' + StringUtils.repeat(' ', this.index) + '^';
+	}
+	
+	protected SyntaxErrorException handleFatalError(final String messageStart, final Throwable t)
 	{
 		if (t instanceof StackOverflowError)
 			return this.SEE(messageStart + " Too recursive", false);
@@ -93,12 +97,7 @@ public class Parser
 	
 	public static CommandArg<Integer> parseCommand(final String toParse, final int startIndex) throws SyntaxErrorException
 	{
-		return parseCommand(toParse, startIndex, false);
-	}
-	
-	public static CommandArg<Integer> parseCommand(final String toParse, final int startIndex, final boolean debug) throws SyntaxErrorException
-	{
-		return new Parser(toParse, startIndex, false, false, debug).parseCommand();
+		return new Parser(toParse, startIndex, false).parseCommand();
 	}
 	
 	public CommandArg<Integer> parseCommand() throws SyntaxErrorException
@@ -135,8 +134,7 @@ public class Parser
 			ParserCommands.parse(completionParser, false);
 		} catch (final SyntaxErrorException e)
 		{
-		} catch (final CompletionException e)
-		{
+			completionParser.complete(true, 0);
 		}
 		
 		return completionParser.getTCDSet();
@@ -215,23 +213,23 @@ public class Parser
 	
 	public Matcher getMatcher(final MatcherRegistry m)
 	{
-		final int ind = m.getId();
+		final int id = m.getId();
 		
-		if (ind < this.matchers.size())
+		if (id < this.matchers.size())
 		{
-			Matcher ret = this.matchers.get(ind);
+			Matcher ret = this.matchers.get(id);
 			
 			if (ret != null)
 				return ret;
 			
 			ret = m.matcher(this.toParse);
 			
-			this.matchers.set(ind, ret);
+			this.matchers.set(id, ret);
 			
 			return ret;
 		}
 		
-		for (int i = this.matchers.size(); i < ind; ++i)
+		for (int i = this.matchers.size(); i < id; ++i)
 			this.matchers.add(null);
 		
 		final Matcher ret = m.matcher(this.toParse);
@@ -239,6 +237,30 @@ public class Parser
 		this.matchers.add(ret);
 		
 		return ret;
+	}
+	
+	@SuppressWarnings("unused")
+	public <D> boolean pushMetadata(final MetaProvider<D> data, final D parserData)
+	{
+		return false;
+	}
+	
+	@SuppressWarnings("unused")
+	public void popMetadata(final MetaProvider<?> data)
+	{
+	}
+	
+	/**
+	 * Calls {@link #supplyHint(Hint, D)} with <code>null</code> as second argument
+	 */
+	public void supplyHint(final MetaProvider<?> hint)
+	{
+		this.supplyHint(hint, null);
+	}
+	
+	@SuppressWarnings("unused")
+	public <D> void supplyHint(final MetaProvider<D> hint, final D data)
+	{
 	}
 	
 	public SyntaxErrorException SEE(final Object... errorObjects)
@@ -320,11 +342,6 @@ public class Parser
 		return new WrongUsageException(message, true, this.catchStack, errorObjects);
 	}
 	
-	public void setIndexEnd()
-	{
-		this.index = this.len;
-	}
-	
 	public boolean find(final Matcher m)
 	{
 		return m.find(this.index);
@@ -333,6 +350,11 @@ public class Parser
 	public boolean find(final MatcherRegistry m)
 	{
 		return this.find(this.getMatcher(m));
+	}
+	
+	public void incIndex()
+	{
+		++this.index;
 	}
 	
 	public void incIndex(final int amount)
@@ -359,6 +381,14 @@ public class Parser
 		return this.findInc(this.getMatcher(m));
 	}
 	
+	/**
+	 * Does not check if index valid
+	 */
+	public char consumeNextChar()
+	{
+		return this.toParse.charAt(this.index++);
+	}
+	
 	public int getIndex()
 	{
 		return this.index;
@@ -369,12 +399,14 @@ public class Parser
 		return this.index == this.len;
 	}
 	
-	public void terminateCompletion()
+	public final boolean checkSpace()
 	{
+		return this.find(ParsingUtilities.spaceMatcher);
 	}
 	
-	public void proposeCompletion()
+	public boolean isSnapshot()
 	{
+		return this.versionManager.isSnapshot();
 	}
 	
 	public Set<ITabCompletion> getLabelCompletions()
@@ -396,43 +428,6 @@ public class Parser
 				completions.add(new TabCompletion(entry.getKey()));
 		
 		return completions;
-	}
-	
-	public <R, D> R parse(final IType<R, D> target, final D parserData) throws SyntaxErrorException, CompletionException
-	{
-		return target.iParse(this, parserData);
-	}
-	
-	protected boolean snapshot = false;
-	
-	public <R, D> R parseSnapshot(final IExParse<R, D> target, final D parserData) throws SyntaxErrorException, CompletionException
-	{
-		final boolean saveSnapshot = this.snapshot;
-		this.snapshot = true;
-		
-		final int startIndex = this.getIndex();
-		
-		final IVersionManager<?>.Version version = this.versionManager.saveSnapshot();
-		
-		final Context defContext = this.defContext;
-		
-		try
-		{
-			return target.parse(this, parserData);
-			
-		} catch (final SyntaxErrorException e)
-		{
-			this.index = startIndex;
-			
-			version.restore();
-			
-			this.defContext = defContext;
-			
-			throw e;
-		} finally
-		{
-			this.snapshot = saveSnapshot;
-		}
 	}
 	
 	public void addLabel(final String label, final LabelWrapper<?> value) throws SyntaxErrorException
@@ -465,14 +460,14 @@ public class Parser
 		return ret;
 	}
 	
-	public ArgWrapper<?> parseCached(final IType<? extends ArgWrapper<?>, Context> target, final Context context, final CacheID cacheID) throws SyntaxErrorException, CompletionException
+	public <T, D> T parseSnapshot(final IExParse<T, D> target, final D parserData) throws SyntaxErrorException
 	{
-		return this.versionManager.parseCached(target, context, cacheID);
+		return this.versionManager.parseSnapshot(target, parserData);
 	}
 	
-	public final boolean checkSpace()
+	public ArgWrapper<?> parseCached(final ICachedParse target, final Context context, final CacheID cacheID) throws SyntaxErrorException
 	{
-		return this.find(ParsingUtilities.spaceMatcher);
+		return this.versionManager.parseCached(target, context, cacheID);
 	}
 	
 	protected static abstract class IParserState
@@ -484,6 +479,23 @@ public class Parser
 		{
 			this.index = index;
 			this.defContext = defContext;
+		}
+		
+		@Override
+		public boolean equals(final Object other)
+		{
+			if (!(other instanceof ParserState))
+				return false;
+			
+			final ParserState state = (ParserState) other;
+			
+			return this.index == state.index && this.defContext.equals(state.defContext);
+		}
+		
+		@Override
+		public int hashCode()
+		{
+			return this.index ^ this.defContext.hashCode();
 		}
 	}
 	
@@ -507,120 +519,129 @@ public class Parser
 			
 			final ParserState state = (ParserState) other;
 			
-			return this.index == state.index && this.defContext == state.defContext && this.context == state.context && this.id == state.id;
+			return super.equals(state) && this.context.equals(state.context) && this.id == state.id;
 		}
 		
 		@Override
 		public int hashCode()
 		{
-			return this.index ^ this.defContext.hashCode() ^ this.context.hashCode() ^ this.id.hashCode();
+			return super.hashCode() ^ this.context.hashCode() ^ this.id.hashCode();
 		}
 	}
 	
-	protected static class IParserStateRes<S extends IParserStateRes<S>> extends IParserState
+	protected static abstract class IResParserState<S extends IResParserState<S>> extends IParserState
 	{
-		public final IVersionManager<S>.Version version;
+		public abstract ArgWrapper<?> res() throws SyntaxErrorException;
 		
-		public IParserStateRes(final int index, final Context defContext, final IVersionManager<S>.Version version)
+		public final Version<S> version;
+		
+		public IResParserState(final int index, final Context defContext, final IVersionManager<S, ?> versionManager)
 		{
 			super(index, defContext);
-			this.version = version;
+			
+			this.version = versionManager.useVersion();
 		}
 	}
 	
-	protected static class ParserStateRes extends IParserStateRes<ParserStateRes>
+	protected static abstract class ISnapshotState<R extends IResParserState<R>> extends IParserState
 	{
-		public ParserStateRes(final int index, final Context defContext, final IVersionManager<ParserStateRes>.Version version)
+		public final Version<R> version;
+		
+		public ISnapshotState(final int index, final Context defContext, final IVersionManager<R, ?> versionManager)
 		{
-			super(index, defContext, version);
+			super(index, defContext);
+			this.version = versionManager.useVersion();
 		}
 	}
 	
-	protected IVersionManager<?> newVersionManager()
+	protected IVersionManager<?, ?> newVersionManager()
 	{
 		return new VersionManager();
 	}
 	
-	public abstract class IVersionManager<S extends IParserStateRes<S>>
+	protected static final class Version<R extends IResParserState<R>>
 	{
-		protected final class Version
+		protected int versionNumber;
+		
+		public Version(final int versionNumber)
 		{
-			protected int versionNumber;
-			
-			public Version(final int versionNumber)
-			{
-				this.versionNumber = versionNumber;
-			}
-			
-			Map<ParserState, Pair<S, ArgWrapper<?>>> cachedResults = null;
-			
-			protected Version next = null;
-			
-			protected Pair<S, ArgWrapper<?>> getCachedResult(final ParserState state)
-			{
-				return this.cachedResults == null ? null : this.cachedResults.get(state);
-			}
-			
-			protected void addCachedResult(final ParserState initialState, final Pair<S, ArgWrapper<?>> result)
-			{
-				if (this.cachedResults == null)
-					this.cachedResults = new HashMap<>();
-				
-				this.cachedResults.put(initialState, result);
-			}
-			
-			protected boolean invalidateTail()
-			{
-				Version curr = this.next;
-				
-				if (curr == null)
-					return false;
-				
-				do
-				{
-					curr.versionNumber = Integer.MAX_VALUE;
-					curr.cachedResults = null;
-				} while ((curr = curr.next) != null);
-				
-				this.next = null;
-				
-				return true;
-			}
-			
-			protected boolean valid()
-			{
-				return this.versionNumber != Integer.MAX_VALUE;
-			}
-			
-			protected boolean valid(final int versionNumber)
-			{
-				return this.versionNumber <= versionNumber;
-			}
-			
-			protected void restore()
-			{
-				IVersionManager.this.restoreSnapshot(this);
-			}
+			this.versionNumber = versionNumber;
 		}
 		
+		Map<ParserState, R> cachedResults = null;
+		
+		protected Version<R> next = null;
+		
+		protected R getCachedResult(final ParserState state)
+		{
+			return this.cachedResults == null ? null : this.cachedResults.get(state);
+		}
+		
+		protected void addCachedResult(final ParserState initialState, final R result)
+		{
+			if (this.cachedResults == null)
+				this.cachedResults = new HashMap<>();
+			
+			this.cachedResults.put(initialState, result);
+		}
+		
+		protected boolean invalidateTail()
+		{
+			Version<R> curr = this.next;
+			
+			if (curr == null)
+				return false;
+			
+			do
+			{
+				curr.versionNumber = Integer.MAX_VALUE;
+				curr.cachedResults = null;
+			} while ((curr = curr.next) != null);
+			
+			this.next = null;
+			
+			return true;
+		}
+		
+		protected boolean valid()
+		{
+			return this.versionNumber != Integer.MAX_VALUE;
+		}
+		
+		protected boolean valid(final int versionNumber)
+		{
+			return this.versionNumber <= versionNumber;
+		}
+	}
+	
+	public abstract class IVersionManager<R extends IResParserState<R>, S extends ISnapshotState<R>>
+	{
 		private int versionNumber;
 		
-		protected Version version;
+		protected Version<R> version;
 		
 		protected boolean changed = true;
+		protected int snapshotCount = 0;
 		
-		private final Map<String, Pair<Version, LabelWrapper<?>>> labels;
+		private final PatriciaTrie<Pair<Version<R>, LabelWrapper<?>>> labels;
 		
 		public IVersionManager()
 		{
 			this.versionNumber = 0;
 			
-			this.version = new Version(0);
+			this.version = new Version<>(0);
 			
-			this.labels = new HashMap<>();
+			this.labels = new PatriciaTrie<>();
 		}
 		
-		public void applyChange()
+		public Version<R> useVersion()
+		{
+			this.changed = false;
+			
+			return this.version;
+		}
+		
+		public void changed()
 		{
 			if (this.changed)
 				return;
@@ -629,66 +650,83 @@ public class Parser
 			
 			this.version.invalidateTail();
 			
-			this.version = (this.version.next = new Version(++this.versionNumber));
+			this.version = (this.version.next = new Version<>(++this.versionNumber));
 		}
 		
-		public ParserState getInitState(final Context context, final CacheID id)
+		protected ParserState getInitState(final Context context, final CacheID id)
 		{
 			return new ParserState(Parser.this.index, Parser.this.defContext, context, id);
 		}
 		
-		public void setState(final S state)
+		public void setState(final R state)
 		{
+			this.changed = false;
 			this.version = state.version;
 			this.versionNumber = this.version.versionNumber;
 			
-			this.changed = false;
 			Parser.this.index = state.index;
 			Parser.this.defContext = state.defContext;
 		}
 		
-		public abstract Pair<S, ArgWrapper<?>> parseFetchState(IType<? extends ArgWrapper<?>, Context> target, Context context) throws SyntaxErrorException, CompletionException;
-		
-		public ArgWrapper<?> parseCached(final IType<? extends ArgWrapper<?>, Context> target, final Context context, final CacheID cacheID) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<?> parseCached(final ICachedParse target, final Context context, final CacheID cacheID) throws SyntaxErrorException
 		{
-			if (this.changed || !Parser.this.snapshot)
-				return Parser.this.parse(target, context);
+			if (this.changed || !this.isSnapshot())
+				return target.iCachedParse(Parser.this, context);
 			
-			final Version initVersion = this.version;
+			final Version<R> initVersion = this.version;
 			
 			final ParserState initialState = this.getInitState(context, cacheID);
 			
-			Pair<S, ArgWrapper<?>> res = initVersion.getCachedResult(initialState);
+			if (initialState == null)
+				return target.iCachedParse(Parser.this, context);
 			
-			if (res != null && res.getLeft().version.valid())
+			R res = initVersion.getCachedResult(initialState);
+			
+			if (res != null && res.version.valid())
 			{
-				this.applyCompletion(target, initialState, res.getLeft());
+				this.setState(res);
 				
-				this.setState(res.getLeft());
-				
-				return res.getRight();
+				return res.res();
 			}
 			
 			res = this.parseFetchState(target, context);
 			
 			initVersion.addCachedResult(initialState, res);
 			
-			return res.getRight();
+			return res.res();
+		}
+		
+		public boolean isSnapshot()
+		{
+			return this.snapshotCount > 0;
+		}
+		
+		/**
+		 * Exceptions can be caught, as long as they are rethrown by the {@link ResParserState#res()} method of the return value
+		 */
+		protected abstract R parseFetchState(final ICachedParse target, final Context context) throws SyntaxErrorException;
+		
+		protected abstract S saveSnapshot();
+		
+		protected void restoreSnapshot(final S state)
+		{
+			Parser.this.index = state.index;
+			Parser.this.defContext = state.defContext;
+			
+			this.restoreSnapshot(state.version);
 		}
 		
 		@SuppressWarnings("unused")
-		protected void applyCompletion(final IType<? extends ArgWrapper<?>, Context> target, final ParserState initialState, final S newState)
+		protected void passSnapshot(final S state)
 		{
 		}
 		
-		protected Version saveSnapshot()
+		@SuppressWarnings("unused")
+		protected void finalizeSnapshot(final S state)
 		{
-			this.changed = false;
-			
-			return this.version;
 		}
 		
-		protected void restoreSnapshot(final Version version)
+		protected void restoreSnapshot(final Version<R> version)
 		{
 			this.version = version;
 			this.versionNumber = version.versionNumber;
@@ -696,14 +734,37 @@ public class Parser
 			this.changed = false;
 		}
 		
+		public <T, D> T parseSnapshot(final IExParse<T, D> target, final D parserData) throws SyntaxErrorException
+		{
+			final S snapshot = this.saveSnapshot();
+			++this.snapshotCount;
+			
+			try
+			{
+				final T ret = target.parse(Parser.this, parserData);
+				this.passSnapshot(snapshot);
+				return ret;
+				
+			} catch (final SyntaxErrorException e)
+			{
+				this.restoreSnapshot(snapshot);
+				
+				throw e;
+			} finally
+			{
+				this.finalizeSnapshot(snapshot);
+				--this.snapshotCount;
+			}
+		}
+		
 		private boolean putLabel(final String label, final LabelWrapper<?> value)
 		{
-			final Pair<Version, LabelWrapper<?>> arg = this.labels.get(label);
+			final Pair<Version<R>, LabelWrapper<?>> arg = this.labels.get(label);
 			
 			if (arg != null && arg.getLeft().valid(this.versionNumber))
 				return false;
 			
-			this.labels.put(label, new ImmutablePair<Version, LabelWrapper<?>>(this.version, value));
+			this.labels.put(label, new ImmutablePair<Version<R>, LabelWrapper<?>>(this.version, value));
 			
 			return true;
 		}
@@ -716,7 +777,7 @@ public class Parser
 		
 		public LabelWrapper<?> getLabel(final String label)
 		{
-			final Pair<Version, LabelWrapper<?>> ret = this.labels.get(label);
+			final Pair<Version<R>, LabelWrapper<?>> ret = this.labels.get(label);
 			
 			if (ret == null || !ret.getLeft().valid(this.versionNumber))
 				return null;
@@ -750,7 +811,7 @@ public class Parser
 		
 		public UnmodifiableIterator<Entry<String, LabelWrapper<?>>> labelIterator()
 		{
-			final Iterator<Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>>> it = this.labelEntryIterator();
+			final Iterator<Entry<String, Pair<Version<R>, LabelWrapper<?>>>> it = this.labelEntryIterator();
 			
 			return new UnmodifiableIterator<Map.Entry<String, LabelWrapper<?>>>()
 			{
@@ -763,7 +824,7 @@ public class Parser
 				@Override
 				public Entry<String, LabelWrapper<?>> next()
 				{
-					final Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> value = it.next();
+					final Entry<String, Pair<Version<R>, LabelWrapper<?>>> value = it.next();
 					
 					return new ImmutablePair<String, LabelWrapper<?>>(value.getKey(), value.getValue().getRight());
 				}
@@ -772,7 +833,7 @@ public class Parser
 		
 		public UnmodifiableIterator<String> labelKeysIterator()
 		{
-			final Iterator<Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>>> it = this.labelEntryIterator();
+			final Iterator<Entry<String, Pair<Version<R>, LabelWrapper<?>>>> it = this.labelEntryIterator();
 			
 			return new UnmodifiableIterator<String>()
 			{
@@ -785,28 +846,28 @@ public class Parser
 				@Override
 				public String next()
 				{
-					final Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> value = it.next();
+					final Entry<String, Pair<Version<R>, LabelWrapper<?>>> value = it.next();
 					
 					return value.getKey();
 				}
 			};
 		}
 		
-		private Iterator<Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>>> labelEntryIterator()
+		private UnmodifiableIterator<Entry<String, Pair<Version<R>, LabelWrapper<?>>>> labelEntryIterator()
 		{
-			final Iterator<Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>>> it = this.labels.entrySet().iterator();
+			final Iterator<Entry<String, Pair<Version<R>, LabelWrapper<?>>>> it = this.labels.entrySet().iterator();
 			
 			final int versionNumber = this.versionNumber;
 			
-			return new UnmodifiableIterator<Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>>>()
+			return new UnmodifiableIterator<Entry<String, Pair<Version<R>, LabelWrapper<?>>>>()
 			{
-				private Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> next = this.getNext();
+				private Entry<String, Pair<Version<R>, LabelWrapper<?>>> next = this.getNext();
 				
-				private Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> getNext()
+				private Entry<String, Pair<Version<R>, LabelWrapper<?>>> getNext()
 				{
 					while (it.hasNext())
 					{
-						final Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> entry = it.next();
+						final Entry<String, Pair<Version<R>, LabelWrapper<?>>> entry = it.next();
 						
 						if (entry.getValue().getLeft().valid(versionNumber))
 							return entry;
@@ -822,9 +883,9 @@ public class Parser
 				}
 				
 				@Override
-				public Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> next()
+				public Entry<String, Pair<Version<R>, LabelWrapper<?>>> next()
 				{
-					final Entry<String, Pair<IVersionManager<S>.Version, LabelWrapper<?>>> ret = this.next;
+					final Entry<String, Pair<Version<R>, LabelWrapper<?>>> ret = this.next;
 					this.next = this.getNext();
 					return ret;
 				}
@@ -832,18 +893,75 @@ public class Parser
 		}
 	}
 	
-	private class VersionManager extends IVersionManager<ParserStateRes>
+	protected static abstract class ResParserState extends IResParserState<ResParserState>
+	{
+		public ResParserState(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager)
+		{
+			super(index, defContext, versionManager);
+		}
+		
+		protected static class Success extends ResParserState
+		{
+			private final ArgWrapper<?> res;
+			
+			public Success(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager, final ArgWrapper<?> res)
+			{
+				super(index, defContext, versionManager);
+				this.res = res;
+			}
+			
+			@Override
+			public ArgWrapper<?> res() throws SyntaxErrorException
+			{
+				return this.res;
+			}
+		}
+		
+		protected static class Error extends ResParserState
+		{
+			private final SyntaxErrorException ex;
+			
+			public Error(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager, final SyntaxErrorException ex)
+			{
+				super(index, defContext, versionManager);
+				this.ex = ex;
+			}
+			
+			@Override
+			public ArgWrapper<?> res() throws SyntaxErrorException
+			{
+				throw this.ex;
+			}
+		}
+	}
+	
+	protected static class SnapshotState extends ISnapshotState<ResParserState>
+	{
+		public SnapshotState(final int index, final Context defContext, final IVersionManager<ResParserState, ?> versionManager)
+		{
+			super(index, defContext, versionManager);
+		}
+	}
+	
+	private class VersionManager extends IVersionManager<ResParserState, SnapshotState>
 	{
 		@Override
-		public Pair<ParserStateRes, ArgWrapper<?>> parseFetchState(final IType<? extends ArgWrapper<?>, Context> target, final Context context) throws SyntaxErrorException, CompletionException
+		protected ResParserState parseFetchState(final ICachedParse target, final Context context) throws SyntaxErrorException
 		{
-			final ArgWrapper<?> res = Parser.this.parse(target, context);
-			
-			this.saveSnapshot();
-			
-			final ParserStateRes state = new ParserStateRes(Parser.this.getIndex(), Parser.this.defContext, this.version);
-			
-			return new ImmutablePair<ParserStateRes, ArgWrapper<?>>(state, res);
+			try
+			{
+				final ArgWrapper<?> res = target.iCachedParse(Parser.this, context);
+				return new ResParserState.Success(Parser.this.getIndex(), Parser.this.defContext, this, res);
+			} catch (final SyntaxErrorException ex)
+			{
+				return new ResParserState.Error(Parser.this.getIndex(), Parser.this.defContext, this, ex);
+			}
+		}
+		
+		@Override
+		protected SnapshotState saveSnapshot()
+		{
+			return new SnapshotState(Parser.this.getIndex(), Parser.this.defContext, this);
 		}
 	}
 }

@@ -9,7 +9,6 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.CompoundArg;
 import net.minecraft.command.arg.Processable;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 
 public final class ParserCommands
@@ -18,7 +17,7 @@ public final class ParserCommands
 	{
 	}
 	
-	public static final CommandArg<Integer> parse(final Parser parser, final boolean inParenths) throws SyntaxErrorException, CompletionException
+	public static final CommandArg<Integer> parse(final Parser parser, final boolean inParenths) throws SyntaxErrorException
 	{
 		// Ending matcher is still in the right state
 		final Matcher endingMatcher = parser.getMatcher(ParsingUtilities.endingMatcher);

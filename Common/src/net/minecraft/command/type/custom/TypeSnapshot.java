@@ -2,7 +2,6 @@ package net.minecraft.command.type.custom;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CTypeParse;
@@ -18,7 +17,7 @@ public class TypeSnapshot<T> extends CTypeParse<T>
 	}
 	
 	@Override
-	public ArgWrapper<T> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<T> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final boolean suppressEx = parser.suppressEx;
 		parser.suppressEx = true;

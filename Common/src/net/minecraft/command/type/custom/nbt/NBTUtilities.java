@@ -13,14 +13,8 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.completion.ITabCompletion;
-import net.minecraft.command.completion.TCDSet;
-import net.minecraft.command.completion.TabCompletion;
-import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
-import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.management.TypeID;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
@@ -34,84 +28,11 @@ import net.minecraft.nbt.NBTTagString;
 public final class NBTUtilities
 {
 	public final static MatcherRegistry numberIDMatcher = new MatcherRegistry(Pattern.compile("\\G\\s*+([bsilfd])", Pattern.CASE_INSENSITIVE));
-	
-	private static Set<TypeID<? extends Number>> primitiveTypes = new HashSet<TypeID<? extends Number>>(Arrays.asList(TypeIDs.Byte, TypeIDs.Short, TypeIDs.Integer, TypeIDs.Long, TypeIDs.Float, TypeIDs.Double));
+	public static Set<TypeID<? extends Number>> primitiveTypes = new HashSet<TypeID<? extends Number>>(Arrays.asList(TypeIDs.Byte, TypeIDs.Short, TypeIDs.Integer, TypeIDs.Long, TypeIDs.Float, TypeIDs.Double));
 	
 	private NBTUtilities()
 	{
 	}
-	
-	public static final ITabCompletion braceCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\{?+\\z"), "{}", "{}")
-	{
-		@Override
-		public boolean complexFit()
-		{
-			return false;
-		}
-		
-		@Override
-		public int getCursorOffset(final Matcher m, final CompletionData cData)
-		{
-			return -1;
-		};
-		
-		@Override
-		public double weightOffset(final Matcher m, final CompletionData cData)
-		{
-			return 1.0;
-		}
-		
-		@Override
-		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
-		{
-			return false;
-		}
-	};
-	
-	public static final IComplete braceCompleter = new IComplete()
-	{
-		@Override
-		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
-		{
-			TabCompletionData.addToSet(tcDataSet, startIndex, cData, braceCompletion);
-		}
-	};
-	
-	public static final ITabCompletion bracketCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\[?+\\z"), "[]", "[]")
-	{
-		@Override
-		public boolean complexFit()
-		{
-			return false;
-		}
-		
-		@Override
-		public int getCursorOffset(final Matcher m, final CompletionData cData)
-		{
-			return -1;
-		};
-		
-		@Override
-		public double weightOffset(final Matcher m, final CompletionData cData)
-		{
-			return 1.0;
-		}
-		
-		@Override
-		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
-		{
-			return false;
-		}
-	};
-	
-	public static final IComplete bracketCompleter = new IComplete()
-	{
-		@Override
-		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
-		{
-			TabCompletionData.addToSet(tcDataSet, startIndex, cData, bracketCompletion);
-		}
-	};
 	
 	public static CommandArg<NBTBase> getTagByte(final Parser parser, final ArgWrapper<?> toConvert) throws SyntaxErrorException
 	{
@@ -269,35 +190,33 @@ public final class NBTUtilities
 			final Matcher m = parser.getMatcher(numberIDMatcher);
 			
 			if (parser.findInc(m))
-			{
 				try
 				{
 					switch (m.group(1).charAt(0))
 					{
 					case 'b':
-						put(new NBTTagByte(Byte.parseByte(s)));
+						this.put(new NBTTagByte(Byte.parseByte(s)));
 						return null;
 					case 's':
-						put(new NBTTagShort(Short.parseShort(s)));
+						this.put(new NBTTagShort(Short.parseShort(s)));
 						return null;
 					case 'i':
-						put(new NBTTagInt(Integer.parseInt(s)));
+						this.put(new NBTTagInt(Integer.parseInt(s)));
 						return null;
 					case 'l':
-						put(new NBTTagLong(Long.parseLong(s)));
+						this.put(new NBTTagLong(Long.parseLong(s)));
 						return null;
 					case 'f':
-						put(new NBTTagFloat(Float.parseFloat(s)));
+						this.put(new NBTTagFloat(Float.parseFloat(s)));
 						return null;
 					case 'd':
-						put(new NBTTagDouble(Double.parseDouble(s)));
+						this.put(new NBTTagDouble(Double.parseDouble(s)));
 						return null;
 					}
 				} catch (final NumberFormatException ex)
 				{
 					throw parser.SEE(ex.getMessage());
 				}
-			}
 			
 			this.put(new NBTTagString(s));
 			return null;
@@ -308,7 +227,6 @@ public final class NBTUtilities
 	{
 		final Matcher m = parser.getMatcher(numberIDMatcher);
 		if (parser.findInc(m))
-		{
 			switch (m.group(1).charAt(0))
 			{
 			case 'b':
@@ -324,7 +242,6 @@ public final class NBTUtilities
 			case 'd':
 				return getTagDouble(parser, toConvert);
 			}
-		}
 		
 		return toConvert.iConvertTo(parser, TypeIDs.NBTBase);
 	}

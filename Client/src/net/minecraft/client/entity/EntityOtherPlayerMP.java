@@ -1,5 +1,7 @@
 package net.minecraft.client.entity;
 
+import com.mojang.authlib.GameProfile;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
@@ -7,8 +9,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-
-import com.mojang.authlib.GameProfile;
 
 public class EntityOtherPlayerMP extends AbstractClientPlayer
 {
@@ -64,9 +64,7 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer
 		float var5 = MathHelper.sqrt_double(var1 * var1 + var3 * var3) * 4.0F;
 		
 		if (var5 > 1.0F)
-		{
 			var5 = 1.0F;
-		}
 		
 		this.limbSwingAmount += (var5 - this.limbSwingAmount) * 0.4F;
 		this.limbSwing += this.limbSwingAmount;
@@ -98,14 +96,10 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer
 			double var7;
 			
 			for (var7 = this.otherPlayerMPYaw - this.rotationYaw; var7 < -180.0D; var7 += 360.0D)
-			{
 				;
-			}
 			
 			while (var7 >= 180.0D)
-			{
 				var7 -= 360.0D;
-			}
 			
 			this.rotationYaw = (float) (this.rotationYaw + var7 / this.otherPlayerMPPosRotationIncrements);
 			this.rotationPitch = (float) (this.rotationPitch + (this.otherPlayerMPPitch - this.rotationPitch) / this.otherPlayerMPPosRotationIncrements);
@@ -120,19 +114,13 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer
 		float var2 = (float) Math.atan(-this.motionY * 0.20000000298023224D) * 15.0F;
 		
 		if (var9 > 0.1F)
-		{
 			var9 = 0.1F;
-		}
 		
 		if (!this.onGround || this.getHealth() <= 0.0F)
-		{
 			var9 = 0.0F;
-		}
 		
 		if (this.onGround || this.getHealth() <= 0.0F)
-		{
 			var2 = 0.0F;
-		}
 		
 		this.cameraYaw += (var9 - this.cameraYaw) * 0.4F;
 		this.cameraPitch += (var2 - this.cameraPitch) * 0.8F;
@@ -145,13 +133,9 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer
 	public void setCurrentItemOrArmor(final int slotIn, final ItemStack itemStackIn)
 	{
 		if (slotIn == 0)
-		{
 			this.inventory.mainInventory[this.inventory.currentItem] = itemStackIn;
-		}
 		else
-		{
 			this.inventory.armorInventory[slotIn - 1] = itemStackIn;
-		}
 	}
 	
 	/**
@@ -167,7 +151,7 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer
 	 * Returns true if the command sender is allowed to use the given command.
 	 */
 	@Override
-	public boolean canCommandSenderUseCommand(final int permissionLevel)
+	public boolean canCommandSenderUseCommand(final int permissionLevel, final String command)
 	{
 		return false;
 	}

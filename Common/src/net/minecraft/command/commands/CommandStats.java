@@ -4,18 +4,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.CommandResultStats.Type;
+import net.minecraft.command.CommandUtilities;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.SyntaxErrorException;
-import net.minecraft.command.WrongUsageException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
-import net.minecraft.command.descriptors.CommandDescriptor.WUEProvider;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
+import net.minecraft.command.construction.UsageProviderDefault;
+import net.minecraft.command.descriptors.ICommandDescriptor.UsageProvider;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.custom.TypeStringLiteral;
 import net.minecraft.entity.Entity;
@@ -37,8 +37,8 @@ public abstract class CommandStats extends CommandArg<Integer>
 		this.statName = statName;
 	}
 	
-	public static final WUEProvider usageSet = usage("commands.stats.block.set.usage", "commands.stats.entity.set.usage");
-	public static final WUEProvider usageClear = usage("commands.stats.block.clear.usage", "commands.stats.entity.clear.usage");
+	public static final UsageProvider usageSet = usage("commands.stats.block.set.usage", "commands.stats.entity.set.usage");
+	public static final UsageProvider usageClear = usage("commands.stats.block.clear.usage", "commands.stats.entity.clear.usage");
 	
 	public static final CommandConstructable constructableSet = new CommandConstructable()
 	{
@@ -64,21 +64,21 @@ public abstract class CommandStats extends CommandArg<Integer>
 		}
 	};
 	
-	private static final WUEProvider usage(final String block, final String entity)
+	private static final UsageProvider usage(final String block, final String entity)
 	{
-		return new WUEProvider()
+		return new UsageProviderDefault()
 		{
 			@Override
-			public WrongUsageException create(final CParserData data)
+			protected <R> R create(final List<String> path, final AbstractCreator<R> creator)
 			{
-				final String target = data.path.get(0);
+				final String target = path.get(0);
+				
 				if ("block".equals(target))
-					return data.parser.WUE(block);
-				
+					return creator.create(block);
 				if ("entity".equals(target))
-					return data.parser.WUE(entity);
+					return creator.create(entity);
 				
-				return data.parser.WUE("commands.stats.usage");
+				return creator.create("commands.stats.usage");
 			}
 		};
 	}

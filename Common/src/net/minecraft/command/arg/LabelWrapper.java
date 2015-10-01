@@ -20,7 +20,7 @@ public class LabelWrapper<R> extends ExArgWrapper<R, CachedArg<R>> implements Se
 	@Override
 	public <T> Setter<T> getSetter(final TypeID<T> type)
 	{
-		checkTypes(type);
+		this.checkTypes(type);
 		
 		return (Setter<T>) this.arg();
 	}
@@ -40,7 +40,7 @@ public class LabelWrapper<R> extends ExArgWrapper<R, CachedArg<R>> implements Se
 		@SuppressWarnings("unchecked")
 		public <T> Setter<T> getSetter(final TypeID<T> type)
 		{
-			checkTypes(type);
+			this.checkTypes(type);
 			
 			return (Setter<T>) this.setter;
 		}
@@ -49,7 +49,7 @@ public class LabelWrapper<R> extends ExArgWrapper<R, CachedArg<R>> implements Se
 	@Override
 	public SetterProvider<R> register(final Parser parser) throws SyntaxErrorException
 	{
-		parser.addLabel(arg().name, this);
+		parser.addLabel(this.arg().name, this);
 		return this;
 	}
 	
@@ -60,7 +60,7 @@ public class LabelWrapper<R> extends ExArgWrapper<R, CachedArg<R>> implements Se
 		if (this.type == type)
 			return (Setter<T>) this.arg();
 		
-		return iGetLabelSetter(parser, type, allowConversion);
+		return this.iGetLabelSetter(parser, type, allowConversion);
 	}
 	
 	// This is checked
@@ -70,18 +70,18 @@ public class LabelWrapper<R> extends ExArgWrapper<R, CachedArg<R>> implements Se
 		if (this.type == type)
 			return (SetterProvider<T>) this;
 		
-		return new LabelSetter<>(type, iGetLabelSetter(parser, type, allowConversion));
+		return new LabelSetter<>(type, this.iGetLabelSetter(parser, type, allowConversion));
 	}
 	
 	private <T> Setter<T> iGetLabelSetter(final Parser parser, final TypeID<T> type, final boolean allowConversion) throws SyntaxErrorException
 	{
 		if (!allowConversion)
-			throw parser.SEE("Label '" + arg().name + "' is not of correct type ('" + this.type.name + "' instead of '" + type.name + "')' ");
+			throw parser.SEE("Label '" + this.arg().name + "' is not of correct type ('" + this.type.name + "' instead of '" + type.name + "')' ");
 		
 		final Converter<T, R, ?> converter = type.primitive.getConverter(this.type.primitive);
 		
 		if (converter == null)
-			throw parser.SEE("Label '" + arg().name + "' of incorrect type, can't convert from '" + type.name + "' to '" + this.type.name + "' ");
+			throw parser.SEE("Label '" + this.arg().name + "' of incorrect type, can't convert from '" + type.name + "' to '" + this.type.name + "' ");
 		
 		return new Setter<T>()
 		{

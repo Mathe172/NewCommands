@@ -6,7 +6,6 @@ import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -24,7 +23,7 @@ public final class ParserNBTLabel extends CustomCompletable<CommandArg<NBTBase>>
 	}
 	
 	@Override
-	public CommandArg<NBTBase> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public CommandArg<NBTBase> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final ArgWrapper<?> label = TypeUntypedLabel.parseLabel(parser);
 		

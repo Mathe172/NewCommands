@@ -3,20 +3,18 @@ package net.minecraft.nbt;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.util.ReportedException;
-
+import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.collect.Maps;
+import net.minecraft.crash.CrashReport;
+import net.minecraft.crash.CrashReportCategory;
+import net.minecraft.util.ReportedException;
 
 public class NBTTagCompound extends NBTBase
 {
@@ -24,7 +22,7 @@ public class NBTTagCompound extends NBTBase
 	
 	public NBTTagCompound()
 	{
-		this.tagMap = Maps.newHashMap();
+		this.tagMap = new PatriciaTrie<>();
 	}
 	
 	public NBTTagCompound(final Map<String, NBTBase> data)
@@ -60,9 +58,7 @@ public class NBTTagCompound extends NBTBase
 	void read(final DataInput input, final int depth, final NBTSizeTracker sizeTracker) throws IOException
 	{
 		if (depth > 512)
-		{
 			throw new RuntimeException("Tried to read NBT tag with too high complexity, depth > 512");
-		}
 		else
 		{
 			this.tagMap.clear();
@@ -213,22 +209,16 @@ public class NBTTagCompound extends NBTBase
 		final byte var3 = this.getTagType(key);
 		
 		if (var3 == type)
-		{
 			return true;
-		}
 		else if (type != 99)
 		{
 			if (var3 > 0)
-			{
 				;
-			}
 			
 			return false;
 		}
 		else
-		{
 			return var3 == 1 || var3 == 2 || var3 == 3 || var3 == 4 || var3 == 5 || var3 == 6;
-		}
 	}
 	
 	/**
@@ -379,9 +369,7 @@ public class NBTTagCompound extends NBTBase
 		try
 		{
 			if (this.getTagType(key) != 9)
-			{
 				return new NBTTagList();
-			}
 			else
 			{
 				final NBTTagList var3 = (NBTTagList) this.tagMap.get(key);
@@ -416,9 +404,7 @@ public class NBTTagCompound extends NBTBase
 		String var3;
 		
 		for (final Iterator<String> var2 = this.tagMap.keySet().iterator(); var2.hasNext(); var1 = var1 + var3 + ':' + this.tagMap.get(var3) + ',')
-		{
 			var3 = var2.next();
-		}
 		
 		return var1 + "}";
 	}
@@ -490,9 +476,7 @@ public class NBTTagCompound extends NBTBase
 			return this.tagMap.entrySet().equals(var2.tagMap.entrySet());
 		}
 		else
-		{
 			return false;
-		}
 	}
 	
 	@Override
@@ -545,7 +529,7 @@ public class NBTTagCompound extends NBTBase
 	 */
 	public void merge(final NBTTagCompound other)
 	{
-		mergeChecked(other);
+		this.mergeChecked(other);
 	}
 	
 	public boolean mergeChecked(final NBTTagCompound other)
@@ -613,7 +597,7 @@ public class NBTTagCompound extends NBTBase
 				this.copied = true;
 				
 				final Map<String, NBTBase> oldMap = this.tagMap;
-				this.tagMap = new HashMap<>();
+				this.tagMap = new PatriciaTrie<>();
 				
 				this.tagMap.putAll(oldMap);
 			}

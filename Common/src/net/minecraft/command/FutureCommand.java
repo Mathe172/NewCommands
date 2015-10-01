@@ -48,7 +48,7 @@ public class FutureCommand extends IFutureCommand
 					this.command = this.fCommand.get();
 				} catch (final InterruptedException e)
 				{
-					this.command = Parser.parseCommand(get());
+					this.command = Parser.parseCommand(this.get());
 				}
 			} catch (final ExecutionException | SyntaxErrorException e)
 			{

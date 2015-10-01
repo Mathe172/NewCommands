@@ -65,7 +65,6 @@ public abstract class TabCompletionBase extends ITabCompletion
 		index = cursorIndex;
 		
 		if (this.complexFit())
-		{
 			while (replIndex < replLen && index < endIndex)
 			{
 				replIndex = lowerReplacement.indexOf(toMatch.charAt(index), replIndex) + 1;
@@ -75,7 +74,6 @@ public abstract class TabCompletionBase extends ITabCompletion
 				
 				++index;
 			}
-		}
 		
 		return new Weighted(this.name, startIndex, index, replacement, startIndex + replLen + this.getCursorOffset(m, cData), weight / maxWeight + this.weightOffset(m, cData));
 	}

@@ -62,17 +62,17 @@ public abstract class SelectorNBT extends CommandArg<NBTBase>
 		
 		final String[] parts = path.split("\\.");
 		
-		for (int i = 0; i < parts.length; ++i)
+		for (final String part : parts)
 		{
 			switch (tag.getId())
 			{
 			case 10:
-				tag = ((NBTTagCompound) tag).getTag(parts[i]);
+				tag = ((NBTTagCompound) tag).getTag(part);
 				break;
 			case 9:
 				try
 				{
-					tag = ((NBTTagList) tag).get(Integer.parseInt(parts[i]));
+					tag = ((NBTTagList) tag).get(Integer.parseInt(part));
 					break;
 				} catch (final NumberFormatException e)
 				{

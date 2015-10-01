@@ -20,7 +20,7 @@ public class SelectorBlock extends CommandArg<IBlockState>
 		@Override
 		public ArgWrapper<?> construct(final DefaultParserData parserData) throws SyntaxErrorException
 		{
-			return TypeIDs.BlockState.wrap(new SelectorBlock(getRequiredParam(TypeIDs.BlockPos, 0, parserData)));
+			return TypeIDs.BlockState.wrap(new SelectorBlock(getParam(TypeIDs.BlockPos, 0, parserData)));
 		}
 	};
 	
@@ -34,7 +34,7 @@ public class SelectorBlock extends CommandArg<IBlockState>
 	@Override
 	public IBlockState eval(final ICommandSender sender) throws CommandException
 	{
-		final BlockPos pos = this.pos.get();
+		final BlockPos pos = this.pos == null ? sender.getPosition() : this.pos.get();
 		
 		final World world = sender.getEntityWorld();
 		

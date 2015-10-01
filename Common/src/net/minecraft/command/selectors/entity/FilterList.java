@@ -8,7 +8,6 @@ import net.minecraft.command.arg.TypedWrapper.Getter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.collections.Types;
 import net.minecraft.command.descriptors.SelectorDescriptorDefault.DefaultParserData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IParse;
@@ -41,7 +40,7 @@ public class FilterList
 		this.listParser = listParser;
 	}
 	
-	public InvertableArg parse(final Parser parser, final DefaultParserData data) throws SyntaxErrorException, CompletionException
+	public InvertableArg parse(final Parser parser, final DefaultParserData data) throws SyntaxErrorException
 	{
 		return new InvertableArg(parser.findInc(inverterMatcher), this.listParser.parse(parser).addToProcess(data.toProcess).get(TypeIDs.StringList));
 	}

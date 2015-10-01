@@ -68,7 +68,7 @@ public class TabCompletionData
 		@Override
 		public boolean equals(final Object obj)
 		{
-			return obj instanceof Weighted ? compareTo((Weighted) obj) == 0 : false;
+			return obj instanceof Weighted ? this.compareTo((Weighted) obj) == 0 : false;
 		}
 		
 		@Override

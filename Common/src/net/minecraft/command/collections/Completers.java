@@ -3,6 +3,8 @@ package net.minecraft.command.collections;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.minecraft.command.completion.DataRequest;
 import net.minecraft.command.completion.ITabCompletion;
@@ -18,12 +20,15 @@ import net.minecraft.command.type.IComplete;
 import net.minecraft.command.type.custom.CompleterResourcePath;
 import net.minecraft.entity.EntityList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.EnumChatFormatting;
 
 public final class Completers
 {
 	private Completers()
 	{
 	}
+	
+	public static final IComplete bool = new ProviderCompleter("true", "false");
 	
 	public static final IComplete userCompleter = new ProviderCompleter(new CListProvider()
 	{
@@ -168,4 +173,85 @@ public final class Completers
 	public static final CompleterResourcePath blockCompleter = new CompleterResourcePath("minecraft");
 	
 	public static final CompleterResourcePath itemCompleter = new CompleterResourcePath("minecraft");
+	
+	public static final ITabCompletion braceCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\{?+\\z"), "{}", "{}")
+	{
+		@Override
+		public boolean complexFit()
+		{
+			return false;
+		}
+		
+		@Override
+		public int getCursorOffset(final Matcher m, final CompletionData cData)
+		{
+			return -1;
+		};
+		
+		@Override
+		public double weightOffset(final Matcher m, final CompletionData cData)
+		{
+			return 1.0;
+		}
+		
+		@Override
+		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
+		{
+			return false;
+		}
+	};
+	public static final IComplete braceCompleter = new IComplete()
+	{
+		@Override
+		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
+		{
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, Completers.braceCompletion);
+		}
+	};
+	
+	public static final ITabCompletion bracketCompletion = new TabCompletion(Pattern.compile("\\A(\\s*+)\\[?+\\z"), "[]", "[]")
+	{
+		@Override
+		public boolean complexFit()
+		{
+			return false;
+		}
+		
+		@Override
+		public int getCursorOffset(final Matcher m, final CompletionData cData)
+		{
+			return -1;
+		};
+		
+		@Override
+		public double weightOffset(final Matcher m, final CompletionData cData)
+		{
+			return 1.0;
+		}
+		
+		@Override
+		public boolean fullMatch(final Matcher m, final CompletionData cData, final String replacement)
+		{
+			return false;
+		}
+	};
+	
+	public static final IComplete bracketCompleter = new IComplete()
+	{
+		@Override
+		public void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData)
+		{
+			TabCompletionData.addToSet(tcDataSet, startIndex, cData, bracketCompletion);
+		}
+	};
+	
+	public static final Collection<String> chatColors = initColors();
+	
+	@SuppressWarnings("unchecked")
+	public static Collection<String> initColors()
+	{
+		return EnumChatFormatting.getValidValues(true, false);
+	}
+	
+	public static final IComplete braceBracketCompleter = new ProviderCompleter(Completers.braceCompletion, Completers.bracketCompletion);
 }

@@ -1,6 +1,5 @@
 package net.minecraft.command.collections;
 
-import net.minecraft.command.IPermission;
 import net.minecraft.command.construction.RegistrationHelper;
 import net.minecraft.command.selectors.PrimitiveWrapper;
 import net.minecraft.command.selectors.SelectorBlock;
@@ -27,49 +26,51 @@ public final class Selectors extends RegistrationHelper
 	
 	public static final void init()
 	{
-		register("s", selector(IPermission.unrestricted, SelectorSelf.constructable, TypeIDs.ICmdSender));
+		register("s", selector(level(0), SelectorSelf.constructable, TypeIDs.ICmdSender));
 		
 		register("t",
 			selector(
 				"cmd",
 				TypeCommand.parserSingleCmd,
 				SelectorTiming.constructable,
-				IPermission.unrestricted,
+				level(0),
 				TypeIDs.Integer));
 		
 		register("c",
 			selector(
 				TypeUntypedOperator.parser,
 				PrimitiveWrapper.constructable,
-				IPermission.unrestricted,
+				level(0),
 				TypeIDs.Double,
 				TypeIDs.Integer,
 				TypeIDs.Coordinates,
 				TypeIDs.NBTBase,
-				TypeIDs.Boolean));
+				TypeIDs.Boolean,
+				TypeIDs.Entity));
 		
 		register("o",
 			selector(
 				TypeScoreObjective.type,
 				PrimitiveWrapper.constructable,
-				IPermission.level2,
+				level(2),
 				TypeIDs.ScoreObjective));
 		
-		register("sc", selector(IPermission.level2, TypeIDs.Integer)
+		register("sc", selector(level(2), TypeIDs.Integer)
 			.then("o", TypeScoreObjective.type)
 			.then("t", Types.scoreHolder)
 			.construct(SelectorScore.constructable));
 		
-		register("n", selector(IPermission.level2, TypeIDs.NBTBase)
+		register("n", selector(level(2), TypeIDs.NBTBase)
 			.then(new TypeAlternatives<>(
+				"NBT-argument",
 				TypeCoordinates.nonCentered,
-				Types.entity,
-				TypeNBTBase.parserDefault,
-				ParserName.parser))
+				Types.generalType(TypeIDs.Entity),
+				ParserName.parser,
+				TypeNBTBase.parserDefault))
 			.then(ParserName.parser)
 			.construct(SelectorNBT.constructable));
 		
-		register("b", selector(IPermission.level2, TypeIDs.BlockState)
+		register("b", selector(level(2), TypeIDs.BlockState)
 			.then(TypeBlockPos.parser)
 			.construct(SelectorBlock.constructable));
 		

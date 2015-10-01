@@ -10,19 +10,17 @@ public class CompositeString extends CommandArg<String>
 	
 	List<CommandArg<String>> parts;
 	
-	public CompositeString(List<CommandArg<String>> parts)
+	public CompositeString(final List<CommandArg<String>> parts)
 	{
 		this.parts = parts;
 	}
 	
 	@Override
-	public String eval(ICommandSender sender) throws CommandException
+	public String eval(final ICommandSender sender) throws CommandException
 	{
 		final StringBuilder sb = new StringBuilder();
 		for (final CommandArg<String> part : this.parts)
-		{
 			sb.append(part.eval(sender));
-		}
 		return sb.toString();
 	}
 	

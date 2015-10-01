@@ -16,7 +16,6 @@ import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.MatcherRegistry;
@@ -39,7 +38,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 	}
 	
 	@Override
-	public ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		if (!parser.findInc(parser.getMatcher(ParsingUtilities.oParenthMatcher)))
 		{
@@ -124,7 +123,7 @@ public class TypeList<T> extends CTypeCompletable<List<T>>
 		}
 		
 		@Override
-		public final ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public final ArgWrapper<List<T>> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			final ArgWrapper<List<T>> ret = context.generalParse(parser, this.type);
 			

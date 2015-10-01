@@ -37,12 +37,11 @@ public class TCDSet
 		if (this.requests.isEmpty())
 		{
 			if (!this.primitiveData.isEmpty())
-				sendModNote(handler, vanillaData == null);
+				this.sendModNote(handler, vanillaData == null);
 			
 			handler.sendPacket(new S3APacketTabComplete(this.primitiveData, vanillaData));
 		}
 		else
-		{
 			MinecraftServer.getServer().addScheduledTask(new Runnable()
 			{
 				@Override
@@ -60,14 +59,13 @@ public class TCDSet
 								request.createCompletions(TCDSet.this.primitiveData);
 							
 							if (!TCDSet.this.primitiveData.isEmpty())
-								sendModNote(handler, vanillaData == null);
+								TCDSet.this.sendModNote(handler, vanillaData == null);
 							
 							handler.sendPacket(new S3APacketTabComplete(TCDSet.this.primitiveData, vanillaData));
 						}
 					});
 				}
 			});
-		}
 	}
 	
 	private final void sendModNote(final NetHandlerPlayServer handler, final boolean moddedClient)

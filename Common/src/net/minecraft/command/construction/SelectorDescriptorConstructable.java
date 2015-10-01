@@ -15,9 +15,9 @@ public class SelectorDescriptorConstructable extends SelectorDescriptorDefault
 {
 	private final SelectorConstructable constructable;
 	
-	public SelectorDescriptorConstructable(final List<IDataType<?>> unnamedTypes, final Map<String, IDataType<?>> namedTypes, final SelectorConstructable constructable, final Set<TypeID<?>> resultTypes, final IPermission permission)
+	public SelectorDescriptorConstructable(final List<IDataType<?>> unnamedTypes, final Map<String, IDataType<?>> namedTypes, final List<String> keyMapping, final SelectorConstructable constructable, final Set<TypeID<?>> resultTypes, final IPermission permission)
 	{
-		super(unnamedTypes, namedTypes, resultTypes, permission);
+		super(unnamedTypes, namedTypes, keyMapping, resultTypes, permission);
 		this.constructable = constructable;
 	}
 	

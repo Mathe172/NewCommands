@@ -2,7 +2,7 @@ package net.minecraft.command.construction;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 
 public abstract class CommandConstructable
 {

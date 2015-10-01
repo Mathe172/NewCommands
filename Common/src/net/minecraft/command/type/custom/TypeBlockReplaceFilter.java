@@ -2,14 +2,14 @@ package net.minecraft.command.type.custom;
 
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
-import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.collections.Parsers;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.base.ExCustomParse;
 import net.minecraft.command.type.custom.nbt.TypeNBTArg;
 
-public final class TypeBlockReplaceFilter extends ExCustomParse<Void, CParserData>// TODO:....
+public final class TypeBlockReplaceFilter extends ExCustomParse<Void, CParserData>
 {
 	public static final IExParse<Void, CParserData> parser = new TypeBlockReplaceFilter();
 	
@@ -18,7 +18,7 @@ public final class TypeBlockReplaceFilter extends ExCustomParse<Void, CParserDat
 	}
 	
 	@Override
-	public Void parse(final Parser parser, final CParserData parserData) throws SyntaxErrorException, CompletionException
+	public Void iParse(final Parser parser, final CParserData parserData) throws SyntaxErrorException
 	{
 		ArgWrapper<?> nbt;
 		
@@ -32,7 +32,7 @@ public final class TypeBlockReplaceFilter extends ExCustomParse<Void, CParserDat
 			parserData.add(nbt);
 		} catch (final SyntaxErrorException e1)
 		{
-			parserData.add(ParserBlockID.parser.parse(parser));
+			parserData.add(Parsers.blockID.parse(parser));
 			
 			try
 			{
@@ -43,11 +43,11 @@ public final class TypeBlockReplaceFilter extends ExCustomParse<Void, CParserDat
 				parserData.add(nbt);
 			} catch (final SyntaxErrorException e2)
 			{
-				parserData.add(ParserInt.parser.parse(parser));
+				parserData.add(Parsers.integer.parse(parser));
 				
 				try
 				{
-					parserData.add(ParserInt.parser.parseSnapshot(parser));
+					parserData.add(Parsers.integer.parseSnapshot(parser));
 				} catch (final SyntaxErrorException e3)
 				{
 					parserData.add((ArgWrapper<?>) null);

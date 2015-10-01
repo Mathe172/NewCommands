@@ -18,7 +18,7 @@ public class CachedArg<T> extends Primitive<T> implements Setter<T>
 	@Override
 	public T eval(final ICommandSender sender) throws CommandException
 	{
-		return get();
+		return this.get();
 	}
 	
 	@Override
@@ -54,7 +54,7 @@ public class CachedArg<T> extends Primitive<T> implements Setter<T>
 		@Override
 		public void process(final ICommandSender sender) throws CommandException
 		{
-			set(this.arg.eval(sender));
+			this.set(this.arg.eval(sender));
 		}
 	}
 }

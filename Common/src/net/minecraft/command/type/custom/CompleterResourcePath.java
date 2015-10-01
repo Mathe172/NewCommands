@@ -1,10 +1,10 @@
 package net.minecraft.command.type.custom;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+
+import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.completion.ITabCompletion;
@@ -19,7 +19,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class CompleterResourcePath implements IComplete
 {
-	private final Map<String, CompleterResourcePath> subResources = new HashMap<>();
+	private final PatriciaTrie<CompleterResourcePath> subResources = new PatriciaTrie<>();
 	private final Set<ITabCompletion> domainCompletions = new HashSet<>();
 	private final Set<ITabCompletion> entryCompletions;
 	
@@ -72,7 +72,6 @@ public class CompleterResourcePath implements IComplete
 		CompleterResourcePath completerResourcePath = this;
 		
 		while (completerResourcePath != null)
-		{
 			if (pathMatcher.find(index))
 			{
 				completerResourcePath = completerResourcePath.subResources.get(pathMatcher.group().toLowerCase());
@@ -86,13 +85,12 @@ public class CompleterResourcePath implements IComplete
 				
 				return;
 			}
-		}
 	}
 	
 	public CompleterResourcePath registerResource(final ResourceLocation... resources)
 	{
 		for (final ResourceLocation resource : resources)
-			registerSingleResource(resource.toString());
+			this.registerSingleResource(resource.toString());
 		return this;
 	}
 	
@@ -129,7 +127,7 @@ public class CompleterResourcePath implements IComplete
 	public final CompleterResourcePath registerResource(final String... resources)
 	{
 		for (final String resource : resources)
-			registerSingleResource(resource);
+			this.registerSingleResource(resource);
 		
 		return this;
 	}

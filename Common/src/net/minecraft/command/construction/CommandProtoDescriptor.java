@@ -7,19 +7,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.minecraft.command.IPermission;
-import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
-import net.minecraft.command.descriptors.CommandDescriptor.WUEProvider;
-import net.minecraft.command.type.IExParse;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+
+import net.minecraft.command.IPermission;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
+import net.minecraft.command.descriptors.CommandDescriptor;
+import net.minecraft.command.descriptors.ICommandDescriptor.UsageProvider;
+import net.minecraft.command.type.IExParse;
 
 public abstract class CommandProtoDescriptor
 {
 	public final Set<String> names;
-	private final WUEProvider usage;
+	private final UsageProvider usage;
 	public final IPermission permission;
 	
 	public boolean useEmptyConstructable = false;
@@ -27,17 +27,16 @@ public abstract class CommandProtoDescriptor
 	public final List<IExParse<Void, ? super CParserData>> args = new ArrayList<>();
 	public final List<CommandProtoDescriptor> subCommands = new ArrayList<>();
 	
-	public CommandProtoDescriptor(final IPermission permission, final WUEProvider usage, final String name, final String... aliases)
+	public CommandProtoDescriptor(final String name, final List<String> aliases, final IPermission permission, final UsageProvider usage)
 	{
 		this.usage = usage;
 		this.permission = permission;
 		
-		this.names = new HashSet<>(1 + aliases.length);
+		this.names = new HashSet<>(1 + aliases.size());
 		
 		this.names.add(name);
 		
-		for (final String alias : aliases)
-			this.names.add(alias);
+		this.names.addAll(aliases);
 	}
 	
 	public Pair<Set<String>, CommandDescriptor<CParserData>> construct(final CommandConstructable constructable)
@@ -63,15 +62,15 @@ public abstract class CommandProtoDescriptor
 		public final CommandConstructable constructable;
 		private Pair<Set<String>, CommandDescriptor<CParserData>> ret = null;
 		
-		public Constructable(final CommandConstructable constructable, final IPermission permission, final WUEProvider usage, final String name, final String... aliases)
+		public Constructable(final String name, final List<String> aliases, final CommandConstructable constructable, final IPermission permission, final UsageProvider usage)
 		{
-			super(permission, usage, name, aliases);
+			super(name, aliases, permission, usage);
 			this.constructable = constructable;
 		}
 		
-		public Constructable(final CommandConstructable constructable, final WUEProvider usage, final String name, final String... aliases)
+		public Constructable(final String name, final List<String> aliases, final CommandConstructable constructable, final UsageProvider usage)
 		{
-			this(constructable, null, usage, name, aliases);
+			this(name, aliases, constructable, null, usage);
 		}
 		
 		@Override
@@ -88,14 +87,14 @@ public abstract class CommandProtoDescriptor
 	{
 		private final Map<CommandConstructable, Pair<Set<String>, CommandDescriptor<CParserData>>> cachedRet = new HashMap<>();
 		
-		public NoConstructable(final IPermission permission, final WUEProvider usage, final String name, final String... aliases)
+		public NoConstructable(final String name, final List<String> aliases, final IPermission permission, final UsageProvider usage)
 		{
-			super(permission, usage, name, aliases);
+			super(name, aliases, permission, usage);
 		}
 		
-		public NoConstructable(final WUEProvider usage, final String name, final String... aliases)
+		public NoConstructable(final String name, final List<String> aliases, final UsageProvider usage)
 		{
-			this(null, usage, name, aliases);
+			this(name, aliases, null, usage);
 		}
 		
 		@Override

@@ -14,7 +14,7 @@ public final class ParsingManager
 	{
 	}
 	
-	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
+	private static final ExecutorService threadPool = Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors() - 1, 1));
 	
 	public static final Future<CommandArg<Integer>> submit(final String toParse)
 	{

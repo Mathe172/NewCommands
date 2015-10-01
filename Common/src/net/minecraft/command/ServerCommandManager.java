@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import net.minecraft.command.collections.Commands;
 import net.minecraft.command.collections.Matchers;
-import net.minecraft.command.collections.NBTDescriptors;
 import net.minecraft.command.collections.Operators;
 import net.minecraft.command.collections.Relations;
 import net.minecraft.command.collections.Selectors;
@@ -24,12 +23,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
-public final class ServerCommandManager extends CommandHandler
+public class ServerCommandManager extends CommandHandler implements IAdminCommand
 {
 	@SuppressWarnings("unused")
 	private static final String __OBFID = "CL_00000922";
 	
-	private ServerCommandManager()
+	@Deprecated
+	public ServerCommandManager()
 	{
 	}
 	
@@ -38,6 +38,7 @@ public final class ServerCommandManager extends CommandHandler
 		Relation.clearAll();
 		Convertable.clearAll();
 		TypeID.clearAll();
+		
 		CommandDescriptor.clear();
 		SelectorDescriptor.clear();
 		OperatorDescriptor.clear();
@@ -49,6 +50,8 @@ public final class ServerCommandManager extends CommandHandler
 		
 		Matchers.init();
 		
+		CommandDescriptor.init(); //don't ask...
+		
 		Commands.init();
 		Selectors.init();
 		Operators.init();
@@ -56,11 +59,6 @@ public final class ServerCommandManager extends CommandHandler
 		// TODO:.........
 		for (final Object criterion : IScoreObjectiveCriteria.INSTANCES.keySet())
 			CommandScoreboard.completerCriterion.registerResource(criterion.toString());
-	}
-	
-	static
-	{
-		NBTDescriptors.init();
 	}
 	
 	public static void notifyOperators(final ICommandSender sender, final int flags, final String msgFormat, final Object... msgParams)
@@ -81,27 +79,26 @@ public final class ServerCommandManager extends CommandHandler
 				final EntityPlayer var10 = (EntityPlayer) var9.next();
 				
 				if (var10 != sender && var7.getConfigurationManager().canSendCommands(var10.getGameProfile()))
-				{
 					var10.addChatMessage(var8);
-				}
 			}
 		}
 		
 		if (sender != var7 && var7.worldServers[0].getGameRules().getGameRuleBooleanValue("logAdminCommands"))
-		{
 			var7.addChatMessage(var8);
-		}
 		
 		boolean var11 = var7.worldServers[0].getGameRules().getGameRuleBooleanValue("sendCommandFeedback");
 		
 		if (sender instanceof CommandBlockLogic)
-		{
 			var11 = ((CommandBlockLogic) sender).func_175571_m();
-		}
 		
 		if ((flags & 1) != 1 && var11)
-		{
 			sender.addChatMessage(new ChatComponentTranslation(msgFormat, msgParams));
-		}
+	}
+	
+	@Deprecated
+	@Override
+	public void notifyOperators(final ICommandSender sender, final ICommand command, final int flags, final String msgFormat, final Object... msgParams)
+	{
+		notifyOperators(sender, flags, msgFormat, msgParams);
 	}
 }

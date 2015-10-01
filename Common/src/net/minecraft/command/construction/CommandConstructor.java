@@ -6,9 +6,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import net.minecraft.command.SyntaxErrorException;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.construction.ICommandConstructor.CPU;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
 import net.minecraft.command.type.IExParse;
@@ -57,11 +56,12 @@ public class CommandConstructor implements CPU
 			{
 				if (newEnd == null)
 				{
-					newEnd = new CommandProtoDescriptor.NoConstructable(null, "");
+					newEnd = new CommandProtoDescriptor.NoConstructable("", Collections.<String> emptyList(), null);
 					newEnd.args.add(arg);
 				}
 				
 				end.subCommands.add(newEnd);
+				end.useEmptyConstructable = true;
 				it.remove();
 			}
 		}
@@ -83,7 +83,7 @@ public class CommandConstructor implements CPU
 		return new ExCustomParse<Void, CParserData>()
 		{
 			@Override
-			public Void parse(final Parser parser, final CParserData parserData) throws SyntaxErrorException, CompletionException
+			public Void iParse(final Parser parser, final CParserData parserData) throws SyntaxErrorException
 			{
 				parserData.add(arg.parse(parser));
 				
@@ -116,7 +116,7 @@ public class CommandConstructor implements CPU
 	@Override
 	public final CommandConstructor optional(final IExParse<Void, ? super CParserData> arg)
 	{
-		this.optional(arg, new CommandProtoDescriptor.NoConstructable(null, ""));
+		this.optional(arg, new CommandProtoDescriptor.NoConstructable("", Collections.<String> emptyList(), null));
 		
 		return this;
 	}
@@ -136,7 +136,7 @@ public class CommandConstructor implements CPU
 	@Override
 	public final CommandConstructor optional(final IExParse<Void, ? super CParserData> arg, final CommandConstructable constructable)
 	{
-		this.optional(arg, new CommandProtoDescriptor.Constructable(constructable, null, ""));
+		this.optional(arg, new CommandProtoDescriptor.Constructable("", Collections.<String> emptyList(), constructable, null));
 		
 		return this;
 	}

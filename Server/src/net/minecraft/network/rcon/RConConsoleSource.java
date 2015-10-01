@@ -68,7 +68,7 @@ public class RConConsoleSource implements ICommandSender
 	 * Returns true if the command sender is allowed to use the given command.
 	 */
 	@Override
-	public boolean canCommandSenderUseCommand(final int permissionLevel)
+	public boolean canCommandSenderUseCommand(final int permissionLevel, final String command)
 	{
 		return true;
 	}

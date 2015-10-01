@@ -8,7 +8,6 @@ import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PrimitiveParameter;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.collections.Types;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.CDataType;
@@ -18,14 +17,14 @@ import net.minecraft.util.BlockPos;
 
 public class TypeBlockPos extends CTypeParse<BlockPos>
 {
-	public static final CDataType<BlockPos> parser = new Typed<>(new TypeBlockPos(), Types.generalType(TypeIDs.BlockPos));
+	public static final CDataType<BlockPos> parser = new Typed<>("Block-Pos", new TypeBlockPos(), Types.generalType(TypeIDs.BlockPos));
 	
 	private TypeBlockPos()
 	{
 	}
 	
 	@Override
-	public ArgWrapper<BlockPos> parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<BlockPos> iParse(final Parser parser, final Context parserData) throws SyntaxErrorException
 	{
 		final Coordinate x = TypeCoordinate.xNC.parse(parser);
 		final Coordinate y = TypeCoordinate.yNC.parse(parser);

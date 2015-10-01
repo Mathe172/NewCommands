@@ -10,7 +10,6 @@ import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.arg.PrimitiveParameter;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.custom.nbt.NBTUtilities.NBTData;
 import net.minecraft.nbt.NBTBase;
@@ -47,9 +46,9 @@ public class ParserNBTList
 		
 	}
 	
-	public void parse(final Parser parser, final NBTData parserData) throws SyntaxErrorException, CompletionException
+	public void parse(final Parser parser, final NBTData parserData) throws SyntaxErrorException
 	{
-		parser.terminateCompletion();
+		ParsingUtilities.terminateCompletion(parser);
 		
 		final ListData data = new ListData();
 		
@@ -70,7 +69,6 @@ public class ParserNBTList
 			dynamicData.trimToSize();
 			
 			if (data.primitiveData.isEmpty())
-			{
 				parserData.add(new CommandArg<NBTBase>()
 				{
 					@Override
@@ -84,7 +82,6 @@ public class ParserNBTList
 						return list;
 					}
 				});
-			}
 			else
 			{
 				final NBTTagList list = new NBTTagList();
@@ -112,10 +109,7 @@ public class ParserNBTList
 							int i = startIndex;
 							
 							for (final CommandArg<NBTBase> item : dynamicData)
-							{
-								list.set(i, item.eval(sender));
-								++i;
-							}
+								list.set(i++, item.eval(sender));
 						}
 						
 						return list;
@@ -126,7 +120,7 @@ public class ParserNBTList
 		}
 	}
 	
-	public void parseItems(final Parser parser, final ListData data) throws SyntaxErrorException, CompletionException
+	public void parseItems(final Parser parser, final ListData data) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(ParsingUtilities.listEndMatcher);
 		

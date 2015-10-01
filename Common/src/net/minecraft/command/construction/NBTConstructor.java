@@ -1,11 +1,12 @@
 package net.minecraft.command.construction;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
+
+import net.minecraft.command.collections.Completers;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
@@ -14,22 +15,20 @@ import net.minecraft.command.type.IExParse;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.DefaultTag;
 import net.minecraft.command.type.custom.nbt.NBTDescriptor.Tag;
-import net.minecraft.command.type.custom.nbt.NBTPair;
-import net.minecraft.command.type.custom.nbt.NBTUtilities;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound;
 import net.minecraft.command.type.custom.nbt.ParserNBTCompound.CompoundData;
 import net.minecraft.command.type.custom.nbt.ParserNBTList;
 import net.minecraft.command.type.custom.nbt.ParserNBTTag;
-import net.minecraft.command.type.custom.nbt.ParserNBTTagCustom;
+import net.minecraft.command.type.custom.nbt.TypeNBTPair;
 
 public final class NBTConstructor extends NBTDescriptor.Compound implements NBTDescriptor.Tag
 {
 	private final Set<ITabCompletion> keyCompletions = new HashSet<>();
-	private final Map<String, NBTDescriptor.Tag> subDescriptors = new HashMap<>();
+	private final PatriciaTrie<NBTDescriptor.Tag> subDescriptors = new PatriciaTrie<>();
 	
-	private final ParserNBTTag tagParser = new ParserNBTTagCustom(this, NBTUtilities.braceCompleter);
+	private final ParserNBTTag tagParser = new ParserNBTTag(this, Completers.braceCompleter);
 	private final ParserNBTCompound compoundParser = new ParserNBTCompound(this);
-	private final IExParse<Void, CompoundData> pair = new NBTPair(this);
+	private final IExParse<Void, CompoundData> pair = new TypeNBTPair(this);
 	
 	@Override
 	public Set<ITabCompletion> getKeyCompletions()
@@ -158,5 +157,41 @@ public final class NBTConstructor extends NBTDescriptor.Compound implements NBTD
 	public ParserNBTCompound getCompoundParser()
 	{
 		return this.compoundParser;
+	}
+	
+	public static class ConstructionHelper
+	{
+		protected static final Tag defTag = NBTDescriptor.defaultTag;
+		protected static final Tag defList = NBTDescriptor.defaultList;
+		protected static final Tag defCompound = NBTDescriptor.defaultCompound;
+		
+		protected ConstructionHelper()
+		{
+		}
+		
+		protected static final NBTConstructor compound()
+		{
+			return new NBTConstructor();
+		}
+		
+		protected static final NBTConstructorList list()
+		{
+			return new NBTConstructorList();
+		}
+		
+		protected static final NBTConstructorList list(final IComplete completer)
+		{
+			return new NBTConstructorList(completer);
+		}
+		
+		protected static final NBTConstructorList list(final Tag itemDescriptor)
+		{
+			return new NBTConstructorList(itemDescriptor);
+		}
+		
+		protected static final NBTConstructorList list(final String... completions)
+		{
+			return new NBTConstructorList(completions);
+		}
 	}
 }

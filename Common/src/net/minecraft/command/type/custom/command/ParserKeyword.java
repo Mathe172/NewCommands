@@ -6,32 +6,51 @@ import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.descriptors.CommandDescriptor;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
+import net.minecraft.command.descriptors.ICommandDescriptor;
+import net.minecraft.command.parser.CompletionParser;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.ExCustomCompletable;
+import net.minecraft.command.type.metadata.MetaEntry;
+import net.minecraft.command.type.metadata.MetaEntry.PrimitiveHint;
 
-public class ParserKeyword<D extends CParserData> extends ExCustomCompletable<CommandDescriptor<? super D>, D>
+public class ParserKeyword extends ExCustomCompletable<ICommandDescriptor<? super CParserData>, CParserData>
 {
-	private final CommandDescriptor<D> descriptor;
+	private final CommandDescriptorDefault descriptor;
 	
-	public ParserKeyword(final CommandDescriptor<D> descriptor)
+	public ParserKeyword(final CommandDescriptorDefault descriptor)
 	{
 		this.descriptor = descriptor;
 	}
 	
+	private static final MetaEntry<PrimitiveHint, Void> hint = new MetaEntry<PrimitiveHint, Void>(CompletionParser.hintID)
+	{
+		@Override
+		public PrimitiveHint get(final Parser parser, final Void parserData)
+		{
+			final Matcher m = parser.getMatcher(ParsingUtilities.keyMatcher);
+			final Matcher wm = parser.getMatcher(ParsingUtilities.whitespaceMatcher);
+			
+			final int index = parser.getIndex() + (parser.find(m) ? m.group().length() : 0);
+			wm.find(index);
+			
+			return wm.group().length() + index == parser.len ? CompletionParser.propose : null;
+		}
+	};
+	
 	@Override
-	public CommandDescriptor<? super D> iParse(final Parser parser, final D data) throws SyntaxErrorException
+	public ICommandDescriptor<? super CParserData> iParse(final Parser parser, final CParserData data) throws SyntaxErrorException
 	{
 		// No parser.checkEnd() needed
 		final Matcher m = parser.getMatcher(ParsingUtilities.keyMatcher);
 		
 		if (parser.find(m))
 		{
-			final String keyword = m.group(1).toLowerCase(); // TODO:...
+			final String keyword = m.group(1).toLowerCase();
 			
-			final CommandDescriptor<? super D> ret = this.descriptor.getSubType(keyword);
+			final ICommandDescriptor<? super CParserData> ret = this.descriptor.getSubDescriptor(keyword);
 			
 			if (ret != null)
 			{
@@ -43,9 +62,9 @@ public class ParserKeyword<D extends CParserData> extends ExCustomCompletable<Co
 			}
 		}
 		
-		parser.proposeCompletion();
+		parser.supplyHint(hint);
 		
-		return this.descriptor.getSubType("");
+		return this.descriptor.getSubDescriptor("");
 	}
 	
 	@Override

@@ -10,7 +10,7 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 
@@ -42,7 +42,6 @@ public final class CommandUseItem extends CommandArg<Integer>
 		int succ = 0;
 		
 		for (final Entity e : entities)
-		{
 			if (e instanceof EntityLivingBase)
 			{
 				((EntityLivingBase) e).swingItem();
@@ -50,7 +49,6 @@ public final class CommandUseItem extends CommandArg<Integer>
 			}
 			else
 				CommandUtilities.errorMessage(sender, e.getName() + " is not a living entity");
-		}
 		
 		if (succ == 0)
 			throw new CommandException("commands.useItem.noSuccess");

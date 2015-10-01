@@ -14,7 +14,7 @@ import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinate.SingleShift;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates.Shift;
@@ -190,7 +190,6 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 			int successCount = 0;
 			
 			for (final Entity entity : this.getSources(sender))
-			{
 				if (target.getEntityWorld() != entity.worldObj)
 					CommandUtilities.errorMessage(sender, "commands.tp.notSameDimension");
 				else
@@ -218,7 +217,6 @@ public abstract class CommandTeleport extends CommandArg<Integer>
 					++successCount;
 					CommandUtilities.notifyOperators(sender, "commands.tp.success", entity.getName(), target.getName());
 				}
-			}
 			
 			return successCount;
 		}

@@ -13,7 +13,7 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.type.custom.coordinate.TypeCoordinates.Shift;
 import net.minecraft.item.Item;
 import net.minecraft.util.EnumParticleTypes;

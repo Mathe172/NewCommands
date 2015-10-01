@@ -65,19 +65,15 @@ public class CompoundArg<T> extends CommandArg<T>
 		{
 			final Iterator<Boolean> it = this.ignoreErrors.iterator();
 			for (final Processable toProc : this.toProcess)
-			{
 				if (it.next())
-				{
 					try
 					{
 						toProc.process(sender);
 					} catch (final CommandException ex)
 					{
 					}
-				}
 				else
 					toProc.process(sender);
-			}
 			
 			return this.trailing.eval(sender);
 		}

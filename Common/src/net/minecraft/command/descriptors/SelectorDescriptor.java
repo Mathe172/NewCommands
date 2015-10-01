@@ -2,8 +2,11 @@ package net.minecraft.command.descriptors;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
@@ -12,7 +15,6 @@ import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IExParse;
@@ -32,7 +34,7 @@ public abstract class SelectorDescriptor<D extends SParserData>
 	
 	public abstract void complete(final TCDSet tcDataSet, final Parser parser, final int startIndex, final CompletionData cData, final D data);
 	
-	private final static HashMap<String, SelectorDescriptor<?>> selectors = new HashMap<>();
+	private final static PatriciaTrie<SelectorDescriptor<?>> selectors = new PatriciaTrie<>();
 	public static final Map<ITabCompletion, IPermission> selectorCompletions = new HashMap<>();
 	
 	public SelectorDescriptor(final Set<TypeID<?>> resultTypes, final IPermission permission)
@@ -61,10 +63,12 @@ public abstract class SelectorDescriptor<D extends SParserData>
 			resultType.addSelector(completion, descriptor.permission);
 	}
 	
-	public static void registerSelector(final SelectorDescriptor<?> descriptor, final String... names)
+	public static void registerSelector(final String name, final List<String> aliases, final SelectorDescriptor<?> descriptor)
 	{
-		for (final String name : names)
-			registerSelector(name, descriptor);
+		registerSelector(name, descriptor);
+		
+		for (final String alias : aliases)
+			registerSelector(alias, descriptor);
 	}
 	
 	public static final SelectorDescriptor<?> getDescriptor(final String name)
@@ -85,16 +89,16 @@ public abstract class SelectorDescriptor<D extends SParserData>
 	
 	public abstract ArgWrapper<?> construct(D data) throws SyntaxErrorException;
 	
-	public abstract void parse(final Parser parser, final String key, final D data) throws SyntaxErrorException, CompletionException;
+	public abstract void parse(final Parser parser, final String key, final D data) throws SyntaxErrorException;
 	
-	public abstract void parse(final Parser parser, final D data) throws SyntaxErrorException, CompletionException;
+	public abstract void parse(final Parser parser, final D data) throws SyntaxErrorException;
 	
 	public IExParse<Void, D> getKVPair()
 	{
 		return this.kvPair;
 	}
 	
-	public final ArgWrapper<?> parse(final Parser parser) throws SyntaxErrorException, CompletionException
+	public final ArgWrapper<?> parse(final Parser parser) throws SyntaxErrorException
 	{
 		return PermissionWrapper.wrap(this.contentParser.parse(parser), this.permission);
 	}
@@ -105,6 +109,7 @@ public abstract class SelectorDescriptor<D extends SParserData>
 	{
 		final SelectorDescriptor<?> descriptor = getDescriptor(name);
 		
-		registerSelector(descriptor, aliases);
+		for (final String alias : aliases)
+			registerSelector(alias, descriptor);
 	}
 }

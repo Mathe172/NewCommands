@@ -12,7 +12,7 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.custom.TypeStringLiteral;
 import net.minecraft.entity.Entity;
@@ -56,20 +56,14 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 		player.fallDistance = 0.0F;
 		
 		if (sender.getEntityWorld().getGameRules().getGameRuleBooleanValue("sendCommandFeedback"))
-		{
 			player.addChatMessage(new ChatComponentTranslation("gameMode.changed"));
-		}
 		
 		final ChatComponentTranslation message = new ChatComponentTranslation("gameMode." + gameType.getName());
 		
 		if (player != sender)
-		{
 			CommandUtilities.notifyOperators(sender, 1, "commands.gamemode.success.other", player.getName(), message);
-		}
 		else
-		{
 			CommandUtilities.notifyOperators(sender, 1, "commands.gamemode.success.self", message);
-		}
 	}
 	
 	private static class Player extends CommandGameMode
@@ -93,7 +87,6 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 			final WorldSettings.GameType gameType = getGameModeFromCommand(gamemode);
 			
 			for (final Entity entity : entities)
-			{
 				if (!(entity instanceof EntityPlayerMP))
 					sender.addChatMessage(entity.getDisplayName().appendText(" is not a player"));
 				else
@@ -101,7 +94,6 @@ public abstract class CommandGameMode extends CommandArg<Integer>
 					this.procCommand(sender, gameType, (EntityPlayerMP) entity);
 					++successCount;
 				}
-			}
 			
 			sender.func_174794_a(CommandResultStats.Type.AFFECTED_ENTITIES, entities.size());// Not successCount to conform with old behavior
 			

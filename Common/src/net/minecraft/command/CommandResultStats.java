@@ -114,9 +114,7 @@ public class CommandResultStats
 		}
 		
 		if (!statsTag.hasNoTags())
-		{
 			tag.setTag("CommandStats", statsTag);
-		}
 	}
 	
 	/**
@@ -136,9 +134,7 @@ public class CommandResultStats
 			stats.objectiveNames[type.statId()] = objectiveName;
 		}
 		else
-		{
 			removeTypeData(stats, type);
-		}
 	}
 	
 	private static void removeTypeData(final CommandResultStats stats, final CommandResultStats.Type type)
@@ -254,9 +250,7 @@ public class CommandResultStats
 				final CommandResultStats.Type type = types[i];
 				
 				if (type.func_179637_b().equals(name))
-				{
 					return type;
-				}
 			}
 			
 			return null;

@@ -10,7 +10,7 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.CommandArg;
 import net.minecraft.command.collections.TypeIDs;
 import net.minecraft.command.construction.CommandConstructable;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.type.CDataType;
 import net.minecraft.command.type.custom.TypeStringLiteral;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -40,7 +40,7 @@ public final class CommandGameRule
 		"randomTickSpeed",
 		"reducedDebugInfo",
 		"sendCommandFeedback",
-		"showDeathMessages"); // TODO:......
+		"showDeathMessages");
 	
 	public static final CommandConstructable constructable = new CommandConstructable()
 	{

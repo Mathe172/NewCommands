@@ -20,9 +20,7 @@ public class NBTTagString extends NBTBase
 		this.data = data;
 		
 		if (data == null)
-		{
 			throw new IllegalArgumentException("Empty string not allowed");
-		}
 	}
 	
 	/**
@@ -78,9 +76,7 @@ public class NBTTagString extends NBTBase
 	public boolean equals(final Object p_equals_1_)
 	{
 		if (!super.equals(p_equals_1_))
-		{
 			return false;
-		}
 		else
 		{
 			final NBTTagString var2 = (NBTTagString) p_equals_1_;

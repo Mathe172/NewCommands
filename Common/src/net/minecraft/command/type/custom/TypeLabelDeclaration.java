@@ -6,8 +6,7 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.LabelWrapper;
 import net.minecraft.command.arg.Setter.SetterProvider;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.descriptors.CommandDescriptor.CParserData;
-import net.minecraft.command.parser.CompletionException;
+import net.minecraft.command.construction.CommandDescriptorDefault.CParserData;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.base.ExCustomParse;
@@ -31,7 +30,7 @@ public class TypeLabelDeclaration<T> extends ExCustomParse<Void, CParserData>
 	}
 	
 	@Override
-	public Void parse(final Parser parser, final CParserData parserData) throws SyntaxErrorException, CompletionException
+	public Void iParse(final Parser parser, final CParserData parserData) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(labelMatcher);
 		
@@ -103,7 +102,7 @@ public class TypeLabelDeclaration<T> extends ExCustomParse<Void, CParserData>
 		}
 		
 		@Override
-		public Void parse(final Parser parser, final CParserData parserData) throws SyntaxErrorException, CompletionException
+		public Void iParse(final Parser parser, final CParserData parserData) throws SyntaxErrorException
 		{
 			parserData.registerLabel(parser, this.index);
 			
@@ -120,7 +119,7 @@ public class TypeLabelDeclaration<T> extends ExCustomParse<Void, CParserData>
 		}
 		
 		@Override
-		public Void parse(final Parser parser, final CParserData parserData) throws SyntaxErrorException, CompletionException
+		public Void iParse(final Parser parser, final CParserData parserData) throws SyntaxErrorException
 		{
 			parserData.registerLabel(parser);
 			

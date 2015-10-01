@@ -8,7 +8,6 @@ import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.completion.TCDSet;
 import net.minecraft.command.completion.TabCompletion;
 import net.minecraft.command.completion.TabCompletionData;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.CompletionParser.CompletionData;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
@@ -26,7 +25,7 @@ public class TypeTypeID extends CustomCompletable<TypeID<?>>
 	}
 	
 	@Override
-	public TypeID<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public TypeID<?> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final String name = ParsingUtilities.parseLiteralString(parser, "Expected TypeID ");
 		

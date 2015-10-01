@@ -256,9 +256,7 @@ public abstract class Entity implements ICommandSender
 		this.setPosition(0.0D, 0.0D, 0.0D);
 		
 		if (worldIn != null)
-		{
 			this.dimension = worldIn.provider.getDimensionId();
-		}
 		
 		this.dataWatcher = new DataWatcher(this);
 		this.dataWatcher.addObject(0, Byte.valueOf((byte) 0));
@@ -309,9 +307,7 @@ public abstract class Entity implements ICommandSender
 			this.func_174826_a(new AxisAlignedBB(this.getEntityBoundingBox().minX, this.getEntityBoundingBox().minY, this.getEntityBoundingBox().minZ, this.getEntityBoundingBox().minX + this.width, this.getEntityBoundingBox().minY + this.height, this.getEntityBoundingBox().minZ + this.width));
 			
 			if (this.width > var3 && !this.firstUpdate && !this.worldObj.isRemote)
-			{
 				this.moveEntity(var3 - this.width, 0.0D, var3 - this.width);
-			}
 		}
 	}
 	
@@ -353,9 +349,7 @@ public abstract class Entity implements ICommandSender
 		this.worldObj.theProfiler.startSection("entityBaseTick");
 		
 		if (this.ridingEntity != null && this.ridingEntity.isDead)
-		{
 			this.ridingEntity = null;
-		}
 		
 		this.prevDistanceWalkedModified = this.distanceWalkedModified;
 		this.prevPosX = this.posX;
@@ -381,13 +375,9 @@ public abstract class Entity implements ICommandSender
 						byte var3;
 						
 						if (this.worldObj.provider.getDimensionId() == -1)
-						{
 							var3 = 0;
-						}
 						else
-						{
 							var3 = -1;
-						}
 						
 						this.travelToDimension(var3);
 					}
@@ -398,20 +388,14 @@ public abstract class Entity implements ICommandSender
 			else
 			{
 				if (this.portalCounter > 0)
-				{
 					this.portalCounter -= 4;
-				}
 				
 				if (this.portalCounter < 0)
-				{
 					this.portalCounter = 0;
-				}
 			}
 			
 			if (this.timeUntilPortal > 0)
-			{
 				--this.timeUntilPortal;
-			}
 			
 			this.worldObj.theProfiler.endSection();
 		}
@@ -420,30 +404,22 @@ public abstract class Entity implements ICommandSender
 		this.handleWaterMovement();
 		
 		if (this.worldObj.isRemote)
-		{
 			this.fire = 0;
-		}
 		else if (this.fire > 0)
-		{
 			if (this.isImmuneToFire)
 			{
 				this.fire -= 4;
 				
 				if (this.fire < 0)
-				{
 					this.fire = 0;
-				}
 			}
 			else
 			{
 				if (this.fire % 20 == 0)
-				{
 					this.attackEntityFrom(DamageSource.onFire, 1.0F);
-				}
 				
 				--this.fire;
 			}
-		}
 		
 		if (this.func_180799_ab())
 		{
@@ -452,14 +428,10 @@ public abstract class Entity implements ICommandSender
 		}
 		
 		if (this.posY < -64.0D)
-		{
 			this.kill();
-		}
 		
 		if (!this.worldObj.isRemote)
-		{
 			this.setFlag(0, this.fire > 0);
-		}
 		
 		this.firstUpdate = false;
 		this.worldObj.theProfiler.endSection();
@@ -494,9 +466,7 @@ public abstract class Entity implements ICommandSender
 		var2 = EnchantmentProtection.getFireTimeForEntity(this, var2);
 		
 		if (this.fire < var2)
-		{
 			this.fire = var2;
-		}
 	}
 	
 	/**
@@ -567,66 +537,38 @@ public abstract class Entity implements ICommandSender
 				double var20;
 				
 				for (var20 = 0.05D; x != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(x, -1.0D, 0.0D)).isEmpty(); var13 = x)
-				{
 					if (x < var20 && x >= -var20)
-					{
 						x = 0.0D;
-					}
 					else if (x > 0.0D)
-					{
 						x -= var20;
-					}
 					else
-					{
 						x += var20;
-					}
-				}
 				
 				for (; z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(0.0D, -1.0D, z)).isEmpty(); var17 = z)
-				{
 					if (z < var20 && z >= -var20)
-					{
 						z = 0.0D;
-					}
 					else if (z > 0.0D)
-					{
 						z -= var20;
-					}
 					else
-					{
 						z += var20;
-					}
-				}
 				
 				for (; x != 0.0D && z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(x, -1.0D, z)).isEmpty(); var17 = z)
 				{
 					if (x < var20 && x >= -var20)
-					{
 						x = 0.0D;
-					}
 					else if (x > 0.0D)
-					{
 						x -= var20;
-					}
 					else
-					{
 						x += var20;
-					}
 					
 					var13 = x;
 					
 					if (z < var20 && z >= -var20)
-					{
 						z = 0.0D;
-					}
 					else if (z > 0.0D)
-					{
 						z -= var20;
-					}
 					else
-					{
 						z += var20;
-					}
 				}
 			}
 			
@@ -635,9 +577,7 @@ public abstract class Entity implements ICommandSender
 			AxisAlignedBB var23;
 			
 			for (final Iterator var22 = var53.iterator(); var22.hasNext(); y = var23.calculateYOffset(this.getEntityBoundingBox(), y))
-			{
 				var23 = (AxisAlignedBB) var22.next();
-			}
 			
 			this.func_174826_a(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
 			final boolean var54 = this.onGround || var15 != y && var15 < 0.0D;
@@ -645,16 +585,12 @@ public abstract class Entity implements ICommandSender
 			Iterator var55;
 			
 			for (var55 = var53.iterator(); var55.hasNext(); x = var24.calculateXOffset(this.getEntityBoundingBox(), x))
-			{
 				var24 = (AxisAlignedBB) var55.next();
-			}
 			
 			this.func_174826_a(this.getEntityBoundingBox().offset(x, 0.0D, 0.0D));
 			
 			for (var55 = var53.iterator(); var55.hasNext(); z = var24.calculateZOffset(this.getEntityBoundingBox(), z))
-			{
 				var24 = (AxisAlignedBB) var55.next();
-			}
 			
 			this.func_174826_a(this.getEntityBoundingBox().offset(0.0D, 0.0D, z));
 			
@@ -673,27 +609,21 @@ public abstract class Entity implements ICommandSender
 				AxisAlignedBB var36;
 				
 				for (final Iterator var35 = var30.iterator(); var35.hasNext(); var33 = var36.calculateYOffset(var32, var33))
-				{
 					var36 = (AxisAlignedBB) var35.next();
-				}
 				
 				var31 = var31.offset(0.0D, var33, 0.0D);
 				double var67 = var13;
 				AxisAlignedBB var38;
 				
 				for (final Iterator var37 = var30.iterator(); var37.hasNext(); var67 = var38.calculateXOffset(var31, var67))
-				{
 					var38 = (AxisAlignedBB) var37.next();
-				}
 				
 				var31 = var31.offset(var67, 0.0D, 0.0D);
 				double var68 = var17;
 				AxisAlignedBB var40;
 				
 				for (final Iterator var39 = var30.iterator(); var39.hasNext(); var68 = var40.calculateZOffset(var31, var68))
-				{
 					var40 = (AxisAlignedBB) var39.next();
-				}
 				
 				var31 = var31.offset(0.0D, 0.0D, var68);
 				AxisAlignedBB var69 = this.getEntityBoundingBox();
@@ -701,27 +631,21 @@ public abstract class Entity implements ICommandSender
 				AxisAlignedBB var43;
 				
 				for (final Iterator var42 = var30.iterator(); var42.hasNext(); var70 = var43.calculateYOffset(var69, var70))
-				{
 					var43 = (AxisAlignedBB) var42.next();
-				}
 				
 				var69 = var69.offset(0.0D, var70, 0.0D);
 				double var71 = var13;
 				AxisAlignedBB var45;
 				
 				for (final Iterator var44 = var30.iterator(); var44.hasNext(); var71 = var45.calculateXOffset(var69, var71))
-				{
 					var45 = (AxisAlignedBB) var44.next();
-				}
 				
 				var69 = var69.offset(var71, 0.0D, 0.0D);
 				double var72 = var17;
 				AxisAlignedBB var47;
 				
 				for (final Iterator var46 = var30.iterator(); var46.hasNext(); var72 = var47.calculateZOffset(var69, var72))
-				{
 					var47 = (AxisAlignedBB) var46.next();
-				}
 				
 				var69 = var69.offset(0.0D, 0.0D, var72);
 				final double var73 = var67 * var67 + var68 * var68;
@@ -744,9 +668,7 @@ public abstract class Entity implements ICommandSender
 				AxisAlignedBB var51;
 				
 				for (final Iterator var50 = var30.iterator(); var50.hasNext(); y = var51.calculateYOffset(this.getEntityBoundingBox(), y))
-				{
 					var51 = (AxisAlignedBB) var50.next();
-				}
 				
 				this.func_174826_a(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
 				
@@ -786,19 +708,13 @@ public abstract class Entity implements ICommandSender
 			this.func_180433_a(y, this.onGround, var60, var26);
 			
 			if (var13 != x)
-			{
 				this.motionX = 0.0D;
-			}
 			
 			if (var17 != z)
-			{
 				this.motionZ = 0.0D;
-			}
 			
 			if (var15 != y)
-			{
 				var60.onLanded(this.worldObj, this);
-			}
 			
 			if (this.canTriggerWalking() && !var19 && this.ridingEntity == null)
 			{
@@ -807,14 +723,10 @@ public abstract class Entity implements ICommandSender
 				final double var66 = this.posZ - var11;
 				
 				if (var60 != Blocks.ladder)
-				{
 					var64 = 0.0D;
-				}
 				
 				if (var60 != null && this.onGround)
-				{
 					var60.onEntityCollidedWithBlock(this.worldObj, var26, this);
-				}
 				
 				this.distanceWalkedModified = (float) (this.distanceWalkedModified + MathHelper.sqrt_double(var61 * var61 + var66 * var66) * 0.6D);
 				this.distanceWalkedOnStepModified = (float) (this.distanceWalkedOnStepModified + MathHelper.sqrt_double(var61 * var61 + var64 * var64 + var66 * var66) * 0.6D);
@@ -828,9 +740,7 @@ public abstract class Entity implements ICommandSender
 						float var34 = MathHelper.sqrt_double(this.motionX * this.motionX * 0.20000000298023224D + this.motionY * this.motionY + this.motionZ * this.motionZ * 0.20000000298023224D) * 0.35F;
 						
 						if (var34 > 1.0F)
-						{
 							var34 = 1.0F;
-						}
 						
 						this.playSound(this.getSwimSound(), var34, 1.0F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
 					}
@@ -861,15 +771,11 @@ public abstract class Entity implements ICommandSender
 					++this.fire;
 					
 					if (this.fire == 0)
-					{
 						this.setFire(8);
-					}
 				}
 			}
 			else if (this.fire <= 0)
-			{
 				this.fire = -this.fireResistance;
-			}
 			
 			if (var62 && this.fire > 0)
 			{
@@ -899,11 +805,8 @@ public abstract class Entity implements ICommandSender
 		final BlockPos var2 = new BlockPos(this.getEntityBoundingBox().maxX - 0.001D, this.getEntityBoundingBox().maxY - 0.001D, this.getEntityBoundingBox().maxZ - 0.001D);
 		
 		if (this.worldObj.isAreaLoaded(var1, var2))
-		{
 			for (int var3 = var1.getX(); var3 <= var2.getX(); ++var3)
-			{
 				for (int var4 = var1.getY(); var4 <= var2.getY(); ++var4)
-				{
 					for (int var5 = var1.getZ(); var5 <= var2.getZ(); ++var5)
 					{
 						final BlockPos var6 = new BlockPos(var3, var4, var5);
@@ -920,9 +823,6 @@ public abstract class Entity implements ICommandSender
 							throw new ReportedException(var9);
 						}
 					}
-				}
-			}
-		}
 	}
 	
 	protected void func_180429_a(final BlockPos p_180429_1_, final Block p_180429_2_)
@@ -935,17 +835,13 @@ public abstract class Entity implements ICommandSender
 			this.playSound(var3.getStepSound(), var3.getVolume() * 0.15F, var3.getFrequency());
 		}
 		else if (!p_180429_2_.getMaterial().isLiquid())
-		{
 			this.playSound(var3.getStepSound(), var3.getVolume() * 0.15F, var3.getFrequency());
-		}
 	}
 	
 	public void playSound(final String name, final float volume, final float pitch)
 	{
 		if (!this.isSlient())
-		{
 			this.worldObj.playSoundAtEntity(this, name, volume, pitch);
-		}
 	}
 	
 	/**
@@ -976,21 +872,15 @@ public abstract class Entity implements ICommandSender
 			if (this.fallDistance > 0.0F)
 			{
 				if (p_180433_4_ != null)
-				{
 					p_180433_4_.onFallenUpon(this.worldObj, p_180433_5_, this, this.fallDistance);
-				}
 				else
-				{
 					this.fall(this.fallDistance, 1.0F);
-				}
 				
 				this.fallDistance = 0.0F;
 			}
 		}
 		else if (p_180433_1_ < 0.0D)
-		{
 			this.fallDistance = (float) (this.fallDistance - p_180433_1_);
-		}
 	}
 	
 	/**
@@ -1007,9 +897,7 @@ public abstract class Entity implements ICommandSender
 	protected void dealFireDamage(final int amount)
 	{
 		if (!this.isImmuneToFire)
-		{
 			this.attackEntityFrom(DamageSource.inFire, amount);
-		}
 	}
 	
 	public final boolean isImmuneToFire()
@@ -1020,9 +908,7 @@ public abstract class Entity implements ICommandSender
 	public void fall(final float distance, final float damageMultiplier)
 	{
 		if (this.riddenByEntity != null)
-		{
 			this.riddenByEntity.fall(distance, damageMultiplier);
-		}
 	}
 	
 	/**
@@ -1049,18 +935,14 @@ public abstract class Entity implements ICommandSender
 		if (this.worldObj.handleMaterialAcceleration(this.getEntityBoundingBox().expand(0.0D, -0.4000000059604645D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this))
 		{
 			if (!this.inWater && !this.firstUpdate)
-			{
 				this.resetHeight();
-			}
 			
 			this.fallDistance = 0.0F;
 			this.inWater = true;
 			this.fire = 0;
 		}
 		else
-		{
 			this.inWater = false;
-		}
 		
 		return this.inWater;
 	}
@@ -1073,9 +955,7 @@ public abstract class Entity implements ICommandSender
 		float var1 = MathHelper.sqrt_double(this.motionX * this.motionX * 0.20000000298023224D + this.motionY * this.motionY + this.motionZ * this.motionZ * 0.20000000298023224D) * 0.2F;
 		
 		if (var1 > 1.0F)
-		{
 			var1 = 1.0F;
-		}
 		
 		this.playSound(this.getSplashSound(), var1, 1.0F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
 		final float var2 = MathHelper.floor_double(this.getEntityBoundingBox().minY);
@@ -1101,9 +981,7 @@ public abstract class Entity implements ICommandSender
 	public void func_174830_Y()
 	{
 		if (this.isSprinting() && !this.isInWater())
-		{
 			this.func_174808_Z();
-		}
 	}
 	
 	protected void func_174808_Z()
@@ -1116,9 +994,7 @@ public abstract class Entity implements ICommandSender
 		final Block var6 = var5.getBlock();
 		
 		if (var6.getRenderType() != -1)
-		{
 			this.worldObj.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.posX + (this.rand.nextFloat() - 0.5D) * this.width, this.getEntityBoundingBox().minY + 0.1D, this.posZ + (this.rand.nextFloat() - 0.5D) * this.width, -this.motionX * 4.0D, 1.5D, -this.motionZ * 4.0D, new int[] { Block.getStateId(var5) });
-		}
 	}
 	
 	protected String getSplashSound()
@@ -1144,9 +1020,7 @@ public abstract class Entity implements ICommandSender
 			return !var9 && this instanceof EntityPlayer ? false : var9;
 		}
 		else
-		{
 			return false;
-		}
 	}
 	
 	public boolean func_180799_ab()
@@ -1166,9 +1040,7 @@ public abstract class Entity implements ICommandSender
 			var4 = MathHelper.sqrt_float(var4);
 			
 			if (var4 < 1.0F)
-			{
 				var4 = 1.0F;
-			}
 			
 			var4 = friction / var4;
 			strafe *= var4;
@@ -1194,9 +1066,7 @@ public abstract class Entity implements ICommandSender
 			return this.worldObj.getLightBrightness(var2.offsetUp(var5));
 		}
 		else
-		{
 			return 0.0F;
-		}
 	}
 	
 	/**
@@ -1220,14 +1090,10 @@ public abstract class Entity implements ICommandSender
 		final double var9 = this.prevRotationYaw - yaw;
 		
 		if (var9 < -180.0D)
-		{
 			this.prevRotationYaw += 360.0F;
-		}
 		
 		if (var9 >= 180.0D)
-		{
 			this.prevRotationYaw -= 360.0F;
-		}
 		
 		this.setPosition(this.posX, this.posY, this.posZ);
 		this.setRotation(yaw, pitch);
@@ -1318,7 +1184,6 @@ public abstract class Entity implements ICommandSender
 	public void applyEntityCollision(final Entity entityIn)
 	{
 		if (entityIn.riddenByEntity != this && entityIn.ridingEntity != this)
-		{
 			if (!entityIn.noClip && !this.noClip)
 			{
 				double var2 = entityIn.posX - this.posX;
@@ -1333,9 +1198,7 @@ public abstract class Entity implements ICommandSender
 					double var8 = 1.0D / var6;
 					
 					if (var8 > 1.0D)
-					{
 						var8 = 1.0D;
-					}
 					
 					var2 *= var8;
 					var4 *= var8;
@@ -1345,17 +1208,12 @@ public abstract class Entity implements ICommandSender
 					var4 *= 1.0F - this.entityCollisionReduction;
 					
 					if (this.riddenByEntity == null)
-					{
 						this.addVelocity(-var2, 0.0D, -var4);
-					}
 					
 					if (entityIn.riddenByEntity == null)
-					{
 						entityIn.addVelocity(var2, 0.0D, var4);
-					}
 				}
 			}
-		}
 	}
 	
 	/**
@@ -1383,9 +1241,7 @@ public abstract class Entity implements ICommandSender
 	public boolean attackEntityFrom(final DamageSource source, final float amount)
 	{
 		if (this.func_180431_b(source))
-		{
 			return false;
-		}
 		else
 		{
 			this.setBeenAttacked();
@@ -1399,9 +1255,7 @@ public abstract class Entity implements ICommandSender
 	public Vec3 getLook(final float p_70676_1_)
 	{
 		if (p_70676_1_ == 1.0F)
-		{
 			return this.func_174806_f(this.rotationPitch, this.rotationYaw);
-		}
 		else
 		{
 			final float var2 = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * p_70676_1_;
@@ -1456,9 +1310,7 @@ public abstract class Entity implements ICommandSender
 			return true;
 		}
 		else
-		{
 			return false;
-		}
 	}
 	
 	/**
@@ -1475,9 +1327,7 @@ public abstract class Entity implements ICommandSender
 			return true;
 		}
 		else
-		{
 			return false;
-		}
 	}
 	
 	/**
@@ -1509,9 +1359,7 @@ public abstract class Entity implements ICommandSender
 			this.field_174837_as.func_179670_b(tagCompund);
 			
 			if (this.isSlient())
-			{
 				tagCompund.setBoolean("Silent", this.isSlient());
-			}
 			
 			this.writeEntityToNBT(tagCompund);
 			
@@ -1520,9 +1368,7 @@ public abstract class Entity implements ICommandSender
 				final NBTTagCompound var2 = new NBTTagCompound();
 				
 				if (this.ridingEntity.writeMountToNBT(var2))
-				{
 					tagCompund.setTag("Riding", var2);
-				}
 			}
 		} catch (final Throwable var5)
 		{
@@ -1548,19 +1394,13 @@ public abstract class Entity implements ICommandSender
 			this.motionZ = var6.getDouble(2);
 			
 			if (Math.abs(this.motionX) > 10.0D)
-			{
 				this.motionX = 0.0D;
-			}
 			
 			if (Math.abs(this.motionY) > 10.0D)
-			{
 				this.motionY = 0.0D;
-			}
 			
 			if (Math.abs(this.motionZ) > 10.0D)
-			{
 				this.motionZ = 0.0D;
-			}
 			
 			this.prevPosX = this.lastTickPosX = this.posX = var2.getDouble(0);
 			this.prevPosY = this.lastTickPosY = this.posY = var2.getDouble(1);
@@ -1576,21 +1416,15 @@ public abstract class Entity implements ICommandSender
 			this.timeUntilPortal = tagCompund.getInteger("PortalCooldown");
 			
 			if (tagCompund.hasKey("UUIDMost", 4) && tagCompund.hasKey("UUIDLeast", 4))
-			{
 				this.entityUniqueID = new UUID(tagCompund.getLong("UUIDMost"), tagCompund.getLong("UUIDLeast"));
-			}
 			else if (tagCompund.hasKey("UUID", 8))
-			{
 				this.entityUniqueID = UUID.fromString(tagCompund.getString("UUID"));
-			}
 			
 			this.setPosition(this.posX, this.posY, this.posZ);
 			this.setRotation(this.rotationYaw, this.rotationPitch);
 			
 			if (tagCompund.hasKey("CustomName", 8) && tagCompund.getString("CustomName").length() > 0)
-			{
 				this.setCustomNameTag(tagCompund.getString("CustomName"));
-			}
 			
 			this.setAlwaysRenderNameTag(tagCompund.getBoolean("CustomNameVisible"));
 			this.field_174837_as.func_179668_a(tagCompund);
@@ -1598,9 +1432,7 @@ public abstract class Entity implements ICommandSender
 			this.readEntityFromNBT(tagCompund);
 			
 			if (this.shouldSetPosAfterLoading())
-			{
 				this.setPosition(this.posX, this.posY, this.posZ);
-			}
 		} catch (final Throwable var5)
 		{
 			final CrashReport var3 = CrashReport.makeCrashReport(var5, "Loading entity NBT");
@@ -1696,9 +1528,7 @@ public abstract class Entity implements ICommandSender
 			return var3;
 		}
 		else
-		{
 			return null;
-		}
 	}
 	
 	/**
@@ -1715,9 +1545,7 @@ public abstract class Entity implements ICommandSender
 	public boolean isEntityInsideOpaqueBlock()
 	{
 		if (this.noClip)
-		{
 			return false;
-		}
 		else
 		{
 			for (int var1 = 0; var1 < 8; ++var1)
@@ -1727,9 +1555,7 @@ public abstract class Entity implements ICommandSender
 				final double var6 = this.posZ + ((var1 >> 2) % 2 - 0.5F) * this.width * 0.8F;
 				
 				if (this.worldObj.getBlockState(new BlockPos(var2, var4 + this.getEyeHeight(), var6)).getBlock().isVisuallyOpaque())
-				{
 					return true;
-				}
 			}
 			
 			return false;
@@ -1758,9 +1584,7 @@ public abstract class Entity implements ICommandSender
 	public void updateRidden()
 	{
 		if (this.ridingEntity.isDead)
-		{
 			this.ridingEntity = null;
-		}
 		else
 		{
 			this.motionX = 0.0D;
@@ -1774,48 +1598,32 @@ public abstract class Entity implements ICommandSender
 				this.entityRiderYawDelta += this.ridingEntity.rotationYaw - this.ridingEntity.prevRotationYaw;
 				
 				for (this.entityRiderPitchDelta += this.ridingEntity.rotationPitch - this.ridingEntity.prevRotationPitch; this.entityRiderYawDelta >= 180.0D; this.entityRiderYawDelta -= 360.0D)
-				{
 					;
-				}
 				
 				while (this.entityRiderYawDelta < -180.0D)
-				{
 					this.entityRiderYawDelta += 360.0D;
-				}
 				
 				while (this.entityRiderPitchDelta >= 180.0D)
-				{
 					this.entityRiderPitchDelta -= 360.0D;
-				}
 				
 				while (this.entityRiderPitchDelta < -180.0D)
-				{
 					this.entityRiderPitchDelta += 360.0D;
-				}
 				
 				double var1 = this.entityRiderYawDelta * 0.5D;
 				double var3 = this.entityRiderPitchDelta * 0.5D;
 				final float var5 = 10.0F;
 				
 				if (var1 > var5)
-				{
 					var1 = var5;
-				}
 				
 				if (var1 < (-var5))
-				{
 					var1 = (-var5);
-				}
 				
 				if (var3 > var5)
-				{
 					var3 = var5;
-				}
 				
 				if (var3 < (-var5))
-				{
 					var3 = (-var5);
-				}
 				
 				this.entityRiderYawDelta -= var1;
 				this.entityRiderPitchDelta -= var3;
@@ -1826,9 +1634,7 @@ public abstract class Entity implements ICommandSender
 	public void updateRiderPosition()
 	{
 		if (this.riddenByEntity != null)
-		{
 			this.riddenByEntity.setPosition(this.posX, this.posY + this.getMountedYOffset() + this.riddenByEntity.getYOffset(), this.posZ);
-		}
 	}
 	
 	/**
@@ -1868,20 +1674,12 @@ public abstract class Entity implements ICommandSender
 		else
 		{
 			if (this.ridingEntity != null)
-			{
 				this.ridingEntity.riddenByEntity = null;
-			}
 			
 			if (entityIn != null)
-			{
 				for (Entity var2 = entityIn.ridingEntity; var2 != null; var2 = var2.ridingEntity)
-				{
 					if (var2 == this)
-					{
 						return;
-					}
-				}
-			}
 			
 			this.ridingEntity = entityIn;
 			entityIn.riddenByEntity = this;
@@ -1907,9 +1705,7 @@ public abstract class Entity implements ICommandSender
 	public void setInPortal()
 	{
 		if (this.timeUntilPortal > 0)
-		{
 			this.timeUntilPortal = this.getPortalCooldown();
-		}
 		else
 		{
 			final double var1 = this.prevPosX - this.posX;
@@ -1920,13 +1716,9 @@ public abstract class Entity implements ICommandSender
 				int var5;
 				
 				if (MathHelper.abs((float) var1) > MathHelper.abs((float) var3))
-				{
 					var5 = var1 > 0.0D ? EnumFacing.WEST.getHorizontalIndex() : EnumFacing.EAST.getHorizontalIndex();
-				}
 				else
-				{
 					var5 = var3 > 0.0D ? EnumFacing.NORTH.getHorizontalIndex() : EnumFacing.SOUTH.getHorizontalIndex();
-				}
 				
 				this.teleportDirection = var5;
 			}
@@ -2038,13 +1830,9 @@ public abstract class Entity implements ICommandSender
 		final byte var3 = this.dataWatcher.getWatchableObjectByte(0);
 		
 		if (set)
-		{
 			this.dataWatcher.updateObject(0, Byte.valueOf((byte) (var3 | 1 << flag)));
-		}
 		else
-		{
 			this.dataWatcher.updateObject(0, Byte.valueOf((byte) (var3 & ~(1 << flag))));
-		}
 	}
 	
 	public int getAir()
@@ -2066,9 +1854,7 @@ public abstract class Entity implements ICommandSender
 		++this.fire;
 		
 		if (this.fire == 0)
-		{
 			this.setFire(8);
-		}
 	}
 	
 	/**
@@ -2087,9 +1873,7 @@ public abstract class Entity implements ICommandSender
 		final List var14 = this.worldObj.func_147461_a(this.getEntityBoundingBox());
 		
 		if (var14.isEmpty() && !this.worldObj.func_175665_u(var7))
-		{
 			return false;
-		}
 		else
 		{
 			byte var15 = 3;
@@ -2128,29 +1912,19 @@ public abstract class Entity implements ICommandSender
 			final float var18 = this.rand.nextFloat() * 0.2F + 0.1F;
 			
 			if (var15 == 0)
-			{
 				this.motionX = (-var18);
-			}
 			
 			if (var15 == 1)
-			{
 				this.motionX = var18;
-			}
 			
 			if (var15 == 3)
-			{
 				this.motionY = var18;
-			}
 			
 			if (var15 == 4)
-			{
 				this.motionZ = (-var18);
-			}
 			
 			if (var15 == 5)
-			{
 				this.motionZ = var18;
-			}
 			
 			return true;
 		}
@@ -2172,17 +1946,13 @@ public abstract class Entity implements ICommandSender
 	public String getName()
 	{
 		if (this.hasCustomName())
-		{
 			return this.getCustomNameTag();
-		}
 		else
 		{
 			String var1 = EntityList.getEntityString(this);
 			
 			if (var1 == null)
-			{
 				var1 = "generic";
-			}
 			
 			return StatCollector.translateToLocal("entity." + var1 + ".name");
 		}
@@ -2474,9 +2244,7 @@ public abstract class Entity implements ICommandSender
 		var1.setString("id", this.getUniqueID().toString());
 		
 		if (var2 != null)
-		{
 			var1.setString("type", var2);
-		}
 		
 		var1.setString("name", this.getName());
 		return new HoverEvent(HoverEvent.Action.SHOW_ENTITY, new ChatComponentText(var1.toString()));
@@ -2529,7 +2297,7 @@ public abstract class Entity implements ICommandSender
 	 * Returns true if the command sender is allowed to use the given command.
 	 */
 	@Override
-	public boolean canCommandSenderUseCommand(final int permissionLevel)
+	public boolean canCommandSenderUseCommand(final int permissionLevel, final String command)
 	{
 		return true;
 	}
@@ -2598,9 +2366,7 @@ public abstract class Entity implements ICommandSender
 	protected void func_174815_a(final EntityLivingBase p_174815_1_, final Entity p_174815_2_)
 	{
 		if (p_174815_2_ instanceof EntityLivingBase)
-		{
 			EnchantmentHelper.func_151384_a((EntityLivingBase) p_174815_2_, p_174815_1_);
-		}
 		
 		EnchantmentHelper.func_151385_b(p_174815_1_, p_174815_2_);
 	}

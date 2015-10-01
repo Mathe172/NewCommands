@@ -5,7 +5,6 @@ import java.util.regex.Matcher;
 import net.minecraft.command.ParsingUtilities;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
@@ -21,7 +20,7 @@ public class TypeNullable<R extends ArgWrapper<?>> extends TypeParse<R>
 	}
 	
 	@Override
-	public R parse(final Parser parser, final Context parserData) throws SyntaxErrorException, CompletionException
+	public R iParse(final Parser parser, final Context parserData) throws SyntaxErrorException
 	{
 		final Matcher m = parser.getMatcher(ParsingUtilities.listEndMatcher);
 		

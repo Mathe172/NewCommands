@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
+
 import net.minecraft.command.IPermission;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
@@ -15,7 +17,6 @@ import net.minecraft.command.arg.PermissionWrapper;
 import net.minecraft.command.completion.ITabCompletion;
 import net.minecraft.command.completion.TabCompletion.Escaped;
 import net.minecraft.command.completion.TabCompletion.SingleChar;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.Parser;
 import net.minecraft.command.type.IDataType;
@@ -23,7 +24,7 @@ import net.minecraft.command.type.management.TypeID;
 
 public abstract class OperatorDescriptor
 {
-	private static final Map<String, OperatorDescriptor> operators = new HashMap<>();
+	private static final PatriciaTrie<OperatorDescriptor> operators = new PatriciaTrie<>();
 	
 	public static final Map<ITabCompletion, IPermission> operatorCompletions = new HashMap<>();
 	
@@ -75,7 +76,7 @@ public abstract class OperatorDescriptor
 	
 	public abstract ArgWrapper<?> construct(ListOperands operands) throws SyntaxErrorException;
 	
-	public final ArgWrapper<?> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public final ArgWrapper<?> parse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final ListOperands operands = this.operands.isEmpty() ? null : new ListOperands(this.operands.size());
 		

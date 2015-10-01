@@ -5,6 +5,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
+import com.google.common.base.Function;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirt;
 import net.minecraft.block.BlockDoublePlant;
@@ -40,11 +45,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-
-import com.google.common.base.Function;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 
 public class Item
 {
@@ -103,7 +103,6 @@ public class Item
 		final Item var1 = (Item) itemRegistry.getObject(new ResourceLocation(id));
 		
 		if (var1 == null)
-		{
 			try
 			{
 				return getItemById(Integer.parseInt(id));
@@ -111,7 +110,6 @@ public class Item
 			{
 				;
 			}
-		}
 		
 		return var1;
 	}

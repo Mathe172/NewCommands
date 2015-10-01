@@ -18,7 +18,7 @@ public interface IPermission
 		@Override
 		public boolean canCommandSenderUseCommand(final ICommandSender sender)
 		{
-			return sender.canCommandSenderUseCommand(1);
+			return sender.canCommandSenderUseCommand(1, "");
 		}
 	};
 	
@@ -27,7 +27,7 @@ public interface IPermission
 		@Override
 		public boolean canCommandSenderUseCommand(final ICommandSender sender)
 		{
-			return sender.canCommandSenderUseCommand(2);
+			return sender.canCommandSenderUseCommand(2, "");
 		}
 	};
 	
@@ -36,7 +36,7 @@ public interface IPermission
 		@Override
 		public boolean canCommandSenderUseCommand(final ICommandSender sender)
 		{
-			return sender.canCommandSenderUseCommand(3);
+			return sender.canCommandSenderUseCommand(3, "");
 		}
 	};
 	
@@ -45,7 +45,7 @@ public interface IPermission
 		@Override
 		public boolean canCommandSenderUseCommand(final ICommandSender sender)
 		{
-			return sender.canCommandSenderUseCommand(4);
+			return sender.canCommandSenderUseCommand(4, "");
 		}
 	};
 }

@@ -5,7 +5,6 @@ import net.minecraft.command.ParsingUtilities.PrimitiveCallback;
 import net.minecraft.command.SyntaxErrorException;
 import net.minecraft.command.arg.ArgWrapper;
 import net.minecraft.command.collections.TypeIDs;
-import net.minecraft.command.parser.CompletionException;
 import net.minecraft.command.parser.Context;
 import net.minecraft.command.parser.MatcherRegistry;
 import net.minecraft.command.parser.Parser;
@@ -67,7 +66,7 @@ public final class ParserName extends CTypeParse<String>
 	}
 	
 	@Override
-	public ArgWrapper<String> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+	public ArgWrapper<String> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 	{
 		final ArgWrapper<String> ret = ParsingUtilities.parseString(parser, context, this.target, this.m, callback);
 		
@@ -121,7 +120,7 @@ public final class ParserName extends CTypeParse<String>
 		}
 		
 		@Override
-		public ArgWrapper<T> parse(final Parser parser, final Context context) throws SyntaxErrorException, CompletionException
+		public ArgWrapper<T> iParse(final Parser parser, final Context context) throws SyntaxErrorException
 		{
 			final ArgWrapper<T> ret = ParsingUtilities.parseString(parser, context, this.target, this.converter, this.m, this.callback);
 			
