@@ -17,6 +17,7 @@
 - [Labels](#labels)
 - [Strings](#strings)
 - [NBT](#nbt)
+- [JSON](#json)
 - [Examples](#examples)
  	- [Tab completion](#tab-completion)
 - [Code model](#code-model)
