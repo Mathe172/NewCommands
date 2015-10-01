@@ -102,12 +102,11 @@ These commands have changed: (Only changes are listed)
 * `/execute`: Position can be omitted (`/execute @e say ...` is allowed), it defaults to `~ ~ ~`. **Note**: If the preamble (selectors before command) is non-empty, parentheses should be used around the command (otherwise, the selectors might be interpreted as postions). Also, the `detect` part optionally accepts NBT-data to filter the block (while metadata can be omitted even with NBT-data, the should be specified when the NBT-data come from a selector)
 * `/fill`: Same `fast`-flag as for `/clone`
 * `/help`,`/?`: Same as before, but now also allows you to specify the 'command-path' (a list of keywords for the command without any other parameters): for example, `/help scoreboard players` would print the help information specific to that subcommand
-* `/say`: Nearly the same as before, but there are a few escape-sequences:
-	|`\0`|terminates the command, so that it can be chained with others|
-	|----|----|
-	|`\@`|this selector won't get interpreted|
-	|`\$`|this label won't get interpreted|
-	|`\\`|backslashes that appear before `0`,`@`,`$`,`\` can be escaped this way to behave normally (this is only necessary before these sequences, in other places `\\` is interpreted as `\\`)
+* `/say`: Nearly the same as before, but there are a few escape-sequences:<br>
+	`\0`: terminates the command, so that it can be chained with others<br>
+	`\@`: this selector won't get interpreted<br>
+	`\$`: this label won't get interpreted<br>
+	`\\`: backslashes that appear before `0`,`@`,`$`,`\` can be escaped this way to behave normally (this is only necessary before these sequences, in other places `\\` is interpreted as `\\`)<br>
 	For example, `/say Hello, \\ \\\@s\0, say Second message, \\@s` would print `Hello, \\ \@s` and `Second message, \<player-name>`
 * `/summon`: Optional `label <label-name>` parameter (first parameter): If specified, the resulting entity is available in the label `<label-name>` (see [labels-section](#labels) for more information)
 
